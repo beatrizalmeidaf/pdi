@@ -1,0 +1,39 @@
+% Requer pacotes no preâmbulo do documento principal:
+% \usepackage{tikz}
+% \usetikzlibrary{shapes.geometric, arrows.meta, positioning}
+
+\begin{tikzpicture}[
+    node distance=2cm and 1.5cm,
+    block/.style={rectangle, draw, fill=blue!5, text width=3.5cm, text centered, rounded corners, minimum height=1.5cm, font=\sffamily\small},
+    arrow/.style={-{Stealth[scale=1.2]}, thick, draw=black!70},
+    dashed_arrow/.style={-{Stealth[scale=1.2]}, dashed, thick, draw=red!70!black},
+    green_arrow/.style={-{Stealth[scale=1.2]}, thick, draw=green!60!black}
+]
+
+% Nós principais
+\node (input) [block, fill=gray!10] {Imagem Original\\(Câmera/Sensor)};
+\node (enhancement) [block, right=2.5cm of input, fill=blue!10] {Técnicas de Aprimoramento\\(Denoising, Sharpening, etc.)};
+\node (output) [block, right=2.5cm of enhancement, fill=gray!10] {Imagem Aprimorada};
+
+% Nós de desfecho
+\node (human) [block, above=1.5cm of output, fill=green!10, text width=3cm] {Observador Humano\\(Qualidade Perceptual)};
+\node (cnn) [block, below=1.5cm of output, fill=red!10, text width=3cm] {Classificador CNN\\(Desempenho)};
+
+% Nó explicativo
+\node (spectrum) [block, below=1.2cm of enhancement, fill=yellow!15, text width=4cm] {Alteração no Espectro\\(Perda de Altas Frequências e Sinais Discriminativos)};
+
+% Conexões principais
+\draw [arrow] (input) -- (enhancement);
+\draw [arrow] (enhancement) -- (output);
+
+% Conexões para Humano
+\draw [green_arrow] (output) -- (human) node[midway, right, font=\sffamily\scriptsize, text=green!50!black] {Efeito Positivo};
+
+% Conexões para CNN
+\draw [dashed_arrow] (output) -- (cnn) node[midway, right, font=\sffamily\scriptsize, text=red!50!black] {Degradação Sistemática};
+
+% Conexões da alteração de espectro
+\draw [arrow] (enhancement) -- (spectrum) node[midway, right, font=\sffamily\scriptsize] {Causa};
+\draw [dashed_arrow] (spectrum) -- (cnn) node[midway, below, font=\sffamily\scriptsize, text=red!50!black, sloped, align=center] {Redução de Features\\Relevantes};
+
+\end{tikzpicture}

@@ -26,34 +26,33 @@
 \usepackage{graphicx}
 \usepackage{textcomp}
 \usepackage{xcolor}
+\usepackage{tikz}
+\usetikzlibrary{shapes.geometric, arrows.meta, positioning}
 
 \def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
     T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
 
 \begin{document}
 
-\title{Quando melhorar a imagem piora a classificação: efeito de técnicas
-clássicas de pré-processamento sobre CNNs pré-treinadas}
+\title{Titulo...}
 
-% TODO: conferir nomes completos, departamento e e-mails abaixo --- foram
-% inferidos da linha de autoria do documento de planejamento.
-\author{\IEEEauthorblockN{1\textsuperscript{st} Beatriz Almeida}
+\author{\IEEEauthorblockN{1\textsuperscript{st} Nome}
 \IEEEauthorblockA{\textit{Instituto de Informática} \\
 \textit{Universidade Federal de Goiás}\\
 Goiânia, Brasil \\
-beatrizalmeidaf@discente.ufg.br}
+Nome@discente.ufg.br}
 \and
-\IEEEauthorblockN{2\textsuperscript{nd} Júlio Alves}
+\IEEEauthorblockN{2\textsuperscript{nd} Nome}
 \IEEEauthorblockA{\textit{Instituto de Informática} \\
 \textit{Universidade Federal de Goiás}\\
 Goiânia, Brasil \\
-julioalves07@discente.ufg.br}
+Nome@discente.ufg.br}
 \and
-\IEEEauthorblockN{3\textsuperscript{rd} Kamilla Rego Sino}
+\IEEEauthorblockN{3\textsuperscript{rd} Nome}
 \IEEEauthorblockA{\textit{Instituto de Informática} \\
 \textit{Universidade Federal de Goiás}\\
 Goiânia, Brasil \\
-kamillaregosino@discente.ufg.br}
+Nome@discente.ufg.br}
 }
 
 \maketitle
@@ -108,6 +107,15 @@ frequências, que são explorados pelas CNNs como sinais discriminativos
 relevantes para a classificação. Além disso, busca-se compreender se a
 magnitude dessa degradação pode ser explicada ou prevista pelas alterações na
 distribuição de energia espectral introduzidas por cada técnica.
+
+\begin{figure}[htbp]
+\centering
+\resizebox{\columnwidth}{!}{%
+\input{figures/figura_conceitual.tex}%
+}
+\caption{Diagrama conceitual da hipótese central: o compromisso entre a qualidade perceptual humana e a preservação de sinais discriminativos de alta frequência fundamentais para os classificadores convolucionais.}
+\label{fig:hipotese_conceitual}
+\end{figure}
 
 A Seção~\ref{sec:revisao} apresenta a revisão sistemática da literatura que
 fundamenta essa formulação, organizada em protocolo
