@@ -1,0 +1,1052 @@
+%=======================================================================
+% main.tex  --  IEEEtran (conference)
+%
+% Artigo: degradacao de classificadores CNN por pre-processamento
+%         perceptualmente benefico.
+%
+% Estrutura da Secao II alinhada a rubrica de avaliacao:
+%   QP (1,5) II.A | SB (1,0) II.B | CI (1,0) II.C | CE (1,0) II.D
+%   FB (1,0) II.E | RR (2,5) II.F | RQ (2,0) II.G
+%
+% Compilar com pdflatex (2 passadas, por causa dos \ref das tabelas).
+%=======================================================================
+
+\documentclass[conference]{IEEEtran}
+\IEEEoverridecommandlockouts
+
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+% Se o Overleaf reclamar "Unknown option 'brazil'", basta comentar a linha
+% abaixo: o documento compila normalmente sem ela (perde-se apenas a
+% hifenizacao em portugues e os nomes traduzidos de "Tabela"/"Figura").
+\usepackage[brazil]{babel}
+\usepackage{cite}
+\usepackage{amsmath,amssymb,amsfonts}
+\usepackage{algorithmic}
+\usepackage{graphicx}
+\usepackage{textcomp}
+\usepackage{xcolor}
+
+\def\BibTeX{{\rm B\kern-.05em{\sc i\kern-.025em b}\kern-.08em
+    T\kern-.1667em\lower.7ex\hbox{E}\kern-.125emX}}
+
+\begin{document}
+
+\title{Quando melhorar a imagem piora a classificação: efeito de técnicas
+clássicas de pré-processamento sobre CNNs pré-treinadas}
+
+% TODO: conferir nomes completos, departamento e e-mails abaixo --- foram
+% inferidos da linha de autoria do documento de planejamento.
+\author{\IEEEauthorblockN{1\textsuperscript{st} Beatriz Almeida}
+\IEEEauthorblockA{\textit{Instituto de Informática} \\
+\textit{Universidade Federal de Goiás}\\
+Goiânia, Brasil \\
+beatrizalmeidaf@discente.ufg.br}
+\and
+\IEEEauthorblockN{2\textsuperscript{nd} Júlio Alves}
+\IEEEauthorblockA{\textit{Instituto de Informática} \\
+\textit{Universidade Federal de Goiás}\\
+Goiânia, Brasil \\
+julioalves07@discente.ufg.br}
+\and
+\IEEEauthorblockN{3\textsuperscript{rd} Kamilla Rego Sino}
+\IEEEauthorblockA{\textit{Instituto de Informática} \\
+\textit{Universidade Federal de Goiás}\\
+Goiânia, Brasil \\
+kamillaregosino@discente.ufg.br}
+}
+
+\maketitle
+
+\begin{abstract}
+Técnicas clássicas de pré-processamento de imagem, como redução de ruído,
+suavização, equalização de histograma, aguçamento e super-resolução, são
+rotineiramente aplicadas a montante de classificadores baseados em redes
+neurais convolucionais sob a suposição de que uma imagem visualmente melhor
+é também uma entrada melhor para o modelo. Este trabalho investiga se essa
+suposição se sustenta, partindo da hipótese de que tais transformações alteram
+ou removem componentes espectrais, particularmente em altas frequências, que
+as redes exploram como sinais discriminativos. Esta seção apresenta uma revisão
+sistemática da literatura conduzida para fundamentar a investigação, cobrindo o
+protocolo de busca, a seleção dos estudos, a síntese crítica das evidências e
+as respostas consolidadas às questões de pesquisa formuladas.
+\end{abstract}
+
+\begin{IEEEkeywords}
+pré-processamento de imagem, redes neurais convolucionais, análise espectral,
+robustez, classificação de imagens, revisão sistemática
+\end{IEEEkeywords}
+
+%=======================================================================
+\section{Introdução}
+%=======================================================================
+
+Pipelines de visão computacional frequentemente inserem uma etapa de
+pré-processamento entre a aquisição da imagem e o classificador. A motivação
+declarada costuma ser a melhoria da qualidade da entrada: remover ruído,
+atenuar artefatos de compressão, realçar bordas, equalizar contraste ou
+aumentar a resolução. A suposição implícita é que o classificador se beneficia
+das mesmas transformações que tornam a imagem mais agradável ao observador
+humano.
+
+Essa suposição raramente é testada. Quando o é, o resultado tende a
+contrariá-la. Há evidência acumulada de que classificadores convolucionais
+exploram, como sinal de decisão, componentes da imagem que o sistema visual
+humano descarta --- textura local, detalhe fino, energia espectral em bandas
+que o olho não resolve. Se isso é verdade, então as técnicas de aprimoramento
+perceptual atuam precisamente sobre o que o modelo usa para decidir, e o ganho
+de aparência é pago com perda de acurácia.
+
+A questão central deste trabalho é investigar se técnicas clássicas de
+pré-processamento e aprimoramento perceptual de imagens --- incluindo redução
+de ruído, suavização, equalização de histograma, aguçamento e super-resolução
+--- podem degradar sistematicamente o desempenho de classificadores CNN
+pré-treinados, apesar de produzirem imagens visualmente mais agradáveis para
+observadores humanos. A hipótese subjacente é que essas transformações
+modificam ou removem componentes espectrais, particularmente em altas
+frequências, que são explorados pelas CNNs como sinais discriminativos
+relevantes para a classificação. Além disso, busca-se compreender se a
+magnitude dessa degradação pode ser explicada ou prevista pelas alterações na
+distribuição de energia espectral introduzidas por cada técnica.
+
+A Seção~\ref{sec:revisao} apresenta a revisão sistemática da literatura que
+fundamenta essa formulação, organizada em protocolo
+(Seções~\ref{sec:qp}--\ref{sec:fb}), relatório da revisão
+(Seção~\ref{sec:rr}) e respostas às questões de pesquisa
+(Seção~\ref{sec:rq}).
+
+%=======================================================================
+\section{Revisão da Literatura}
+\label{sec:revisao}
+%=======================================================================
+
+Esta seção reporta uma revisão sistemática da literatura conduzida para
+fundamentar a pergunta central deste trabalho. O protocolo é apresentado nas
+subseções \ref{sec:qp} a \ref{sec:fb}, a síntese crítica dos estudos
+selecionados na subseção \ref{sec:rr}, e as respostas consolidadas às questões
+de pesquisa na subseção \ref{sec:rq}.
+
+\subsection{Questões de Pesquisa}
+\label{sec:qp}
+
+O escopo da revisão foi delimitado pelo protocolo PICOC, sumarizado na
+Tabela~\ref{tab:picoc}. O objetivo é identificar, analisar e sintetizar
+estudos empíricos e teóricos que investiguem o efeito de técnicas clássicas de
+pré-processamento de imagem sobre a acurácia de classificadores baseados em
+redes neurais convolucionais, com atenção particular às explicações
+mecanísticas relacionadas à remoção de componentes de alta frequência no
+domínio espectral.
+
+\begin{table}[htbp]
+\caption{Delimitação do escopo da revisão (PICOC)}
+\begin{center}
+\begin{tabular}{|p{1.4cm}|p{6.1cm}|}
+\hline
+\textbf{Elemento} & \textbf{Definição} \\
+\hline
+População &
+Classificadores de imagem baseados em CNNs pré-treinadas, utilizadas em modo
+de inferência, sem \textit{fine-tuning} ou retreinamento. \\
+\hline
+Intervenção &
+Técnicas de pré-processamento voltadas à melhoria perceptual:
+\textit{denoising}, suavização, equalização de histograma, aguçamento,
+super-resolução e compressão JPEG. \\
+\hline
+Comparação &
+Acurácia de classificação em imagens originais \textit{versus} após a
+aplicação da técnica; secundariamente, \textit{benchmarks} de corrupção
+padronizados. \\
+\hline
+Desfecho &
+Acurácia de classificação, magnitude da degradação, energia espectral removida
+por banda e correlação entre energia removida e queda de acurácia. \\
+\hline
+Contexto &
+\textit{Pipelines} de pré-processamento aplicados antes da etapa de
+inferência, em tarefas de classificação de imagens com CNNs. \\
+\hline
+\end{tabular}
+\label{tab:picoc}
+\end{center}
+\end{table}
+
+A partir dessa delimitação, foram formuladas quatro questões de pesquisa:
+
+\begin{itemize}
+\item \textbf{QP1.} Técnicas clássicas de pré-processamento de imagem,
+aplicadas com objetivo de melhoria perceptual, degradam a acurácia de
+classificadores CNN pré-treinados?
+\item \textbf{QP2.} Quais mecanismos --- remoção de componentes de alta
+frequência, perda de textura, deslocamento de domínio --- explicam essa
+degradação?
+\item \textbf{QP3.} Existe relação quantificável entre a energia espectral
+removida por banda de frequência e a magnitude da queda de acurácia?
+\item \textbf{QP4.} Em quais condições ou domínios de aplicação o
+pré-processamento clássico melhora, em vez de degradar, o desempenho de
+classificadores?
+\end{itemize}
+
+As questões são encadeadas: QP1 verifica a existência do fenômeno, QP2 busca
+sua causa, QP3 testa se essa causa é quantitativamente preditiva, e QP4
+delimita as fronteiras de validade do achado.
+
+\subsection{String de Busca}
+\label{sec:sb}
+
+A \textit{string} de busca foi construída a partir dos elementos População,
+Intervenção e Desfecho do PICOC, organizados em três blocos conectados por
+\texttt{AND}, com sinônimos e variações terminológicas dentro de cada bloco
+conectados por \texttt{OR}. O primeiro bloco delimita a população de
+classificadores; o segundo, o conjunto de técnicas de pré-processamento
+consideradas; o terceiro, os desfechos de interesse, incluindo tanto métricas
+de desempenho quanto termos ligados à análise espectral. A \textit{string}
+resultante é:
+
+\begin{quote}
+\footnotesize
+\texttt{("convolutional neural network" OR "CNN" OR "DNN" OR "deep learning
+classifier" OR "deep neural network")}
+
+\texttt{AND}
+
+\texttt{("denoising" OR "image denoising" OR "noise removal" OR "histogram
+equalization" OR "CLAHE" OR "contrast enhancement" OR "image degradation" OR
+"image distortion" OR "image quality degradation" OR "image preprocessing" OR
+"image enhancement" OR "preprocessing techniques" OR "image sharpening" OR
+"edge enhancement" OR "unsharp masking" OR "image smoothing" OR "blurring" OR
+"filtering" OR "gaussian filtering" OR "low-pass" OR "super-resolution" OR
+"image super resolution" OR "upsampling")}
+
+\texttt{AND}
+
+\texttt{("high-frequency components" OR "frequency content" OR "high frequency
+information" OR "spectral energy" OR "image classification" OR "classification
+accuracy" OR "classification performance" OR "robustness" OR "generalization"
+OR "model robustness")}
+\end{quote}
+
+A \textit{string} foi adaptada sintaticamente a cada fonte, preservando a
+estrutura lógica dos três blocos.
+
+\subsection{Critérios de Inclusão}
+\label{sec:ci}
+
+Foram incluídos na revisão os estudos que satisfizessem simultaneamente:
+
+\begin{itemize}
+\item \textbf{CI1.} Estudos disponíveis em inglês ou português, com texto
+completo acessível.
+\item \textbf{CI2.} Estudos publicados a partir de 2015.
+\item \textbf{CI3.} Estudos publicados em conferências ou periódicos revisados
+por pares.
+\item \textbf{CI4.} Estudos que avaliem quantitativamente o efeito de técnicas
+de pré-processamento de imagem sobre a acurácia de classificadores baseados em
+redes neurais.
+\end{itemize}
+
+Foi admitida uma exceção controlada ao critério CI3: pré-prints de alta
+relevância metodológica e amplamente citados na literatura da área foram
+incluídos quando forneciam evidência quantitativa com \textit{baseline}
+explícito, com a ressalva de que o veículo de publicação revisado por pares não
+é informado --- é o caso, entre os estudos selecionados, de
+\cite{b1}, \cite{b2}, \cite{b4}, \cite{b5}, \cite{b7}, \cite{b8}, \cite{b9},
+\cite{b11}, \cite{b20}, \cite{b22}, \cite{b26} e \cite{b27}. Dois estudos foram
+admitidos em estatuto secundário por avaliarem detecção de objetos ou
+segmentação, e não classificação: \cite{b13} e parte dos resultados de
+\cite{b12}. Toda afirmação derivada deles é explicitamente rotulada como tal ao
+longo da síntese. Um estudo foi admitido como referência teórica, sem contar
+como evidência empírica para nenhuma questão: \cite{b3}.
+
+\subsection{Critérios de Exclusão}
+\label{sec:ce}
+
+Foram excluídos os estudos que atendessem a qualquer um dos critérios:
+
+\begin{itemize}
+\item \textbf{CE1.} Duplicatas ou versões preliminares de estudos já incluídos.
+\item \textbf{CE2.} Estudos focados exclusivamente em tarefas que não sejam
+classificação de imagem --- por exemplo, apenas detecção de objetos ou
+segmentação, sem métrica de classificação.
+\item \textbf{CE3.} Estudos que tratam exclusivamente de ataques adversariais
+intencionais, fora do escopo de melhoria perceptual.
+\item \textbf{CE4.} Estudos sem avaliação quantitativa de acurácia ou
+desempenho de classificação.
+\item \textbf{CE5.} Trabalhos não revisados por pares --- pré-prints não
+publicados, \textit{blogs}, relatórios técnicos --- exceto quando citados
+apenas como motivação e não como evidência formal.
+\end{itemize}
+
+A Tabela~\ref{tab:excluidos} registra os estudos excluídos na etapa de triagem
+por leitura integral, com o critério acionado em cada caso. O registro é
+mantido porque três deles contêm fundamentação conceitual relevante e poderiam
+ser reconsiderados caso o escopo da QP2 fosse ampliado.
+
+\begin{table}[htbp]
+\caption{Estudos excluídos na triagem por leitura integral}
+\begin{center}
+\footnotesize
+\begin{tabular}{|p{3.3cm}|p{0.7cm}|p{2.9cm}|}
+\hline
+\textbf{Estudo} & \textbf{Crit.} & \textbf{Justificativa} \\
+\hline
+Nakkiran (2019), \textit{Adversarial robustness may be at odds with
+simplicity} & CE4 & Trabalho inteiramente teórico sobre distribuições
+sintéticas; sem imagens, CNN, \textit{dataset} ou experimento. \\
+\hline
+Jacobsen \textit{et al.} (2019), \textit{Excessive invariance causes
+adversarial vulnerability} & CE3 & Há classificação, mas o pré-processamento
+não é variável do estudo e não há análise espectral. \\
+\hline
+Luo \textit{et al.} (2023), \textit{Spectral discriminators for perceptual
+quality improvement} & CE4 & Desfechos são PSNR, SSIM, LPIPS e correlação com
+juízo humano; sem acurácia. \\
+\hline
+Sheng \textit{et al.} (2023), \textit{Frequency-domain deep guided image
+denoising} & CE4 & Estudo exclusivamente de restauração; ``\textit{accuracy}''
+refere-se à fidelidade da reconstrução. \\
+\hline
+Ayyoubzadeh e Wu (2021), \textit{High frequency detail accentuation in CNN
+image restoration} & CE4 & Restauração avaliada por PSNR, SSIM e NIQE; nenhum
+classificador é avaliado. \\
+\hline
+\end{tabular}
+\label{tab:excluidos}
+\end{center}
+\end{table}
+
+\subsection{Fontes de Busca}
+\label{sec:fb}
+
+A busca foi executada sobre sete bases digitais, escolhidas por cobrirem de
+forma complementar as comunidades de visão computacional, aprendizado de
+máquina e processamento de sinais: ACM Digital Library
+(\texttt{portal.acm.org}), arXiv (\texttt{arxiv.org}), Google Scholar
+(\texttt{scholar.google.com}), IEEE Xplore Digital Library
+(\texttt{ieeexplore.ieee.org}), ScienceDirect (\texttt{sciencedirect.com}),
+Scopus (\texttt{scopus.com}) e SpringerLink (\texttt{link.springer.com}).
+
+A Tabela~\ref{tab:fontes} apresenta a quantidade de estudos importados por
+fonte. A concentração no arXiv e no IEEE Xplore reflete uma característica do
+campo: a produção sobre robustez de CNNs a degradações circula
+predominantemente em pré-prints e em anais de conferências de primeira linha
+(CVPR, ICLR, NeurIPS, ICML, ICASSP), cuja indexação nas demais bases é parcial
+ou tardia. As buscas em ACM, ScienceDirect, Scopus e SpringerLink não
+retornaram resultados adicionais que satisfizessem os critérios de inclusão e
+que já não tivessem sido recuperados pelas duas primeiras fontes.
+
+\begin{table}[htbp]
+\caption{Estudos importados por fonte de busca}
+\begin{center}
+\begin{tabular}{|l|c|}
+\hline
+\textbf{Fonte} & \textbf{Estudos importados} \\
+\hline
+arXiv & 36 \\
+IEEE Xplore Digital Library & 13 \\
+Google Scholar & 2 \\
+ACM Digital Library & 0 \\
+ScienceDirect & 0 \\
+Scopus & 0 \\
+SpringerLink & 0 \\
+\hline
+\textbf{Total} & \textbf{51} \\
+\hline
+\end{tabular}
+\label{tab:fontes}
+\end{center}
+\end{table}
+
+Dos 51 estudos importados, 29 foram selecionados após a aplicação dos critérios
+de inclusão e exclusão e submetidos à extração de dados. Destes, 28 fornecem
+evidência empírica --- um deles \cite{b13} apenas como evidência secundária de
+detecção de objetos --- e um \cite{b3} foi admitido como referência teórica.
+Cada estudo selecionado foi avaliado por um instrumento de qualidade de nove
+questões, respondidas como \textit{Sim}, \textit{Parcialmente} ou \textit{Não},
+cobrindo: clareza da metodologia experimental, presença de \textit{baseline}
+sem pré-processamento, reporte de métricas quantitativas, discussão de
+mecanismos explicativos, realização de análise no domínio da frequência, uso de
+múltiplos \textit{datasets} e arquiteturas, discussão de limitações, publicação
+em veículo revisado por pares e disponibilização de código ou dados. As
+respostas a esse instrumento são usadas ao longo da síntese para ponderar o
+peso atribuído a cada evidência.
+
+\subsection{Relatório da Revisão}
+\label{sec:rr}
+
+\subsubsection{Qualidade perceptual e qualidade para a máquina}
+
+A suposição implícita em boa parte dos \textit{pipelines} de visão
+computacional é a de que uma imagem melhor para o observador humano é também
+uma imagem melhor para o classificador. A literatura revisada mostra que essa
+equivalência não se sustenta. Dodge e Karam \cite{b1} foram os primeiros a
+formular o problema em termos explícitos, ao distinguir a qualidade perceptual
+humana da qualidade do ponto de vista de um sistema automático e ao argumentar
+que distorções cotidianas de aquisição, transmissão e armazenamento são muito
+mais prováveis, na prática, do que perturbações adversárias construídas
+deliberadamente. Avaliando quatro arquiteturas pré-treinadas sobre o conjunto
+de validação do ImageNet degradado por cinco famílias de distorção, os autores
+documentam uma assimetria que reaparece de forma sistemática em toda a
+literatura posterior: as redes são muito sensíveis a borramento e ruído e
+notavelmente resilientes a compressão moderada e a alterações de contraste.
+Mais relevante para o presente trabalho, registram que em desvios-padrão de
+ruído nos quais o desempenho médio das redes cai abaixo de 20\%, as imagens
+permanecem facilmente reconhecíveis por observadores humanos.
+
+Karahan \textit{et al.} \cite{b2} replicam essa dissociação em reconhecimento
+facial e a tornam ainda mais aguda. Aplicando cinco famílias de degradação
+apenas ao conjunto de sondas do protocolo de identificação fechada do LFW,
+observam que a acurácia \textit{rank}-1 de três CNNs pré-treinadas cai a menos
+de 6\% sob níveis de ruído nos quais, segundo o relato dos autores, o olho
+humano ainda identifica os sujeitos sem dificuldade; e, no sentido inverso,
+verificam que as redes são surpreendentemente resilientes ao escurecimento, uma
+distorção que prejudica o observador humano. As duas escalas de qualidade,
+portanto, não apenas divergem em magnitude: divergem em ordenação.
+
+Há também uma razão formal para esperar tensão entre aparência e fidelidade.
+Blau e Michaeli \cite{b3} demonstram que qualidade perceptual e distorção são
+objetivos mutuamente incompatíveis, com uma fronteira de compromisso
+monotonicamente não crescente e convexa, resultado que vale para qualquer
+medida de distorção --- inclusive distâncias definidas em espaços de
+características de redes neurais. Convém registrar, contudo, que esse trabalho
+não mede acurácia de classificação: o ``classificador'' do teorema é um
+discriminador ótimo entre imagens reais e sintéticas, e a parte experimental
+compara algoritmos de super-resolução por métricas de qualidade de imagem. A
+ponte entre o compromisso percepção--distorção e o desempenho de reconhecimento
+é, portanto, uma inferência que a presente revisão assume explicitamente como
+hipótese, e não um resultado estabelecido. Sua utilidade é delimitar a
+expectativa teórica: se otimizar a aparência necessariamente afasta a imagem
+reconstruída da imagem original, e se o classificador depende de propriedades
+dessa imagem original, então a degradação de desempenho tem uma explicação
+anterior a qualquer análise espectral.
+
+\subsubsection{Evidência empírica da degradação}
+
+O corpo empírico revisado converge para a conclusão de que as transformações
+clássicas de entrada cobram um preço em acurácia, mesmo quando aplicadas a
+imagens que não sofreram qualquer degradação prévia. A magnitude desse preço,
+porém, varia por ordens de grandeza conforme a técnica, o \textit{dataset} e o
+protocolo, e é essa variação --- e não a existência do efeito --- que ainda
+carece de explicação. A Tabela~\ref{tab:magnitudes} consolida as magnitudes
+reportadas com \textit{baseline} explícito.
+
+\begin{table}[htbp]
+\caption{Degradação reportada sobre imagens não degradadas previamente}
+\begin{center}
+\footnotesize
+\begin{tabular}{|p{2.0cm}|p{2.0cm}|p{2.6cm}|}
+\hline
+\textbf{Técnica} & \textbf{Modelo / dados} & \textbf{Efeito reportado} \\
+\hline
+Desfoque, raio 8 \cite{b4} & VGG-16 / ImageNet & \textit{top}-5: 90,88\%
+$\rightarrow$ 60,97\% \\
+\hline
+Blur gaussiano, $\sigma=8$ \cite{b4} & VGG-16 / ImageNet & \textit{top}-5:
+90,88\% $\rightarrow$ 17,39\% \\
+\hline
+Autoencoder \textit{denoising} \cite{b7} & Inception-v3 / ImageNet & 76,7\%
+$\rightarrow$ 58,3\% \\
+\hline
+\textit{Non-Local Means} \cite{b6} & ResNet-50 / ImageNet-C & mCE: 76,7\%
+$\rightarrow$ 82,1\% \\
+\hline
+Passa-baixa só no teste \cite{b23} & CIFAR-10 & $\approx$93\% $\rightarrow$
+27,45\% \\
+\hline
+Máscara radial de Fourier \cite{b14} & ResNet-200 / CIFAR-10 & erro: 5,22\%
+$\rightarrow$ 23,37\% \\
+\hline
+\textit{Anti-aliasing} crescente \cite{b21} & Ridge-DCT / LSUN & 98,24\%
+$\rightarrow$ 84,20\% \\
+\hline
+Deflexão $+$ \textit{wavelet} \cite{b11} & ResNet-50 / ImageNet & 100\%
+$\rightarrow$ 98,3\% \\
+\hline
+CLAHE \cite{b6} & ResNet-50 / ImageNet & erro: 23,87\% $\rightarrow$ 23,55\%
+(melhora) \\
+\hline
+\end{tabular}
+\label{tab:magnitudes}
+\end{center}
+\end{table}
+
+O borramento é o caso mais bem documentado. Vasiljevic \textit{et al.}
+\cite{b4} avaliam a VGG-16 pré-treinada sobre versões borradas do conjunto de
+validação do ImageNet e reportam queda monotônica da acurácia \textit{top}-5 de
+90,88\% para 88,06\%, 81,48\%, 72,69\% e 60,97\% com desfoque de raio 2, 4, 6 e
+8. Um detalhe do seu resultado merece destaque para a presente investigação: o
+borramento de movimento de comprimento comparável é substancialmente menos
+danoso (83,32\% contra 60,97\%), e os autores atribuem a diferença ao fato de a
+atenuação de alta frequência ser unidirecional em um caso e radialmente
+uniforme no outro. Isto é, a mesma ``quantidade'' de suavização produz danos
+distintos conforme a geometria da supressão espectral. Roy \textit{et al.}
+\cite{b5} ampliam a varredura para seis arquiteturas contra seis modelos de
+degradação e encontram decaimento monotônico em todos os casos, com a
+observação adicional de que as arquiteturas mais rasas resistem melhor do que
+as mais profundas.
+
+O \textit{denoising} --- a técnica cuja finalidade declarada é justamente
+melhorar a imagem --- produz os resultados mais contraintuitivos. Hendrycks e
+Dietterich \cite{b6} aplicam \textit{Non-Local Means} como etapa de
+pré-processamento sobre o ImageNet-C e registram que o erro médio de corrupção
+sobe de 76,7\% para 82,1\%: a restauração torna o classificador globalmente
+pior. Liao \textit{et al.} \cite{b7} quantificam o custo diretamente sobre
+imagens não atacadas, mostrando que um autoencoder \textit{denoising} padrão
+derruba a acurácia do Inception-v3 de 76,7\% para 58,3\% --- 18,4 pontos
+percentuais perdidos sem que houvesse qualquer degradação a remover. Paranhos
+da Costa \textit{et al.} \cite{b8}, em um desenho de generalização cruzada
+completo, observam que filtragem de mediana e \textit{Non-Local Means}
+recuperam parte do desempenho perdido sobre entradas ruidosas mas jamais
+alcançam o \textit{baseline} limpo, e atribuem explicitamente a lacuna residual
+à perda de detalhe e textura causada pela suavização --- com a ressalva de que
+seus classificadores são SVMs lineares sobre descritores LBP e HOG, e não CNNs.
+Yim e Sohn \cite{b9} chegam a uma conclusão negativa equivalente com uma
+Inception-v3: o pré-processamento isolado não produz melhoria consistente e o
+modelo único alimentado com a imagem filtrada perde desempenho sobre o conjunto
+original.
+
+A compressão e a quantização exibem um padrão qualitativamente diferente, de
+platô seguido de queda. Dziugaite \textit{et al.} \cite{b10} fornecem o dado
+primário, muito reutilizado na literatura posterior, de que a compressão JPEG
+reduz a confiança média do classificador mesmo sobre imagens limpas. Prakash
+\textit{et al.} \cite{b11} elevam essa observação a diagnóstico do campo,
+afirmando que o maior obstáculo às defesas baseadas em transformação da entrada
+é precisamente o fato de a transformação degradar a qualidade das imagens não
+adversárias. Ainda assim, ambos os trabalhos e também \cite{b1} registram que a
+compressão só se torna danosa abaixo de um limiar de qualidade relativamente
+baixo --- um comportamento não linear que contrasta com a degradação monotônica
+observada sob borramento.
+
+Por fim, dois trabalhos recentes deslocam a evidência para \textit{pipelines}
+de reconstrução de estado da arte. Chen e Ma \cite{b12} documentam que o PyNET
+e o LW-ISP, algoritmos de ISP inteligente projetados para melhorar a qualidade
+da imagem, produzem desempenho de reconhecimento inferior ao do ISP tradicional
+da câmera (37,2 contra 40,8 mAP no LOD, e resultados análogos em segmentação de
+instâncias). Seu experimento mais valioso é de controle: fixando a qualidade de
+reconstrução em 21,30\,dB de PSNR, ainda obtêm 2,0 mAP de diferença conforme o
+conteúdo espectral da reconstrução --- ou seja, o desempenho varia com a
+distribuição de frequências mesmo quando a qualidade perceptual é mantida
+constante. Hao \textit{et al.} \cite{b13}, em evidência secundária de detecção
+de objetos, reforçam o mesmo descolamento ao observar que é possível comprimir
+imagens em amplitude de forma substancial sem afetar a acurácia de detecção,
+mesmo quando a qualidade visual já se deteriorou.
+
+\subsubsection{A hipótese espectral}
+
+A explicação que melhor articula esse conjunto de resultados sustenta que
+classificadores convolucionais exploram, como sinal discriminativo,
+componentes da imagem que o sistema visual humano descarta --- e que as
+técnicas de aprimoramento perceptual, por construção, atuam exatamente sobre
+esses componentes.
+
+A formulação operacional mais antiga é a de Jo e Bengio \cite{b14}, que propõem
+medir se as CNNs aprendem conceitos semânticos ou apenas regularidades
+estatísticas superficiais. Aplicando máscaras radiais e aleatórias no domínio
+de Fourier, calibradas visualmente para preservar a reconhecibilidade humana
+dos objetos, os autores observam que o erro de uma \textit{Preact}-ResNet-200
+sobe de 5,22\% para 23,37\% no CIFAR-10. A conclusão é que a rede depende de
+energia espectral de que o observador humano prescinde, e que sua boa
+generalização se apoia em pistas superficiais compartilhadas entre treino e
+teste. Wang \textit{et al.} \cite{b15} tornam a hipótese explícita e a ancoram
+em uma série de experimentos de filtragem passa-baixa e passa-alta: enquanto
+humanos dependem de componentes semânticos de baixa frequência, as CNNs
+minimizam a perda explorando também sinais imperceptíveis de alta frequência.
+Mostram ainda que heurísticas que aumentam a acurácia limpa, como
+\textit{Batch Normalization} e \textit{Mix-up}, fazem-no incentivando a captura
+de alta frequência, e que forçar a suavidade dos \textit{kernels}
+convolucionais --- que, pelo teorema da convolução, equivale a impor um filtro
+passa-baixa --- derruba a acurácia em dados limpos de 85,6\% para 63,1\%.
+
+Geirhos \textit{et al.} \cite{b16} fornecem a verificação causal mais forte do
+mecanismo, ainda que formulada no domínio espacial. Com 48.560 ensaios
+psicofísicos sobre imagens de pistas conflitantes, estabelecem que CNNs
+treinadas no ImageNet classificam por textura local enquanto humanos
+classificam por forma global, e demonstram por intervenção sobre os dados de
+treino que esse viés é induzido pelo conjunto de dados e não pela arquitetura.
+Se a decisão da rede se apoia em textura, então qualquer transformação que
+suavize textura remove o próprio sinal de decisão --- que é precisamente a
+explicação oferecida de forma independente por \cite{b1}, \cite{b2} e
+\cite{b8}. Ilyas \textit{et al.} \cite{b17} complementam o argumento pelo lado
+da utilidade: características imperceptíveis ao humano são genuinamente
+preditivas, e removê-las do conjunto de treino custa cerca de dez pontos de
+acurácia padrão no CIFAR-10 (85,40\% contra 95,25\%). É importante registrar,
+porém, que esse trabalho não realiza qualquer análise espectral --- a ponte
+entre ``características imperceptíveis'' e ``alta frequência'' é feita por
+terceiros \cite{b18}, e deve ser tratada como tal.
+
+A sensibilidade espectral tem ainda uma origem arquitetural. Tsuzuku e Sato
+\cite{b19} derivam, a partir da linearização de camadas convolucionais com
+\textit{padding} circular, que seus vetores singulares são combinações de
+poucas funções de base de Fourier, e verificam empiricamente, em seis conjuntos
+de dados e oito arquiteturas, que existem ``pontos sensíveis'' bem definidos no
+espectro nos quais uma perturbação de amplitude fixa altera a predição. O
+controle metodológico decisivo é que um MLP treinado sobre os mesmos dados não
+exibe esses pontos: a sensibilidade é atribuível à operação de convolução. Esse
+resultado é relevante para a presente investigação porque o mecanismo é
+independente da origem da alteração espectral --- vale igualmente para uma
+perturbação adversária e para um filtro de pré-processamento.
+
+\subsubsection{Da dependência espectral à previsão da degradação}
+
+O passo seguinte --- estabelecer uma relação quantificável entre energia
+espectral alterada e magnitude da queda de acurácia --- é justamente onde a
+literatura se torna mais escassa e menos convergente.
+
+A evidência mais próxima de uma relação dose--resposta explícita é a de Yin
+\textit{et al.} \cite{b18}. Os autores caracterizam cada corrupção do
+CIFAR-10-C e do ImageNet-C por uma métrica escalar, a fração de energia de alta
+frequência do delta introduzido pela corrupção, e relacionam esse valor à
+variação de acurácia por regressão linear, reportando inclinação e resíduo.
+Seus mapas de calor de Fourier mostram que o modelo treinado naturalmente é
+sensível a perturbações em quase todo o espectro, exceto nas frequências mais
+baixas, e que aumento gaussiano e treino adversário deslocam essa dependência
+para as baixas frequências, melhorando a robustez a corrupções de alta
+frequência e piorando-a a corrupções de baixa frequência. Estabelecem também
+uma assimetria estrutural que organiza vários resultados dispersos: o
+desempenho cai muito mais rapidamente quando se remove informação de baixa
+frequência do que de alta, porque imagens naturais concentram sua energia nas
+baixas frequências --- é mais fácil para o modelo aprender a ignorar o que é
+escasso do que o que é abundante.
+
+Saikia \textit{et al.} \cite{b20} convertem essa ideia em um eixo ordinal,
+ordenando as quinze corrupções do ImageNet-C por conteúdo de alta frequência e
+mostrando um cruzamento sistemático: o modelo regularizado para robustez de
+alta frequência é uniformemente melhor na metade superior do eixo e
+uniformemente pior na inferior. Quantificam também o custo dessa escolha em
+acurácia limpa --- o erro sobe de 11,8\% para 14,8\% e depois 16,0\% conforme o
+viés se intensifica --- e registram uma justificativa que dialoga diretamente
+com a hipótese desta revisão: preferem regularizar as ativações a filtrar a
+entrada porque o \textit{denoising} destrói sinais de alta frequência
+importantes e pode introduzir novos artefatos. Frank \textit{et al.}
+\cite{b21} oferecem a curva dose--resposta mais limpa em um domínio específico,
+mostrando que a acurácia de um classificador de imagens sintéticas cai de
+98,24\% para 85,96\% e 84,20\% à medida que o \textit{kernel} de
+\textit{anti-aliasing} cresce --- uma relação direta entre intensidade de
+suavização espectral e desempenho, com a ressalva de que, nesse domínio, o
+sinal discriminativo é de alta frequência por construção.
+
+Contra a leitura simples dessa hipótese pesam, contudo, quatro resultados
+importantes. Primeiro, Maiya \textit{et al.} \cite{b22}, treinando trinta e
+seis modelos por conjunto de dados com mascaramento probabilístico de bandas
+via DCT, mostram que a banda crítica depende do conjunto e não é universalmente
+a alta frequência: remover 90\% da banda 0--15 custa cerca de 2\% de acurácia
+no CIFAR-10, 10\% no TinyImageNet e 35\% no ImageNet, enquanto remoções
+altíssimas na banda 48--63 têm efeito praticamente nulo fora do CIFAR-10.
+Segundo, Tsuzuku e Sato \cite{b19} encontram que as bandas mais danosas são as
+baixas e médias, não as altas. Terceiro, Ortiz-Jiménez \textit{et al.}
+\cite{b23} demonstram que a magnitude da degradação depende menos da energia
+removida do que de \emph{onde} ela é removida no protocolo: filtrar passa-baixa
+apenas o conjunto de teste derruba a acurácia do CIFAR-10 de cerca de 93\% para
+27,45\%, enquanto treinar com os mesmos dados filtrados custa cerca de três
+pontos. A explicação que oferecem --- as fronteiras de decisão só existem nas
+direções em que o classificador foi treinado com características
+discriminativas --- separa com nitidez duas causas que a literatura
+frequentemente confunde: perda de informação e descasamento de domínio. Quarto,
+o próprio \cite{b18} reporta o contraexemplo em que sua hipótese falha, ao
+mostrar que treinar com ruído de estatísticas de Fourier idênticas às da
+corrupção de névoa piora o desempenho sob névoa; e Shao \textit{et al.}
+\cite{b24} observam que a filtragem tradicional sequer produz o deslocamento
+espectral limpo que se lhe atribui, porque apenas reduz a energia das bandas
+indesejadas em vez de eliminá-la, deixando informação residual explorável.
+
+\subsubsection{Mecanismos concorrentes e complementares}
+
+A explicação espectral não é a única disponível, e os trabalhos que propõem
+alternativas ajudam a delimitar o que ela efetivamente explica.
+
+O mais direto é o descasamento de distribuição. Vasiljevic \textit{et al.}
+\cite{b4} mostram que o ajuste fino com imagens borradas quase fecha a lacuna
+de desempenho, o que permite descartar tanto a deficiência arquitetural quanto
+a ausência de informação discriminativa na imagem borrada: o sinal semântico
+sobrevive, mas passa a ser mal representado. A análise de ativações que
+realizam localiza o problema com precisão, ao mostrar que a invariância ao
+borramento só é adquirida nas camadas profundas, enquanto a disparidade nas
+camadas iniciais permanece alta. Paranhos da Costa \textit{et al.} \cite{b8}
+chegam à mesma conclusão por outra via, ao observar que modelos treinados sobre
+imagens restauradas generalizam mal para imagens ruidosas --- o
+pré-processamento cria um novo domínio em vez de restaurar o original.
+
+Um segundo mecanismo opera no nível do filtro individual. Borkar e Karam
+\cite{b25} ordenam os filtros convolucionais por suscetibilidade e mostram que
+corrigir apenas metade deles em uma única camada já recupera parte substancial
+do desempenho, indicando que o dano não se distribui uniformemente. Sua
+evidência mais valiosa para esta revisão é qualitativa mas contundente: os
+filtros mais atingidos pelo borramento gaussiano são precisamente os seletivos
+em frequência e orientação, isto é, os detectores de borda e contorno, enquanto
+o ruído branco atinge também os \textit{blobs} específicos de cor. Há,
+portanto, uma correspondência previsível entre a natureza espectral da
+transformação e a família de filtros que ela desativa.
+
+Um terceiro mecanismo, proposto por Liao \textit{et al.} \cite{b7}, é o efeito
+de amplificação de erro. Medindo a perturbação relativa camada a camada, os
+autores mostram que o resíduo deixado por um \textit{denoiser} otimizado em
+espaço de pixels, embora pequeno na entrada, é progressivamente amplificado ao
+longo da hierarquia até atingir, no topo, magnitude próxima à de uma
+perturbação adversária. Esse resultado explica por que menor erro de
+reconstrução não implica melhor classificação --- constatação replicada por
+\cite{b26}, que registra que a aplicação excessiva de \textit{denoising} remove
+detalhes cruciais e produz borramento mesmo quando as métricas de qualidade
+parecem favoráveis. Dodge e Karam \cite{b1} já haviam observado o fenômeno da
+propagação em termos qualitativos, notando que o borramento altera pouco as
+respostas da primeira camada convolucional e muito as da última, ao passo que o
+ruído é captado imediatamente pelos filtros iniciais: duas vias distintas de
+dano na mesma hierarquia.
+
+Convém registrar, finalmente, que parte da literatura de defesa adversária
+opera sobre a premissa inversa --- a de que a perturbação relevante é de alta
+frequência e que descartá-la é, portanto, seguro. Entezari e Papalexakis
+\cite{b27} enunciam essa premissa de forma particularmente limpa ao justificar
+a aproximação de baixo posto como mecanismo de defesa. É exatamente essa
+premissa que os trabalhos com instrumentação espectral direta \cite{b18},
+\cite{b22} contestam, e que Maiya \textit{et al.} \cite{b22} descrevem como
+consolidada por viés de confirmação metodológico, uma vez que não é possível
+testar o cenário inverso --- bloquear as baixas frequências --- sem destruir a
+informação associada ao rótulo.
+
+\subsubsection{Condições em que o pré-processamento melhora}
+
+A literatura também delimita, com razoável precisão, as condições sob as quais
+a intervenção sobre a entrada não degrada ou até beneficia o classificador, e
+essas condições são informativas por contraste.
+
+A fronteira mais nítida é traçada por Hendrycks e Dietterich \cite{b6}, que
+avaliam duas técnicas clássicas sob protocolo idêntico e obtêm sinais opostos:
+enquanto o \textit{Non-Local Means} eleva o erro médio de corrupção de 76,7\%
+para 82,1\%, a equalização adaptativa de histograma (CLAHE) o reduz para 74,5\%
+e melhora inclusive o erro limpo, de 23,87\% para 23,55\%. A distinção que os
+autores propõem é qualitativa e não de grau: o CLAHE redistribui intensidades,
+ao passo que o \textit{denoising} descarta detalhe fino. O critério que separa
+melhoria de degradação, portanto, não é alterar a imagem, mas remover
+informação.
+
+As demais condições de melhoria registradas na literatura confirmam esse
+critério. O \textit{denoising} beneficia a classificação quando a entrada está
+genuinamente degradada, o método é casado ao tipo de ruído e a dose é
+controlada \cite{b26}, \cite{b8}; deixa de beneficiar quando o método é
+agressivo demais e dilui as bordas do objeto \cite{b9}. A imagem filtrada
+agrega desempenho quando usada como canal adicional ao lado da original, e não
+quando a substitui \cite{b9} --- o mesmo padrão que Geirhos \textit{et al.}
+\cite{b16} encontram em outro nível: treinar somente no Stylized-ImageNet custa
+dezesseis pontos de \textit{top}-1, mas treinar em SIN e IN conjuntamente
+supera a linha de base tanto em acurácia limpa quanto em robustez. O borramento
+moderado funciona como aumento de dados e chega a melhorar a acurácia sobre
+imagens nítidas \cite{b4}, e a restauração explícita da entrada por
+\textit{deblurring}, ainda que recupere boa parte do desempenho, é inferior e
+muito mais custosa do que adaptar o modelo à degradação. A manipulação
+espectral usada como augmentação de treino, e não como filtro de teste, melhora
+simultaneamente o desempenho limpo e o degradado \cite{b28}, \cite{b29}. E a
+transformação de entrada é tolerável quando descarta seletivamente: limiares
+adaptativos por imagem em base \textit{wavelet} reduzem o custo sobre imagens
+limpas a menos de dois pontos percentuais, contra os custos muito maiores de
+tabelas de quantização fixas e agnósticas ao conteúdo \cite{b11}. Há, por fim,
+a condição trivial e esclarecedora identificada por Ortiz-Jiménez \textit{et
+al.} \cite{b23}: quando o conjunto de dados simplesmente não contém informação
+discriminativa na banda removida, como no MNIST sob filtragem passa-baixa de
+largura $14\times14$, a filtragem não custa nada.
+
+O padrão que emerge desse conjunto é coerente. O pré-processamento é benigno
+quando redistribui em vez de remover, quando é aplicado simetricamente a treino
+e teste, quando preserva a imagem original como canal complementar, ou quando
+atua sobre bandas que o conjunto de dados não usa. É danoso quando remove,
+assimetricamente, energia de bandas nas quais o classificador aprendeu a
+decidir.
+
+\subsection{Respostas às Questões de Pesquisa}
+\label{sec:rq}
+
+\subsubsection{QP1 --- As técnicas degradam a acurácia?}
+
+\textbf{Sim, com magnitude altamente variável e condicionada ao protocolo.} A
+evidência é consistente entre dezesseis estudos com \textit{baseline}
+explícito. A degradação é severa e monotônica para suavização
+(90,88\%~$\rightarrow$~60,97\% em \textit{top}-5 sob desfoque de raio~8
+\cite{b4}; queda replicada em seis arquiteturas \cite{b5}), substancial para
+\textit{denoising} aplicado a imagens já limpas
+(76,7\%~$\rightarrow$~58,3\% \cite{b7}; mCE de 76,7\%~$\rightarrow$~82,1\%
+\cite{b6}), e condicionada a limiar para compressão, que é praticamente inócua
+acima de um fator de qualidade moderado \cite{b1}, \cite{b10}.
+
+Três qualificações são necessárias. Primeira, a degradação não é uniforme entre
+técnicas: a equalização adaptativa de histograma \emph{melhora} tanto o erro
+limpo quanto a robustez sob o mesmo protocolo em que o \textit{denoising} piora
+\cite{b6}, o que impede tratar ``pré-processamento'' como categoria homogênea.
+Segunda, a maior parte da evidência disponível cobre degradações e
+\textit{denoising}; aguçamento e super-resolução não são avaliados com métrica
+de classificação em nenhum dos estudos selecionados, de modo que para essas
+duas técnicas a resposta a QP1 permanece em aberto. Terceira, o fenômeno é
+reproduzido em \textit{pipelines} de melhoria de qualidade de estado da arte
+\cite{b12}, o que indica que ele não é um artefato de técnicas antiquadas.
+
+\subsubsection{QP2 --- Quais mecanismos explicam a degradação?}
+
+\textbf{Quatro mecanismos são propostos na literatura, complementares e não
+excludentes.}
+
+\emph{(i) Remoção de sinal discriminativo de alta frequência.} É o mecanismo
+mais diretamente apoiado: filtragem espectral controlada eleva o erro de 5,22\%
+para 23,37\% preservando a reconhecibilidade humana \cite{b14}; CNNs exploram
+comprovadamente sinais de alta frequência imperceptíveis \cite{b15}; e as
+características imperceptíveis são genuinamente preditivas, custando dez pontos
+de acurácia quando removidas \cite{b17}.
+
+\emph{(ii) Perda de textura.} Estabelecido por intervenção causal: CNNs
+treinadas no ImageNet classificam por textura local e não por forma global
+\cite{b16}, de modo que qualquer suavização remove o sinal de decisão ---
+explicação oferecida de forma independente e anterior por \cite{b1} e
+\cite{b2}. No nível do filtro, Borkar e Karam \cite{b25} mostram que o
+borramento atinge preferencialmente os filtros seletivos em frequência e
+orientação.
+
+\emph{(iii) Descasamento de domínio.} É a contribuição mais subestimada. A
+assimetria de \cite{b23} --- três pontos de custo ao filtrar o treino contra
+mais de sessenta e cinco ao filtrar apenas o teste --- mostra que a maior parte
+da degradação observada nos protocolos usuais não decorre de perda
+irrecuperável de informação, mas de a entrada passar a ocupar regiões do espaço
+onde o modelo tem fronteiras de decisão. A recuperação quase completa obtida
+por \textit{fine-tuning} em \cite{b4} corrobora essa leitura.
+
+\emph{(iv) Amplificação de erro na hierarquia.} O resíduo deixado pelo
+pré-processamento, pequeno na entrada, cresce progressivamente camada a camada
+até dominar as características de topo \cite{b7}, o que explica por que melhor
+fidelidade em espaço de pixels não implica melhor classificação. Há ainda uma
+causa estrutural subjacente: os vetores singulares de camadas convolucionais
+são combinações de bases de Fourier, o que torna a CNN intrinsecamente sensível
+a alterações em direções espectrais específicas \cite{b19}.
+
+\subsubsection{QP3 --- Existe relação quantificável entre energia espectral
+removida e queda de acurácia?}
+
+\textbf{Parcialmente, e a relação não é universal.} Existe uma única evidência
+de relação quantitativa explícita: Yin \textit{et al.} \cite{b18} definem a
+fração de energia de alta frequência da perturbação,
+$\lVert H(C(X)-X)\rVert^2 / \lVert C(X)-X\rVert^2$, e a relacionam à variação
+de acurácia por regressão linear, reportando inclinação e resíduo. Relações
+dose--resposta adicionais existem em forma ordinal --- ordenação das corrupções
+do ImageNet-C por conteúdo espectral, com cruzamento sistemático entre modelos
+de viés oposto \cite{b20} --- ou restritas a um domínio específico \cite{b21}.
+
+Quatro achados limitam o alcance dessa relação. A banda crítica é uma
+propriedade do conjunto de dados, não uma constante: remover 90\% da banda
+0--15 custa 2\% no CIFAR-10 e 35\% no ImageNet \cite{b22}. As bandas mais
+danosas nem sempre são as altas \cite{b19}. Casar as estatísticas de Fourier de
+uma corrupção não basta para prever seu efeito --- o contraexemplo do ``ruído
+de névoa'' é reportado pelos próprios autores da hipótese \cite{b18}. E a
+dependência espectral pode dissociar-se do desempenho: deslocamentos espectrais
+grandes produzem ganhos modestos e vice-versa \cite{b24}. Acresce que a
+filtragem convencional não produz o deslocamento espectral limpo que se lhe
+atribui, porque apenas atenua as bandas-alvo em vez de eliminá-las \cite{b24}.
+
+A conclusão operacional é que a energia espectral removida é um preditor
+parcial e mediado: mediado pela distribuição espectral do conjunto de treino
+\cite{b16}, \cite{b22} e pela simetria do protocolo entre treino e teste
+\cite{b23}. Não existe, na literatura revisada, uma curva dose--resposta entre
+energia espectral removida por banda e queda de acurácia construída sobre
+técnicas de aprimoramento perceptual e classificadores em modo de inferência.
+
+\subsubsection{QP4 --- Em quais condições o pré-processamento melhora?}
+
+\textbf{Em seis condições bem delimitadas}, sintetizadas na
+Tabela~\ref{tab:condicoes}. O critério unificador, proposto por \cite{b6} e
+confirmado pelas demais evidências, é que o pré-processamento é benigno quando
+\emph{redistribui} informação e danoso quando a \emph{descarta}; e que, quando
+o descarte é inevitável, seu custo é proporcional à relevância discriminativa
+da banda afetada e à assimetria entre treino e teste.
+
+\begin{table}[htbp]
+\caption{Condições sob as quais o pré-processamento não degrada ou melhora}
+\begin{center}
+\footnotesize
+\begin{tabular}{|p{3.0cm}|p{1.1cm}|p{2.5cm}|}
+\hline
+\textbf{Condição} & \textbf{Fonte} & \textbf{Evidência} \\
+\hline
+A técnica redistribui intensidades em vez de descartar detalhe & \cite{b6} &
+CLAHE: erro limpo 23,87\%~$\rightarrow$~23,55\%; mCE
+76,7\%~$\rightarrow$~74,5\% \\
+\hline
+A entrada está genuinamente degradada, o método é casado ao tipo de ruído e a
+dose é controlada & \cite{b26}, \cite{b8} & VGG16:
+94,6\%~$\rightarrow$~97,0\%; InceptionV3: 84,7\%~$\rightarrow$~90,0\% \\
+\hline
+A imagem filtrada é usada como canal adicional, não como substituta &
+\cite{b9}, \cite{b16} & Canal duplo melhora em todas as degradações;
+SIN$+$IN supera a linha de base \\
+\hline
+A manipulação espectral é usada como augmentação de treino, não como filtro de
+teste & \cite{b4}, \cite{b28}, \cite{b29} & Blur moderado:
+90,88\%~$\rightarrow$~91,36\% em imagens nítidas \\
+\hline
+O descarte é seletivo e adaptado à imagem & \cite{b11} & Limiar
+\textit{wavelet} adaptativo: custo $<$~2 p.p. em imagens limpas \\
+\hline
+O conjunto de dados não contém sinal discriminativo na banda removida &
+\cite{b23} & MNIST sob passa-baixa $14\times14$: perda nula \\
+\hline
+\end{tabular}
+\label{tab:condicoes}
+\end{center}
+\end{table}
+
+\subsubsection{Lacunas identificadas e posicionamento deste trabalho}
+
+A síntese permite identificar quatro lacunas que motivam a presente
+investigação.
+
+A primeira é de \emph{escopo de técnica}. O corpo empírico concentra-se em
+degradações e em \textit{denoising}, a única técnica de finalidade restauradora
+avaliada com regularidade \cite{b6}, \cite{b7}, \cite{b8}, \cite{b9},
+\cite{b26}. A equalização de histograma aparece em um único experimento de
+configuração única \cite{b6}, o aguçamento não é avaliado em nenhum estudo
+selecionado, e a super-resolução é tratada exclusivamente sob a ótica da
+qualidade de imagem \cite{b3}, sem medição de desempenho de classificação.
+
+A segunda é de \emph{variável independente}. Mesmo os estudos que varrem
+múltiplos níveis parametrizam a dose pelo controle da técnica --- tamanho de
+\textit{kernel}, desvio padrão, fator de quantização, raio de filtragem
+\cite{b1}, \cite{b4}, \cite{b5}, \cite{b28} --- e não pela energia espectral
+efetivamente removida. Duas transformações com o mesmo PSNR podem distribuir a
+perda de energia de formas inteiramente distintas \cite{b13}, e é precisamente
+essa distinção que as métricas de distorção usuais não capturam.
+
+A terceira é de \emph{confundimento entre perda de informação e descasamento de
+domínio}, evidenciado pela assimetria de \cite{b23}. A maioria dos estudos não
+separa essas duas contribuições, o que torna as magnitudes reportadas difíceis
+de comparar entre protocolos. Avaliar classificadores pré-treinados em modo
+estrito de inferência isola deliberadamente o cenário de interesse prático ---
+aquele em que o \textit{pipeline} é inserido a montante de um modelo que não
+será retreinado --- mas exige que a interpretação reconheça essa ambiguidade.
+
+A quarta é de \emph{fragilidade da própria hipótese espectral}, conforme
+detalhado na resposta a QP3. Uma investigação que pretenda explicar a
+degradação pela alteração da distribuição de energia espectral precisa tratar
+essa relação como hipótese a ser testada com medição direta, e não como
+premissa herdada.
+
+É nessa interseção que o presente trabalho se situa: aplicar técnicas clássicas
+de pré-processamento e aprimoramento perceptual a imagens naturais, medir a
+variação de acurácia de classificadores CNN pré-treinados em modo de
+inferência, caracterizar cada transformação pela energia espectral que
+efetivamente remove ou introduz por banda de frequência, e verificar em que
+medida essa caracterização prevê a magnitude da degradação observada.
+
+%=======================================================================
+\begin{thebibliography}{00}
+
+\bibitem{b1} S. Dodge and L. Karam, ``Understanding how image quality affects
+deep neural networks,'' arXiv preprint arXiv:1604.04004, 2016.
+
+\bibitem{b2} S. Karahan, M. K. Yildirim, K. Kirtac, F. S. Rende, G. Butun, and
+H. K. Ekenel, ``How image degradations affect deep CNN-based face
+recognition?,'' arXiv preprint arXiv:1608.05246, 2016.
+
+\bibitem{b3} Y. Blau and T. Michaeli, ``The perception-distortion tradeoff,''
+in Proc. IEEE Conf. Computer Vision and Pattern Recognition (CVPR), 2018, pp.
+6228--6237.
+
+\bibitem{b4} I. Vasiljevic, A. Chakrabarti, and G. Shakhnarovich, ``Examining
+the impact of blur on recognition by convolutional networks,'' arXiv preprint
+arXiv:1611.05760, 2017.
+
+\bibitem{b5} P. Roy, S. Ghosh, S. Bhattacharya, and U. Pal, ``Effects of
+degradations on deep neural network architectures,'' arXiv preprint
+arXiv:1807.10108, 2018.
+
+\bibitem{b6} D. Hendrycks and T. Dietterich, ``Benchmarking neural network
+robustness to common corruptions and perturbations,'' in Proc. Int. Conf.
+Learning Representations (ICLR), 2019.
+
+\bibitem{b7} F. Liao, M. Liang, Y. Dong, T. Pang, X. Hu, and J. Zhu, ``Defense
+against adversarial attacks using high-level representation guided denoiser,''
+arXiv preprint arXiv:1712.02976, 2018.
+
+\bibitem{b8} G. B. Paranhos da Costa, W. A. Contato, T. S. Nazare, J. E. S.
+Batista Neto, and M. Ponti, ``An empirical study on the effects of different
+types of noise in image classification tasks,'' arXiv preprint
+arXiv:1609.02781, 2016.
+
+\bibitem{b9} J. Yim and K.-A. Sohn, ``Enhancing the performance of
+convolutional neural networks on quality degraded datasets,'' arXiv preprint
+arXiv:1710.06805, 2017.
+
+\bibitem{b10} G. K. Dziugaite, Z. Ghahramani, and D. M. Roy, ``A study of the
+effect of JPG compression on adversarial images,'' arXiv preprint
+arXiv:1608.00853, 2016.
+
+\bibitem{b11} A. Prakash, N. Moran, S. Garber, A. DiLillo, and J. Storer,
+``Deflecting adversarial attacks with pixel deflection,'' arXiv preprint
+arXiv:1801.08926, 2018.
+
+\bibitem{b12} H. Chen and K. Ma, ``Enhancing vision: Harmonizing frequency for
+imaging quality and perception accuracy,'' in Proc. IEEE Int. Conf. Acoustics,
+Speech and Signal Processing (ICASSP), 2025.
+
+\bibitem{b13} Y. Hao, Y. Pei, Y. Lyu, Z. Yuan, J.-R. Rizzo, Y. Wang, and Y.
+Fang, ``Understanding the impact of image quality and distance of objects to
+object detection performance,'' arXiv preprint arXiv:2209.08237, 2022.
+
+\bibitem{b14} J. Jo and Y. Bengio, ``Measuring the tendency of CNNs to learn
+surface statistical regularities,'' arXiv preprint arXiv:1711.11561, 2017.
+
+\bibitem{b15} H. Wang, X. Wu, Z. Huang, and E. P. Xing, ``High-frequency
+component helps explain the generalization of convolutional neural networks,''
+in Proc. IEEE/CVF Conf. Computer Vision and Pattern Recognition (CVPR), 2020.
+
+\bibitem{b16} R. Geirhos, P. Rubisch, C. Michaelis, M. Bethge, F. A. Wichmann,
+and W. Brendel, ``ImageNet-trained CNNs are biased towards texture; increasing
+shape bias improves accuracy and robustness,'' in Proc. Int. Conf. Learning
+Representations (ICLR), 2019.
+
+\bibitem{b17} A. Ilyas, S. Santurkar, D. Tsipras, L. Engstrom, B. Tran, and A.
+Madry, ``Adversarial examples are not bugs, they are features,'' in Advances in
+Neural Information Processing Systems (NeurIPS), 2019.
+
+\bibitem{b18} D. Yin, R. Gontijo Lopes, J. Shlens, E. D. Cubuk, and J. Gilmer,
+``A Fourier perspective on model robustness in computer vision,'' in Advances
+in Neural Information Processing Systems (NeurIPS), 2019.
+
+\bibitem{b19} Y. Tsuzuku and I. Sato, ``On the structural sensitivity of deep
+convolutional networks to the directions of Fourier basis functions,'' in Proc.
+IEEE/CVF Conf. Computer Vision and Pattern Recognition (CVPR), 2019.
+
+\bibitem{b20} T. Saikia, C. Schmid, and T. Brox, ``Improving robustness against
+common corruptions with frequency biased models,'' arXiv preprint
+arXiv:2103.16241, 2021.
+
+\bibitem{b21} J. Frank, T. Eisenhofer, L. Schonherr, A. Fischer, D. Kolossa,
+and T. Holz, ``Leveraging frequency analysis for deep fake image recognition,''
+in Proc. Int. Conf. Machine Learning (ICML), 2020.
+
+\bibitem{b22} S. R. Maiya, M. Ehrlich, V. Agarwal, S.-N. Lim, T. Goldstein, and
+A. Shrivastava, ``A frequency perspective of adversarial robustness,'' arXiv
+preprint arXiv:2111.00861, 2021.
+
+\bibitem{b23} G. Ortiz-Jimenez, A. Modas, S.-M. Moosavi-Dezfooli, and P.
+Frossard, ``Hold me tight! Influence of discriminative features on deep network
+boundaries,'' in Advances in Neural Information Processing Systems (NeurIPS),
+2020.
+
+\bibitem{b24} Z. Shao, Y. Ren, X. Wang, L. Isik, and D. Beck, ``Dissociating
+spatial frequency reliance from adversarial robustness advantages in neurally
+guided deep convolutional neural networks,'' manuscrito nao publicado.
+
+\bibitem{b25} T. S. Borkar and L. J. Karam, ``DeepCorrect: Correcting DNN
+models against image distortions,'' arXiv preprint arXiv:1705.02406, 2019.
+
+\bibitem{b26} M. Hami and M. J. JameBozorg, ``Assessing the impact of CNN auto
+encoder-based image denoising on image classification tasks,'' arXiv preprint
+arXiv:2404.10664, 2024.
+
+\bibitem{b27} N. Entezari and E. E. Papalexakis, ``TensorShield: Tensor-based
+defense against adversarial attacks on images,'' arXiv preprint
+arXiv:2002.10252, 2020.
+
+\bibitem{b28} J. Wu, ``FCR: Robust image classification method with frequency
+domain consistency regularization,'' in Proc. 6th Int. Symp. Computer
+Technology and Information Science (ISCTIS), IEEE, 2026.
+
+\bibitem{b29} ``Improving corruption robustness with random erasing in the
+frequency domain,'' 2023.
+
+\end{thebibliography}
+
+\end{document}
