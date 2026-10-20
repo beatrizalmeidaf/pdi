@@ -168,16 +168,19 @@ def examples(cfg: dict, dataset: str, n_images: int, out: Path):
     Fx, _ = an.transform(imgs)
     px = an.profile(Fx).mean(0)
     fig, ax = plt.subplots(figsize=(6, 4))
-    for name, b in procs.items():
+    cmap = plt.get_cmap("tab20", max(len(procs), 2))
+    for i, (name, b) in enumerate(procs.items()):
         if name == "original":
             continue
         py = an.profile(an.transform(b)[0]).mean(0)
-        ax.plot(an.fine_centers, 10 * np.log10((py + 1e-12) / (px + 1e-12)), marker=".", label=name)
+        ls = "-" if T.TECHNIQUES[name].group == "primary" else "--"
+        ax.plot(an.fine_centers, 10 * np.log10((py + 1e-12) / (px + 1e-12)), marker=".", ls=ls,
+                color=cmap(i), label=name)
     ax.axhline(0, color="k", lw=0.6)
     for lo, hi in an.cfg.bands.values():
         ax.axvline(lo, color="gray", ls=":", lw=0.6)
     ax.set_xlabel("frequência radial (ciclos/pixel)")
     ax.set_ylabel("ΔE por anel (dB)")
-    ax.set_title(f"Assinatura espectral média (nível do meio) — {dataset}")
+    ax.set_title(f"Assinatura espectral média — {dataset}  (contínua = primário, tracejada = controle)")
     ax.legend(fontsize=6, bbox_to_anchor=(1.02, 1), loc="upper left")
     _save(fig, out / f"spectral_signature_{dataset}.png")
