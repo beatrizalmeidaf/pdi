@@ -173,6 +173,7 @@ O extrator pré-treinado é sempre o mesmo; muda apenas o quanto o modelo pode s
 ```
 frozen     modelo original na imagem processada           (= E2)
 bn_adapt   só re-estima as médias/variâncias do BatchNorm  (sem gradiente)
+bn_oo      controle: o mesmo nas originais (desconta o ruído da estimativa)
 probe_op   sonda linear treinada no ORIGINAL, testada no PROCESSADO
 probe_pp   sonda linear treinada e testada no PROCESSADO
 probe_oo   sonda linear treinada e testada no ORIGINAL     (teto)
