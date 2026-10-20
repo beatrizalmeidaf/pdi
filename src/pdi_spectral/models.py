@@ -111,12 +111,12 @@ class Classifier:
         net = copy.deepcopy(self.net).eval()
         for m in net.modules():  # o deepcopy leva junto o hook do modelo original
             m._forward_hooks.clear()
-        bns =[m for m in net.modules() if isinstance(m, torch.nn.modules.batchnorm._BatchNorm)]
+        clf = Classifier(self.name, self.device, module=net)  # o construtor chama net.eval()
+        bns = [m for m in net.modules() if isinstance(m, torch.nn.modules.batchnorm._BatchNorm)]
         for m in bns:
             m.reset_running_stats()
             m.momentum = None  # média cumulativa
-            m.train()
-        clf = Classifier(self.name, self.device, module=net)
+            m.train()  # só o BN em modo treino; dropout etc. continuam em eval
         with torch.no_grad():
             for s in range(0, len(imgs), batch_size):
                 net(clf._tensor(imgs[s : s + batch_size]))

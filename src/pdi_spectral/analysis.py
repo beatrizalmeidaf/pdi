@@ -212,7 +212,7 @@ def image_level(pred, spec, feature_sets, max_rows=200_000, seed=0):
 
 
 def adaptation_summary(adapt: pd.DataFrame) -> pd.DataFrame:
-    cols = [c for c in ["acc_orig", "acc_frozen", "acc_bn", "acc_probe_oo", "acc_probe_op", "acc_probe_pp",
+    cols = [c for c in ["acc_orig", "acc_frozen", "acc_bn", "acc_bn_oo", "acc_probe_oo", "acc_probe_op", "acc_probe_pp",
                         "acc_ft_oo", "acc_ft_pp", "recoverable_frac", "info_loss"] if c in adapt]
     return adapt.groupby(["dataset", "technique", "level", "cond_id", "group"])[cols].mean().reset_index()
 

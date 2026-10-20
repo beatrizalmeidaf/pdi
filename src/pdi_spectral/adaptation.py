@@ -8,6 +8,8 @@ Se a queda persiste mesmo com adaptação, a informação foi destruída.
 Níveis de adaptação, do mais leve ao mais forte (o extrator é sempre o pré-treinado):
   frozen      modelo original, sem nada (= protocolo principal)
   bn_adapt    só re-estima as estatísticas de BatchNorm no domínio processado
+              (controle acc_bn_oo: o mesmo procedimento nas originais, para descontar
+              o ruído da estimativa com poucas imagens)
   probe_op    sonda linear treinada em features ORIGINAIS, testada em PROCESSADAS
   probe_pp    sonda linear treinada e testada em PROCESSADAS
   probe_oo    sonda linear treinada e testada em ORIGINAIS (teto de referência)
@@ -119,6 +121,8 @@ def run_adaptation(cfg: dict, only: list[str] | None = None) -> Path:
             pr = _probe(f_tr, tr.local_labels, f_te, acfg.get("probe_C", 1.0), seed)
             base[m.name] = dict(probe=pr, acc_probe_oo=_acc_probe(pr, f_te, te.local_labels),
                                 acc_orig=_acc_logits(m.logits(x_te), te.labels, te.class_subset))
+            if acfg.get("bn_adapt", True) and m.has_bn:  # controle: BN re-estimado nas ORIGINAIS
+                base[m.name]["acc_bn_oo"] = _acc_logits(m.bn_adapted(x_tr).logits(x_te), te.labels, te.class_subset)
             if acfg.get("finetune_epochs", 0) > 0:
                 ft = _finetune(m, x_tr, tr.labels, acfg["finetune_epochs"], acfg.get("finetune_lr", 1e-3),
                                acfg.get("finetune_bs", 64), seed)
@@ -139,6 +143,7 @@ def run_adaptation(cfg: dict, only: list[str] | None = None) -> Path:
                 row["acc_probe_pp"] = _acc_probe(pr, f_pte, te.local_labels)
                 if acfg.get("bn_adapt", True) and m.has_bn:
                     row["acc_bn"] = _acc_logits(m.bn_adapted(p_tr).logits(p_te), te.labels, te.class_subset)
+                    row["acc_bn_oo"] = b["acc_bn_oo"]
                 if acfg.get("finetune_epochs", 0) > 0:
                     ft = _finetune(m, p_tr, tr.labels, acfg["finetune_epochs"], acfg.get("finetune_lr", 1e-3),
                                    acfg.get("finetune_bs", 64), seed)
