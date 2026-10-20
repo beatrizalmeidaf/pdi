@@ -16,7 +16,7 @@ export CONFIG EXTRA DATASETS
 
 .DEFAULT_GOAL := help
 .PHONY: help setup download download-sr download-cifar download-imagenette download-models \
-        test verify examples smoke oracle main adapt analyze all fast clean clean-results
+        test verify examples smoke offline oracle main adapt analyze all fast clean clean-results
 
 help:  ## lista os alvos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -47,6 +47,9 @@ examples:  ## figuras qualitativas e assinatura espectral por técnica
 
 smoke:  ## pipeline completo em miniatura (CIFAR-10, 64 imagens)
 	bash scripts/run_smoke.sh
+
+offline:  ## pipeline completo sem internet (imagens sintéticas + CNN minúscula)
+	CONFIG=configs/offline.yaml bash scripts/run_experiments.sh oracle main adapt analyze examples
 
 oracle:  ## E1: sensibilidade por banda com filtros ideais
 	bash scripts/run_experiments.sh oracle
