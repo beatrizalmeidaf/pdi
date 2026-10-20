@@ -11,6 +11,7 @@ As redes usam os pesos pré-treinados públicos lidos pelo ``cv2.dnn_superres``
 """
 from __future__ import annotations
 
+import threading
 from functools import lru_cache
 from pathlib import Path
 
@@ -66,17 +67,23 @@ def sr_bicubic(img: np.ndarray, scale: int) -> np.ndarray:
     return resize(downscale(img, scale), h, w)
 
 
-@lru_cache(maxsize=16)
-def _load_sr(method: str, scale: int, model_dir: str):
-    import cv2  # opencv-contrib-python
+_TLS = threading.local()  # a rede do OpenCV não é thread-safe: uma instância por thread
 
-    path = Path(model_dir) / f"{method.upper()}_x{scale}.pb"
-    if not path.exists():
-        raise FileNotFoundError(f"Pesos de SR não encontrados: {path} (rode `make download`)")
-    sr = cv2.dnn_superres.DnnSuperResImpl_create()
-    sr.readModel(str(path))
-    sr.setModel(method.lower(), scale)
-    return sr
+
+def _load_sr(method: str, scale: int, model_dir: str):
+    cache = _TLS.__dict__.setdefault("sr", {})
+    key = (method, scale, model_dir)
+    if key not in cache:
+        import cv2  # opencv-contrib-python
+
+        path = Path(model_dir) / f"{method.upper()}_x{scale}.pb"
+        if not path.exists():
+            raise FileNotFoundError(f"Pesos de SR não encontrados: {path} (rode `make download`)")
+        sr = cv2.dnn_superres.DnnSuperResImpl_create()
+        sr.readModel(str(path))
+        sr.setModel(method.lower(), scale)
+        cache[key] = sr
+    return cache[key]
 
 
 def sr_learned(img: np.ndarray, scale: int, method: str = "espcn", _model_dir: str = "data/sr_models",

@@ -24,6 +24,9 @@ for _ds in ("cifar10", "cifar100"):
         ZOO[f"{_ds}_{_arch}"] = dict(src="hub", repo="chenyaofo/pytorch-cifar-models", fn=f"{_ds}_{_arch}",
                                      family="cnn", domain=_ds)
 
+# Modelo local sem pesos pré-treinados, só para testes offline do pipeline.
+ZOO["tiny_cnn"] = dict(src="local", family="cnn", domain="cifar10")
+
 NORM = {
     "imagenet": ((0.485, 0.456, 0.406), (0.229, 0.224, 0.225)),
     "cifar10": ((0.4914, 0.4822, 0.4465), (0.2023, 0.1994, 0.2010)),
@@ -36,6 +39,11 @@ def build_module(name: str):
     import torchvision
 
     spec = ZOO[name]
+    if spec["src"] == "local":
+        torch.manual_seed(0)
+        nn = torch.nn
+        return nn.Sequential(nn.Conv2d(3, 8, 3, padding=1), nn.BatchNorm2d(8), nn.ReLU(), nn.AdaptiveAvgPool2d(4),
+                             nn.Flatten(), nn.Linear(128, 10))
     if spec["src"] == "tv":
         return getattr(torchvision.models, spec["fn"])(weights=spec["weights"])
     return torch.hub.load(spec["repo"], spec["fn"], pretrained=True, trust_repo=True, verbose=False)

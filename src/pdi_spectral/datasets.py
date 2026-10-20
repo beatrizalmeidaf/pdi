@@ -123,8 +123,21 @@ def _folder(name: str, root: Path, wnid_to_idx: dict, split_tag: str, n, seed) -
     )
 
 
+def _synthetic(split: str, n, seed) -> ImageSet:
+    """Imagens sintéticas 32x32 com rótulos aleatórios — só para testar o pipeline offline."""
+    from .verify import synthetic_images
+
+    n = n or 64
+    imgs = synthetic_images(n, 32, seed=seed + (0 if split == "val" else 1))
+    labels = np.random.default_rng(seed).integers(0, 10, n)
+    return ImageSet("synthetic", [f"synthetic_{split}_{i}" for i in range(n)], labels, labels,
+                    lambda i, d=imgs: d[i], (32, 32), "cifar10")
+
+
 def load_dataset(name: str, split: str, n: int | None, seed: int, paths: dict) -> ImageSet:
     data_dir = Path(paths.get("data", "data"))
+    if name == "synthetic":
+        return _synthetic(split, n, seed)
     if name in ("cifar10", "cifar100"):
         return _cifar(name, split, n, seed, data_dir)
     if name == "imagenette":
