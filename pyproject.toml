@@ -1,0 +1,19 @@
+[build-system]
+requires = ["setuptools>=64"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "pdi-spectral"
+version = "0.1.0"
+description = "Pré-processamento perceptual, energia espectral por banda e acurácia de classificadores pré-treinados"
+requires-python = ">=3.10"
+
+[project.scripts]
+pdi-spectral = "pdi_spectral.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]

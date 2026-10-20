@@ -1,0 +1,121 @@
+# Configuração completa do estudo. Ver README.md, seção "Modelagem".
+run_name: default
+seed: 42
+device: auto          # auto | cpu | cuda | mps
+backend: scratch      # scratch (do zero) | reference (OpenCV/PIL, ~10-50x mais rápido)
+n_workers: 4          # threads para aplicar as técnicas
+batch_size: 64
+
+paths:
+  data: data
+  results: results
+  sr_models: data/sr_models
+  # imagenet_val: D:/datasets/imagenet/val      # opcional: pastas <wnid>/*.JPEG
+  # imagenet_train: D:/datasets/imagenet/train
+
+# ---------------------------------------------------------------------------
+# Quantificador espectral (lacunas 2 e 4)
+# ---------------------------------------------------------------------------
+spectral:
+  channel: luma       # luma | rgb
+  window: hann        # hann | none
+  n_bins: 16          # anéis finos em (0, 0.5] ciclos/pixel (+1 anel de cantos)
+  bands:              # bandas agregadas, (lo, hi] em ciclos/pixel
+    low:  [0.0, 0.10]
+    mid:  [0.10, 0.25]
+    high: [0.25, 0.7072]
+
+# ---------------------------------------------------------------------------
+# Datasets e classificadores (pesos pré-treinados padrão, model.eval())
+# ---------------------------------------------------------------------------
+datasets:
+  cifar10:
+    n_images: 2000    # subconjunto do teste (10k); null = todos
+    n_train: 5000     # só para E4
+    models: [cifar10_resnet20, cifar10_resnet56, cifar10_vgg16_bn, cifar10_mobilenetv2_x1_0]
+  imagenette:
+    n_images: null    # val completo (3925)
+    n_train: 2000
+    models: [resnet18, resnet50, vgg16_bn, efficientnet_b0, vit_b_16]
+  # imagenet_val:     # descomente se tiver o ImageNet local (recomendado para o artigo)
+  #   n_images: 5000
+  #   n_train: 5000
+  #   models: [resnet18, resnet50, vgg16_bn, efficientnet_b0, vit_b_16]
+
+# ---------------------------------------------------------------------------
+# Técnicas (variáveis independentes). 5 níveis cada = curva dose-resposta.
+# `dose` = parâmetro usado como eixo nominal nos gráficos.
+# ---------------------------------------------------------------------------
+techniques:
+  # ---- grupo primário: técnicas com lacuna de evidência ----
+  hist_eq:
+    dose: alpha
+    levels: [{alpha: 0.2}, {alpha: 0.4}, {alpha: 0.6}, {alpha: 0.8}, {alpha: 1.0}]
+  clahe:
+    dose: clip_limit
+    levels: [{clip_limit: 1.0}, {clip_limit: 2.0}, {clip_limit: 3.0}, {clip_limit: 4.0}, {clip_limit: 6.0}]
+  unsharp:
+    dose: amount
+    levels: [{amount: 0.5, sigma: 1.0}, {amount: 1.0, sigma: 1.0}, {amount: 1.5, sigma: 1.0},
+             {amount: 2.0, sigma: 1.0}, {amount: 3.0, sigma: 1.0}]
+  laplacian:
+    dose: c
+    levels: [{c: 0.25}, {c: 0.5}, {c: 0.75}, {c: 1.0}, {c: 1.5}]
+  sr_bicubic:
+    dose: scale
+    levels: [{scale: 2}, {scale: 3}, {scale: 4}]
+  sr_espcn:
+    dose: scale
+    levels: [{scale: 2}, {scale: 3}, {scale: 4}]
+  sr_fsrcnn:
+    dose: scale
+    levels: [{scale: 2}, {scale: 3}, {scale: 4}]
+  # ---- grupo de controle / âncora: bem documentado (replica a literatura) ----
+  gaussian:
+    dose: sigma
+    levels: [{sigma: 0.5}, {sigma: 1.0}, {sigma: 1.5}, {sigma: 2.0}, {sigma: 3.0}]
+  median:
+    dose: k
+    levels: [{k: 3}, {k: 5}, {k: 7}, {k: 9}, {k: 11}]
+  bilateral:
+    dose: sigma_s
+    levels: [{sigma_s: 1.0, sigma_r: 0.05}, {sigma_s: 2.0, sigma_r: 0.10}, {sigma_s: 3.0, sigma_r: 0.15},
+             {sigma_s: 4.0, sigma_r: 0.20}, {sigma_s: 5.0, sigma_r: 0.30}]
+  wiener:
+    dose: k
+    levels: [{k: 3}, {k: 5}, {k: 7}, {k: 9}, {k: 11}]
+  jpeg:
+    dose: quality
+    levels: [{quality: 90}, {quality: 70}, {quality: 50}, {quality: 30}, {quality: 10}]
+
+# ---------------------------------------------------------------------------
+# E1 — oráculo espectral (filtros ideais por banda)
+# ---------------------------------------------------------------------------
+oracle:
+  n_bins: 8                 # 8 anéis em (0, 0.5] + cantos
+  gains: [0.0, 2.0]         # remove a banda / dobra a amplitude da banda
+  lowpass:  [0.05, 0.10, 0.15, 0.25, 0.35]
+  highpass: [0.02, 0.05, 0.10, 0.15]
+
+# ---------------------------------------------------------------------------
+# E4 — adaptação (domain shift x perda de informação)
+# ---------------------------------------------------------------------------
+adaptation:
+  conditions: [hist_eq@4, clahe@1, clahe@4, unsharp@1, unsharp@4, laplacian@4,
+               sr_bicubic@1, sr_espcn@1, gaussian@1, gaussian@4, median@2, median@4,
+               bilateral@4, wiener@4, jpeg@2, jpeg@4]
+  probe_C: 1.0
+  bn_adapt: true
+  finetune_epochs: 0        # >0 ativa fine-tuning completo (caro; use GPU)
+  finetune_lr: 0.001
+  finetune_bs: 64
+
+# ---------------------------------------------------------------------------
+# E3 — análise
+# ---------------------------------------------------------------------------
+analysis:
+  feature_sets: [dose_rank, psnr, ssim, delta_bands, spec_bands, spec_bands_dB, spec_bands+coh, spec_fine, spec_fine+coh]
+  transfer_feature_sets: [spec_bands, spec_bands+coh, spec_fine]
+  image_level: true
+  image_feature_sets: [psnr, spec_bands, spec_bands+coh, spec_fine+coh]
+  image_level_max_rows: 200000
