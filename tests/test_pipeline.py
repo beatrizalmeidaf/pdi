@@ -1,11 +1,13 @@
 """Pipeline de ponta a ponta, offline (dataset sintético + CNN minúscula)."""
+import importlib.util
 from pathlib import Path
 
 import pandas as pd
 import pytest
 
-pytest.importorskip("torch")
-pytest.importorskip("cv2")
+# Checa sem importar: em alguns ambientes (ex.: Anaconda sem torchvision) importar torch derruba o processo.
+if any(importlib.util.find_spec(m) is None for m in ("torch", "torchvision", "cv2")):
+    pytest.skip("requer torch, torchvision e opencv", allow_module_level=True)
 
 ROOT = Path(__file__).resolve().parents[1]
 
