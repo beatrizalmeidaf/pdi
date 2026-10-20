@@ -1,0 +1,36 @@
+# Execução mínima (~minutos em CPU) para testar o pipeline de ponta a ponta.
+extends: default.yaml
+run_name: smoke
+backend: scratch
+n_workers: 2
+batch_size: 32
+
+datasets:
+  _replace: true
+  cifar10:
+    n_images: 64
+    n_train: 256
+    models: [cifar10_resnet20, cifar10_vgg16_bn]
+
+techniques:
+  _replace: true
+  hist_eq:   {dose: alpha, levels: [{alpha: 0.5}, {alpha: 1.0}]}
+  clahe:     {dose: clip_limit, levels: [{clip_limit: 2.0}, {clip_limit: 6.0}]}
+  unsharp:   {dose: amount, levels: [{amount: 1.0, sigma: 1.0}, {amount: 3.0, sigma: 1.0}]}
+  laplacian: {dose: c, levels: [{c: 0.5}, {c: 1.5}]}
+  sr_bicubic: {dose: scale, levels: [{scale: 2}, {scale: 4}]}
+  sr_espcn:  {dose: scale, levels: [{scale: 2}, {scale: 4}]}
+  gaussian:  {dose: sigma, levels: [{sigma: 1.0}, {sigma: 2.0}]}
+  median:    {dose: k, levels: [{k: 3}, {k: 5}]}
+  bilateral: {dose: sigma_s, levels: [{sigma_s: 2.0, sigma_r: 0.1}, {sigma_s: 4.0, sigma_r: 0.2}]}
+  wiener:    {dose: k, levels: [{k: 3}, {k: 7}]}
+  jpeg:      {dose: quality, levels: [{quality: 70}, {quality: 10}]}
+
+oracle:
+  n_bins: 4
+  gains: [0.0, 2.0]
+  lowpass: [0.1, 0.25]
+  highpass: [0.05]
+
+adaptation:
+  conditions: [clahe@1, unsharp@1, gaussian@1, jpeg@1]

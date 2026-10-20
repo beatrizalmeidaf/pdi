@@ -1,0 +1,10 @@
+# Pipeline completo SEM internet: imagens sintéticas + CNN minúscula sem pesos.
+# Os números não têm significado; serve só para checar que tudo roda.
+extends: smoke.yaml
+run_name: offline
+datasets:
+  _replace: true
+  synthetic:
+    n_images: 48
+    n_train: 96
+    models: [tiny_cnn]
