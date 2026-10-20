@@ -229,7 +229,8 @@ repo/
 ├── Makefile                  alvos: setup, download, verify, oracle, main, adapt, analyze, all, smoke…
 ├── configs/
 │   ├── default.yaml          estudo completo
-│   └── smoke.yaml            miniatura para testar o pipeline (herda do default)
+│   ├── smoke.yaml            miniatura para testar o pipeline (herda do default)
+│   └── offline.yaml          pipeline sem internet: imagens sintéticas + CNN minúscula
 ├── scripts/
 │   ├── _common.sh            detecção do Python/venv, PYTHONPATH, logs, download
 │   ├── setup_env.sh          cria .venv e instala dependências (CPU ou GPU)
@@ -281,6 +282,7 @@ make setup                         # cria .venv e instala requirements
 make download                      # SR + CIFAR-10 + Imagenette (~330 MB) + pesos
 make verify                        # E0
 make smoke                         # pipeline completo em miniatura (minutos)
+make offline                       # idem, sem internet (imagens sintéticas; só checa que roda)
 make all                           # E1 + E2 + E4 + E3 com a config padrão
 make fast                          # idem, com backend OpenCV (muito mais rápido)
 make examples                      # figuras qualitativas e assinatura espectral
