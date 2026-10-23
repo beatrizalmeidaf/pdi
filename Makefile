@@ -16,7 +16,7 @@ export CONFIG EXTRA DATASETS
 
 .DEFAULT_GOAL := help
 .PHONY: help setup download download-sr download-cifar download-imagenette download-models \
-        test verify examples smoke offline oracle main adapt analyze all fast clean clean-results
+        test verify examples smoke offline sweep safe-dose human-export human-analyze oracle main adapt analyze all fast clean clean-results
 
 help:  ## lista os alvos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -47,6 +47,18 @@ examples:  ## figuras qualitativas e assinatura espectral por técnica
 
 smoke:  ## pipeline completo em miniatura (CIFAR-10, 64 imagens)
 	bash scripts/run_smoke.sh
+
+sweep:  ## varredura densa de dose -> limiares (BMD), janela operacional e IRE (CIFAR-10 por padrão)
+	CONFIG=configs/sweep.yaml DATASETS="$(or $(DATASETS),cifar10)" bash scripts/run_experiments.sh oracle main adapt analyze
+
+safe-dose:  ## dose segura pela fórmula IRE, sem rodar a rede. Ex.: make safe-dose T=gaussian M=cifar10_resnet20
+	bash -c 'source scripts/_common.sh && pdi safe-dose --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG)) --technique $(T) $(if $(M),--model $(M)) $(if $(TAU),--tau $(TAU))'
+
+human-export:  ## estudo com pessoas: gera results/<run>/human_study/index.html (config do sweep)
+	bash -c 'source scripts/_common.sh && pdi human-export --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG))'
+
+human-analyze:  ## analisa os CSVs de respostas em results/<run>/human_study/respostas/
+	bash -c 'source scripts/_common.sh && pdi human-analyze --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG))'
 
 offline:  ## pipeline completo sem internet (imagens sintéticas + CNN minúscula)
 	CONFIG=configs/offline.yaml bash scripts/run_experiments.sh oracle main adapt analyze examples

@@ -44,7 +44,10 @@ def test_bilateral_gray_matches_opencv():
 
 def test_wiener_interior_matches_scipy():
     # O SciPy estima o ruído com borda de zeros; fixa o mesmo nu nos dois.
-    a, b = _both("wiener", k=5, noise=0.002)
+    from pdi_spectral.techniques import reference, restoration
+
+    a = np.stack([restoration.wiener(im, 5, noise=0.002) for im in IMGS])
+    b = np.stack([reference.wiener(im, 5, noise=0.002) for im in IMGS])
     r = 3
     assert np.abs(a[:, r:-r, r:-r].astype(int) - b[:, r:-r, r:-r].astype(int)).mean() < 1.0
 

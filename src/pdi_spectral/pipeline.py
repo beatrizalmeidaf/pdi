@@ -26,6 +26,7 @@ from . import techniques as T
 from .config import resolve_device
 from .datasets import load_dataset
 from .models import Classifier, log_softmax, softmax
+from . import quality as Q
 from .spectral import R_MAX, SpectralAnalyzer, SpectralConfig
 
 
@@ -156,6 +157,7 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
     n_workers = int(cfg.get("n_workers", 0))
     out_root = Path(cfg["paths"]["results"]) / cfg["run_name"] / kind
     spec_cfg = SpectralConfig.from_dict(cfg.get("spectral"))
+    use_brisque = bool(cfg.get("quality", {}).get("brisque", False))
     conds = filter_available(build_conditions(cfg, kind))
     pool = ThreadPoolExecutor(n_workers) if n_workers > 0 else None
     print(f"[{kind}] device={device} backend={backend} condições={len(conds)}")
@@ -163,7 +165,7 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
     for ds_name, dcfg in cfg["datasets"].items():
         if only and ds_name not in only:
             continue
-        if not dcfg.get("enabled", True):
+        if not only and not dcfg.get("enabled", True):  # --datasets explícito liga mesmo se enabled: false
             continue
         imgset = load_dataset(ds_name, "val", dcfg.get("n_images"), cfg["seed"], cfg["paths"])
         models = [Classifier(m, device) for m in dcfg["models"]]
@@ -175,6 +177,8 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
         for ids, imgs, labels, _ in imgset.batches(bs):
             Fx, dcx = analyzer.transform(imgs)
             profiles.append(analyzer.profile(Fx))
+            q_orig = Q.measure(imgs)
+            b_orig = Q._brisque(imgs) if use_brisque else None
             base = {}
             for m in models:
                 lg = m.logits(imgs)
@@ -187,6 +191,7 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
             for c in conds:
                 proc = apply_batch(c, imgs, backend, pool)
                 sp = analyzer.compare(imgs, proc, Fx, dcx)
+                sp.update(Q.compare(q_orig, proc, b_orig, use_brisque))
                 sp = pd.DataFrame(sp)
                 sp.insert(0, "image_id", ids)
                 sp.insert(1, "cond_id", c.cond_id)

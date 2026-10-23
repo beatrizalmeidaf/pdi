@@ -50,19 +50,33 @@ techniques:
   # ---- grupo primário: técnicas com lacuna de evidência ----
   hist_eq:
     dose: alpha
+    identity: 0.0
+    objective: {metric: contrast, direction: up, min_gain: 0.10}
     levels: [{alpha: 0.2}, {alpha: 0.4}, {alpha: 0.6}, {alpha: 0.8}, {alpha: 1.0}]
   clahe:
     dose: clip_limit
+    objective: {metric: contrast, direction: up, min_gain: 0.10}
     levels: [{clip_limit: 1.0}, {clip_limit: 2.0}, {clip_limit: 3.0}, {clip_limit: 4.0}, {clip_limit: 6.0}]
+  clahe_blend:            # CLAHE (clip 2) misturado ao original: dose contínua abaixo do clip mínimo
+    dose: alpha           # (em blocos de 16 px o clip efetivo é inteiro: todo clip < 2 é igual)
+    identity: 0.0
+    objective: {metric: contrast, direction: up, min_gain: 0.10}
+    levels: [{clip_limit: 2.0, alpha: 0.2}, {clip_limit: 2.0, alpha: 0.4}, {clip_limit: 2.0, alpha: 0.6},
+             {clip_limit: 2.0, alpha: 0.8}, {clip_limit: 2.0, alpha: 1.0}]
   unsharp:
     dose: amount
+    identity: 0.0
+    objective: {metric: sharpness, direction: up, min_gain: 0.10}
     levels: [{amount: 0.5, sigma: 1.0}, {amount: 1.0, sigma: 1.0}, {amount: 1.5, sigma: 1.0},
              {amount: 2.0, sigma: 1.0}, {amount: 3.0, sigma: 1.0}]
   laplacian:
     dose: c
+    identity: 0.0
+    objective: {metric: sharpness, direction: up, min_gain: 0.10}
     levels: [{c: 0.25}, {c: 0.5}, {c: 0.75}, {c: 1.0}, {c: 1.5}]
   sr_bicubic:
     dose: scale
+    identity: 1
     levels: [{scale: 2}, {scale: 3}, {scale: 4}]
   sr_espcn:
     dose: scale
@@ -73,20 +87,37 @@ techniques:
   # ---- grupo de controle / âncora: bem documentado (replica a literatura) ----
   gaussian:
     dose: sigma
+    identity: 0.0
+    objective: {metric: noise, direction: down, min_gain: 0.10}
     levels: [{sigma: 0.5}, {sigma: 1.0}, {sigma: 1.5}, {sigma: 2.0}, {sigma: 3.0}]
   median:
     dose: k
+    identity: 1
+    objective: {metric: noise, direction: down, min_gain: 0.10}
     levels: [{k: 3}, {k: 5}, {k: 7}, {k: 9}, {k: 11}]
   bilateral:
     dose: sigma_s
+    identity: 0.0
+    objective: {metric: noise, direction: down, min_gain: 0.10}
     levels: [{sigma_s: 1.0, sigma_r: 0.05}, {sigma_s: 2.0, sigma_r: 0.10}, {sigma_s: 3.0, sigma_r: 0.15},
              {sigma_s: 4.0, sigma_r: 0.20}, {sigma_s: 5.0, sigma_r: 0.30}]
   wiener:
     dose: k
+    identity: 1
+    objective: {metric: noise, direction: down, min_gain: 0.10}
     levels: [{k: 3}, {k: 5}, {k: 7}, {k: 9}, {k: 11}]
   jpeg:
     dose: quality
+    reverse: 100   # intensidade = 100 - qualidade
     levels: [{quality: 90}, {quality: 70}, {quality: 50}, {quality: 30}, {quality: 10}]
+  jpeg444:                # JPEG sem subamostragem de cor: separa o efeito da cor (4:2:0) do da quantização
+    dose: quality
+    reverse: 100
+    levels: [{quality: 100}, {quality: 90}, {quality: 70}, {quality: 50}, {quality: 10}]
+
+# Campos usados nos limiares: identity = dose que não altera a imagem (âncora Δ=0);
+# reverse = eixo invertido (intensidade = reverse - dose); objective = objetivo visual
+# declarado da técnica (métricas em quality.py), usado para a janela operacional.
 
 # ---------------------------------------------------------------------------
 # E1 — oráculo espectral (filtros ideais por banda)
@@ -114,8 +145,33 @@ adaptation:
 # E3 — análise
 # ---------------------------------------------------------------------------
 analysis:
-  feature_sets: [dose_rank, psnr, ssim, delta_bands, spec_bands, spec_bands_dB, spec_bands+coh, spec_fine, spec_fine+coh]
+  feature_sets: [dose_rank, psnr, ssim, delta_bands, spec_bands, spec_bands_dB, spec_bands+coh, spec_bands+coh+chroma, spec_fine, spec_fine+coh]
   transfer_feature_sets: [spec_bands, spec_bands+coh, spec_fine]
   image_level: true
   image_feature_sets: [psnr, spec_bands, spec_bands+coh, spec_fine+coh]
   image_level_max_rows: 200000
+
+# ---------------------------------------------------------------------------
+# Limiares de dose (BMD) e janela operacional — ver thresholds.py
+# ---------------------------------------------------------------------------
+thresholds:
+  enabled: true
+  acc_tol: [0.01, 0.05]     # queda de acurácia tolerada (1 e 5 p.p.); a 1ª é a principal
+  flip_tol: [0.01, 0.05]    # fração de decisões alteradas tolerada
+  bootstrap: 1000
+  ci: 0.90
+  brisque_min_gain: 0.05    # BRISQUE: melhora/piora relevante = 5 %
+
+# ---------------------------------------------------------------------------
+# Índice de Risco Espectral: P(flip) = 1 - exp(-sum_j w_j x_j^gamma)
+#   x_j = energia da perturbação por anel (luma e cor) + perda de coerência por banda
+# ---------------------------------------------------------------------------
+ire:
+  features: D_fine+chroma+coh   # base D_fine|D_bands, extras +chroma (cor) e +coh (estrutura/fase)
+  gamma: auto               # auto = estima o expoente; ou um número fixo (1 = forma linear)
+  l2: 0.0001
+  max_rows: 300000
+  use_fit: all              # pesos usados no safe-dose: all | oracle
+
+quality:
+  brisque: false            # true requer `pip install piq` (roda em CPU; imagens < 128 px são ampliadas)

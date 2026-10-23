@@ -17,11 +17,14 @@ Ela mede, para cada técnica clássica de pré-processamento e cada nível de in
 6. [Datasets e classificadores](#6-datasets-e-classificadores)
 7. [Experimentos E0–E5](#7-experimentos-e0e5)
 8. [Análise estatística](#8-análise-estatística)
+   - [8.1 Limiares de dose e janela operacional](#81-limiares-de-dose-e-janela-operacional)
+   - [8.2 Índice de Risco Espectral (IRE)](#82-índice-de-risco-espectral-ire--fórmula-proposta)
 9. [Arquitetura do código](#9-arquitetura-do-código)
 10. [Como rodar](#10-como-rodar)
 11. [Saídas](#11-saídas)
 12. [Custo computacional](#12-custo-computacional)
 13. [Ameaças à validade](#13-ameaças-à-validade)
+14. [Status e o que falta](#14-status-e-o-que-falta)
 
 ---
 
@@ -36,6 +39,8 @@ As quatro questões da revisão (QP1–QP4) viram hipóteses testáveis. Cada um
 | **H3** | A banda crítica **não é universal**: depende do dataset (32 px × 224 px) e da arquitetura (CNN × ViT). Um perfil de sensibilidade medido com filtros ideais transfere apenas **parcialmente** para as técnicas reais. | QP3, lacuna 4 | E1 + E3 | Perfis S(banda) diferentes entre datasets/arquiteturas; R² de transferência oráculo → técnicas < R² LOTO |
 | **H4** | Para técnicas **invertíveis** ou redistributivas (CLAHE, aguçamento), a maior parte da queda é **domain shift** (recuperável com adaptação). Para técnicas **destrutivas** (mediana, JPEG Q10, blur forte), sobra **perda de informação**. | QP2, lacuna 3 | E4 | Fração recuperável R ≈ 1 × R ≈ 0 |
 | **H5** | A **coerência de fase** por banda (estrutura preservada) acrescenta poder explicativo à magnitude da energia. | QP2, lacuna 4 | E3 | `spec_bands+coh` > `spec_bands` no LOTO e na AUC por imagem |
+| **H6** | Cada técnica tem um **limiar de dose** (BMD) abaixo do qual o classificador não perde acurácia. Para as técnicas redistributivas existe uma **janela operacional**: a dose que já cumpre o objetivo visual fica abaixo do limiar. Para as destrutivas, a janela é vazia. | QP1, QP4 | E2 (varredura densa) | BMD com IC por bootstrap; janela = [dose perceptual, BMDL] |
+| **H7** | O **IRE** (fórmula proposta, §8.2), calibrado uma vez por modelo, prevê o limiar de técnicas que ele não viu. | QP3, lacunas 2 e 4 | E3 | Limiar previsto (LOTO) dentro do IC do observado; R² do flip por condição |
 
 ---
 
@@ -205,6 +210,88 @@ Implementada em [analysis.py](src/pdi_spectral/analysis.py).
 
 O relatório consolidado sai em `results/<run>/analysis/summary.md`, com as figuras em `analysis/figures/`.
 
+### 8.1 Limiares de dose e janela operacional
+
+Implementado em [thresholds.py](src/pdi_spectral/thresholds.py) e rodado com `make sweep`. A varredura usa 8 a 12 níveis por técnica, mais densos perto de zero, onde o limiar costuma estar. O vocabulário vem da modelagem dose-resposta da toxicologia, que resolve exatamente o problema "a partir de que dose começa o efeito":
+
+| Grandeza | Definição | Uso prático |
+|---|---|---|
+| **BMD_τ** (*benchmark dose*) | menor intensidade em que Δacc ≤ −τ (τ = 1 p.p. e 5 p.p.), por interpolação linear | "a partir daqui começa a perder" |
+| **BMDL / BMDU** | IC 90 % do BMD por bootstrap pareado sobre as imagens | **BMDL = dose segura conservadora** |
+| **BMD-flip_τ** | menor intensidade em que τ das decisões mudam | não precisa de rótulos; é limite superior da perda de acurácia |
+| **NOAEL / LOAEL** | maior dose testada sem dano significativo / primeira com dano (IC de Δacc todo abaixo de 0) | versão sem interpolação |
+| **melhor dose, ganho** | argmax de Δacc e seu IC | **ganho significativo** se o IC fica acima de 0 |
+| **hormese** | ganho significativo em dose baixa **e** BMD em dose maior | "em tal valor melhora, em tal valor piora" |
+| **dose perceptual** | menor intensidade em que a técnica cumpre seu **objetivo declarado** (+10 % de nitidez no aguçamento, −10 % de ruído na suavização, +10 % de contraste na equalização) | "a partir daqui a imagem já melhorou" |
+| **janela operacional** | [dose perceptual, BMDL] | intervalo útil; **vazia** = todo ganho visual custa acurácia |
+
+O eixo é sempre de intensidade crescente; no JPEG, intensidade = 100 − qualidade. Quando existe uma dose que não altera a imagem (σ = 0, α = 0, k = 1…), ela entra como âncora com Δ = 0.
+
+Cada limiar vem com um `status`:
+
+| status | significado |
+|---|---|
+| `ok` | o limiar foi medido entre duas doses testadas |
+| `<x_min` | a curva já cruza o limiar na primeira dose testada |
+| `>x_max` | a curva não cruza o limiar até a maior dose testada |
+| `entre_id_e_x_min` | cruza entre a dose identidade e a primeira testada; o valor é **interpolado, não medido** |
+
+Nos dois casos de baixo, a solução é testar doses menores. Em técnicas com parâmetro discreto (mediana e Wiener com k ímpar), o menor passo possível já pode ultrapassar o limiar; aí o resultado relevante é o próprio LOAEL.
+
+As métricas do objetivo visual ([quality.py](src/pdi_spectral/quality.py), do zero e sem referência) são: gradiente de Sobel (nitidez), estimador de ruído de Immerkær, contraste RMS, entropia e *colorfulness*. Elas medem se a técnica fez o que promete, não um juízo humano. Para uma métrica perceptual geral, ative `quality.brisque` (requer `piq`).
+
+Figura `thresholds_<dataset>_<modelo>.png`, um painel por técnica:
+- curva de Δacc com IC;
+- curva de −flip;
+- linha vermelha no BMD, com faixa do IC;
+- linha verde tracejada na dose perceptual, com a curva do objetivo no eixo da direita;
+- faixa verde = janela operacional.
+
+### 8.2 Índice de Risco Espectral (IRE) — fórmula proposta
+
+$$
+\mathrm{IRE}(x,T)=\sum_b w_b\,D_b^{\,\gamma}\;+\;\sum_b c_b\,D^{\text{cor}}_b{}^{\gamma}\;+\;\sum_B u_B\,(1-\rho_B)^{\gamma},
+\qquad
+\widehat{P}(\text{flip})=1-e^{-\mathrm{IRE}},\qquad w,c,u\ge 0
+$$
+
+O que entra na fórmula:
+
+| Termo | O que mede | Por que está lá |
+|---|---|---|
+| **D_b** | energia da perturbação T(x) − x no anel b da **luminância**, relativa à energia da imagem (§5) | quanto a técnica mexeu em cada faixa de frequência |
+| **D^cor_b** | o mesmo, nos canais de **cor** (Cb, Cr) | sem ele, o JPEG de qualidade 98 parecia inofensivo. A subamostragem de cor 4:2:0 gera ~10× mais erro de cor que de luminância, e já muda 1 % das decisões |
+| **1 − ρ_B** | perda de **coerência espectral** na banda B (baixa, média, alta): quanto a estrutura/fase mudou, além da energia | foi o termo que mais melhorou a previsão (ver abaixo) |
+| **γ** | expoente único, estimado | permite resposta não linear à intensidade |
+| **w, c, u** | pesos ≥ 0 por modelo: o **perfil de vulnerabilidade espectral** | calibrados uma vez, por máxima verossimilhança sobre as imagens |
+
+Leitura: é um modelo de risco/Poisson. Cada unidade de perturbação numa banda é uma "chance" independente de mudar a decisão, com taxa dada pelo peso daquela banda.
+
+**Garantia de acurácia.** Só uma predição que muda pode virar erro, então Δacc ≥ −P(flip) sempre. Daí sai o **orçamento espectral**:
+
+$$
+\mathrm{IRE} \;\le\; -\ln(1-\tau)\quad\Longrightarrow\quad \text{queda de acurácia}\;\le\;\tau
+$$
+
+Para τ = 1 %, o orçamento é 0,01005.
+
+**Uso sem rede.** Com os pesos calibrados, `make safe-dose T=<técnica> M=<modelo>` aplica a técnica numa grade de doses, mede só o espectro e devolve as doses dentro do orçamento, **sem rodar o classificador**. Isso vale para qualquer técnica nova.
+
+**Validação (H7).** Por *leave-one-technique-out*: cada técnica é prevista com pesos ajustados só nas outras. Comparam-se o flip por condição (R²) e o limiar previsto contra o observado.
+
+Como a fórmula chegou à forma atual (CIFAR-10, ResNet-20, 2000 imagens, flip por condição, LOTO):
+
+| Variante | R² | Spearman |
+|---|---|---|
+| linear, só energia de luminância (Σ w_b D_b) | 0,13 | 0,63 |
+| + expoente γ | 0,23 | 0,58 |
+| + perda de coerência (1 − ρ) | **0,85** | **0,93** |
+| + confiança original do modelo | 0,22 | 0,57 |
+
+Saídas: `ire_*.csv` e as figuras `ire_weights_*.png` (perfil de vulnerabilidade) e `ire_pred_vs_obs_*.png`.
+
+A fórmula prevê **dano**, não ganho: o flip é sempre ≥ 0. Os ganhos (hormese) são identificados pelo bootstrap do §8.1.
+
 ---
 
 ## 9. Arquitetura do código
@@ -231,7 +318,8 @@ repo/
 ├── configs/
 │   ├── default.yaml          estudo completo
 │   ├── smoke.yaml            miniatura para testar o pipeline (herda do default)
-│   └── offline.yaml          pipeline sem internet: imagens sintéticas + CNN minúscula
+│   ├── offline.yaml          pipeline sem internet: imagens sintéticas + CNN minúscula
+│   └── sweep.yaml            varredura densa de dose para limiares e IRE
 ├── scripts/
 │   ├── _common.sh            detecção do Python/venv, PYTHONPATH, logs, download
 │   ├── setup_env.sh          cria .venv e instala dependências (CPU ou GPU)
@@ -257,6 +345,8 @@ repo/
 │   ├── pipeline.py           E1/E2
 │   ├── adaptation.py         E4
 │   ├── analysis.py           E3 + relatório
+│   ├── thresholds.py         limiares (BMD/NOAEL/janela) + fórmula IRE + safe-dose
+│   ├── quality.py            métricas perceptuais sem referência (do zero)
 │   ├── plots.py              figuras
 │   ├── verify.py             E0
 │   └── cli.py                linha de comando
@@ -287,6 +377,9 @@ make offline                       # idem, sem internet (imagens sintéticas; s�
 make all                           # E1 + E2 + E4 + E3 com a config padrão
 make fast                          # idem, com backend OpenCV (muito mais rápido)
 make examples                      # figuras qualitativas e assinatura espectral
+make sweep                         # varredura densa -> limiares, janela operacional, IRE (CIFAR-10)
+make sweep DATASETS=imagenette     # idem no Imagenette (GPU recomendada)
+make safe-dose T=gaussian M=cifar10_resnet20 TAU=0.01   # dose segura pela fórmula, sem rede
 ```
 
 Etapas isoladas e variações:
@@ -323,6 +416,8 @@ results/
         ├── conditions_main.csv         tabela por condição (Δacc, IC, McNemar, ΔE médio…)
         ├── loto.csv, loto_predictions.csv, oracle_transfer.csv, image_level.csv
         ├── band_sensitivity.csv, adaptation_summary.csv
+        ├── thresholds.csv, threshold_curves.csv          limiares (BMD, NOAEL, janela)
+        ├── ire_weights.csv, ire_summary.csv, ire_*_predictions.csv   fórmula IRE
         └── figures/
             ├── dose_response_<ds>.png          Δacc × parâmetro nominal
             ├── delta_vs_dErel_high_<ds>.png    Δacc × ΔE alta (todas as técnicas no mesmo eixo)
@@ -331,6 +426,9 @@ results/
             ├── loto_r2_<ds>.png                comparação dos preditores (H2)
             ├── pred_vs_obs_<ds>.png
             ├── adaptation_<ds>.png             H4
+            ├── thresholds_<ds>_<modelo>.png    limiares e janela operacional por técnica
+            ├── ire_weights_<ds>.png            perfil de vulnerabilidade espectral
+            ├── ire_pred_vs_obs_<ds>.png
             ├── examples_<ds>.png
             └── spectral_signature_<ds>.png     ΔE (dB) por anel de cada técnica
 ```
@@ -367,3 +465,69 @@ Use `backend: scratch` para as figuras do relatório da disciplina e para a vali
 | Poucas condições por modelo para a regressão (~50) | Ridge com regularização por CV; agregados de 3 bandas como modelo principal, anéis finos como exploratório; análise por imagem (centenas de milhares de pontos) como confirmação. |
 | ViT sem BatchNorm | O BN-adapt é pulado (célula vazia); as sondas lineares valem para todos. |
 | Pré-processamento em imagens já limpas | É a pergunta (QP1). A QP4 sobre entradas degradadas fica como E5 opcional. |
+
+---
+
+## 14. Status e o que falta
+
+### 14.1 Resultados preliminares — CIFAR-10 (`make sweep`)
+
+Configuração: 2000 imagens de teste, três CNNs pré-treinadas (ResNet-20, ResNet-56, VGG-16-BN; acurácia de base 92,9 %, 94,9 % e 93,7 %), 83 doses e 27 filtros-oráculo. São resultados **preliminares**: um só dataset, de 32 px, e sem ViT.
+
+**Limiares de 1 p.p. (BMD, média dos 3 modelos) e janela operacional:**
+
+| Técnica | Começa a perder 1 p.p. em | Perde 5 p.p. em | Objetivo visual atingido em | Janela operacional? |
+|---|---|---|---|---|
+| Gaussiano | σ ≈ 0,44 (0,43–0,45) | σ ≈ 0,55 | σ ≈ 0,33 (−10 % ruído) | **sim**, σ ∈ [0,33; ~0,42] |
+| *Unsharp* | amount ≈ 0,51 (0,45–0,56) | ≈ 1,44 | ≈ 0,26 (+10 % nitidez) | **sim**, amount ∈ [0,26; ~0,30–0,40] |
+| CLAHE | já na 1ª dose testada (clip 0,5: −1,4 a −2,1 p.p.) | clip ≈ 3,8 | clip 0,5 | marginal (só no limite inferior) |
+| Equalização (HE) | α ≈ 0,19 | α ≈ 0,67 | α ≈ 0,16 | **não**: o limiar chega antes ou junto do objetivo |
+| Laplaciano | c ≈ 0,11 | c ≈ 0,33 | c ≈ 0,09 | **não** |
+| Bilateral | σ_s ≈ 1,0 | σ_s ≈ 2,4 | σ_s ≈ 1,9 | **não** |
+| JPEG | qualidade ≈ 98 (2–2,4 de intensidade) | qualidade ≈ 88 | — | — |
+| Mediana / Wiener | o menor passo (k = 3) já passa do limiar | — | k = 3 | **não** |
+| SR bicúbica | escala 1,25 já passa | — | — | — |
+| ESPCN / FSRCNN | todas as SR perdem 33–47 p.p. já em ×2; mas, **na mesma escala, a SR aprendida recupera 3–11 p.p. sobre a bicúbica** (FSRCNN > ESPCN > bicúbica) | — | — | — |
+
+O que esses números dizem:
+- **Os limiares são estreitos e quase idênticos entre arquiteturas.** No gaussiano, o BMD fica entre 0,43 e 0,45 nos três modelos.
+- **Não houve hormese significativa** no CIFAR-10: nenhuma dose melhorou a acurácia com IC acima de 0. A literatura sugere procurá-la no CLAHE em 224 px (Hendrycks & Dietterich [b6]), o que exige rodar o Imagenette.
+- **A janela operacional existe para suavização leve e *unsharp* leve, e não existe para HE, laplaciano, bilateral e mediana** (H6).
+- **Aprimoramento ajuda quando a entrada está de fato degradada**: partindo da mesma imagem reduzida, a SR aprendida é melhor que a bicúbica para o classificador (QP4 da revisão).
+
+**Previsibilidade (H2, H5).** Na regressão *leave-one-technique-out* por condição:
+
+| Preditor | R² médio |
+|---|---|
+| parâmetro nominal (`dose_rank`) | 0,16 |
+| PSNR | −0,05 |
+| SSIM | 0,50 |
+| ΔE por banda | 0,66 |
+| ΔE por banda + coerência | **0,74** |
+
+**Fórmula IRE (H7).** Validada prevendo cada técnica com pesos ajustados só nas outras:
+- R² = **0,84–0,85** e Spearman ≈ 0,93 para o flip por condição.
+- Calibrada **só nos filtros ideais**, sem ver nenhuma técnica real: R² = **0,73–0,78**.
+- γ estimado ≈ 0,75–0,83 (sublinear).
+- Viés por técnica (previsto/observado):
+  - ≈ 1 em bilateral, JPEG, SR, *unsharp* e Wiener;
+  - ≈ 2,1–2,5 em HE e CLAHE, que a fórmula **superestima**. As técnicas redistributivas mudam muito a imagem e prejudicam menos, como já indicava a literatura;
+  - ≈ 0,6 no blur forte, que ela **subestima** (saturação).
+- Limiar previsto dentro do IC observado em 36 % dos casos. Os erros típicos ficam entre 10 % e 2× do valor medido.
+
+**Domain shift × informação (H4)**, em ResNet-20/56/VGG, média:
+- Gaussiano σ = 1,0: congelado 39,6 %. Só re-estimar o BatchNorm leva a **83,0 %**; o controle (BN re-estimado nas originais) dá 91,1 %. A maior parte da queda é **domain shift**.
+- JPEG qualidade 20: o BN não recupera nada (66,8 % → 66,7 %). Aí a perda é estrutural.
+
+### 14.2 O que falta
+
+| Prioridade | Item | Como |
+|---|---|---|
+| Alta | **Segundo dataset em 224 px e ViT** (H3: a banda crítica muda com resolução e arquitetura) | `make download-imagenette` e `make sweep DATASETS=imagenette` (GPU) |
+| Alta | Doses menores onde o limiar caiu antes da 1ª dose testada: CLAHE (clip < 0,5), SR bicúbica (escala 1,05–1,2), JPEG (qualidade 99–100 e 4:4:4) | ajustar `levels` em `configs/sweep.yaml` |
+| Alta | Melhorar a fórmula nas técnicas redistributivas, que ela superestima ~2×. Candidatos: um termo que desconte mudança de ganho global (`dshape_b`) ou um peso por tipo de mudança | testar como em §8.2 |
+| Média | Validação humana do "objetivo visual" (as métricas são proxies) ou BRISQUE/NIQE | `quality.brisque: true` + `pip install piq` |
+| Média | ImageNet-val local, em vez do Imagenette, para os números finais | `paths.imagenet_val` |
+| Média | Fine-tuning completo no E4 (hoje: BN-adapt e sondas lineares) | `adaptation.finetune_epochs > 0` (GPU) |
+| Baixa | E5: entradas realmente degradadas (CIFAR-10-C), para a QP4 | `bash scripts/download_data.sh cifar10c` |
+| Baixa | Seções de Métodos e Resultados do artigo em `revisao_literatura/main.tex` | a partir de `results/sweep/analysis/summary.md` |

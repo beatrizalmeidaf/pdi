@@ -184,3 +184,88 @@ def examples(cfg: dict, dataset: str, n_images: int, out: Path):
     ax.set_title(f"Assinatura espectral média — {dataset}  (contínua = primário, tracejada = controle)")
     ax.legend(fontsize=6, bbox_to_anchor=(1.02, 1), loc="upper left")
     _save(fig, out / f"spectral_signature_{dataset}.png")
+
+
+# ---------------------------------------------------------------------------
+# Limiares e IRE
+# ---------------------------------------------------------------------------
+def threshold_curves(thr: pd.DataFrame, curves: pd.DataFrame, out: Path, acc_tau: float = 0.01):
+    """Uma figura por (dataset, modelo): Δacc com IC, flip, objetivo perceptual e janela operacional."""
+    for (ds, model), cg in curves.groupby(["dataset", "model"]):
+        techs = sorted(cg.technique.unique())
+        nc = 4
+        nr = int(np.ceil(len(techs) / nc))
+        fig, axes = plt.subplots(nr, nc, figsize=(3.6 * nc, 2.8 * nr), squeeze=False)
+        for ax, t in zip(axes.flat, techs):
+            c = cg[cg.technique == t].sort_values("x")
+            r = thr[(thr.dataset == ds) & (thr.model == model) & (thr.technique == t)].iloc[0]
+            ax.fill_between(c.x, 100 * c.d_acc_lo, 100 * c.d_acc_hi, color="#4c72b0", alpha=0.25, lw=0)
+            ax.plot(c.x, 100 * c.d_acc, "o-", color="#4c72b0", ms=3, label="Δacc")
+            ax.plot(c.x, -100 * c.flip, "s--", color="#c44e52", ms=2, lw=0.8, label="−flip")
+            ax.axhline(0, color="k", lw=0.6)
+            ax.axhline(-100 * acc_tau, color="gray", ls=":", lw=0.8)
+            bmd = r.get(f"bmd_acc{acc_tau:g}")
+            if np.isfinite(bmd):
+                ax.axvline(bmd, color="#c44e52", lw=1)
+                lo, hi = r.get(f"bmdl_acc{acc_tau:g}"), r.get(f"bmdu_acc{acc_tau:g}")
+                if np.isfinite(lo) and np.isfinite(hi):
+                    ax.axvspan(lo, hi, color="#c44e52", alpha=0.12, lw=0)
+            if r.get("window_exists") == True:  # noqa: E712 (pode ser NaN)
+                ax.axvspan(r["window_lo"], r["window_hi"], color="#55a868", alpha=0.18, lw=0, label="janela")
+            if c.dq_objective.notna().any():
+                tw = ax.twinx()
+                tw.plot(c.x, 100 * c.dq_objective, color="#55a868", ls="-.", lw=1)
+                tw.set_ylabel(f"{r.get('objective', '')} (Δ%)", color="#55a868", fontsize=7)
+                pd_ = r.get("perc_dose")
+                if isinstance(pd_, float) and np.isfinite(pd_):
+                    ax.axvline(pd_, color="#55a868", lw=1, ls="--")
+            title = t + ("  [hormese]" if r.get("hormesis") else "")
+            ax.set_title(title, fontsize=8)
+            ax.set_xlabel(r["unit"], fontsize=7)
+            ax.set_ylabel("p.p.", fontsize=7)
+        for ax in list(axes.flat)[len(techs):]:
+            ax.axis("off")
+        axes.flat[0].legend(fontsize=6, loc="lower left")
+        fig.suptitle(f"Limiares — {ds} / {model}   (vermelho: BMD {100*acc_tau:g} p.p. ± IC; "
+                     f"verde tracejado: objetivo atingido; verde: janela operacional)", fontsize=9)
+        fig.tight_layout()
+        _save(fig, out / f"thresholds_{ds}_{model}.png")
+
+
+def ire_weights(w: pd.DataFrame, centers: dict, out: Path):
+    """Perfil de vulnerabilidade: pesos de luminância (contínua) e de cor (tracejada) por anel."""
+    w = w[w.fit == "all"]
+    for ds, d in w.groupby("dataset"):
+        fig, ax = plt.subplots(figsize=(6, 3.6))
+        for i, (model, g) in enumerate(d.groupby("model")):
+            gamma = float(g[g.feature == "_gamma"].w.iloc[0]) if (g.feature == "_gamma").any() else 1.0
+            for prefix, ls, lab in (("D_f", "-", "luma"), ("Dc_f", "--", "cor")):
+                h = g[g.feature.str.startswith(prefix)]
+                if len(h):
+                    ax.semilogy([centers.get(f.replace("Dc_", "D_"), np.nan) for f in h.feature], h.w.clip(lower=1e-8),
+                                ls=ls, marker="o", ms=3, color=f"C{i}", label=f"{model} {lab} (γ={gamma:.2f})")
+        ax.set_xlabel("centro do anel (ciclos/pixel)")
+        ax.set_ylabel("peso w_b (log)")
+        ax.set_title(f"Perfil de vulnerabilidade espectral (IRE) — {ds}")
+        ax.legend(fontsize=6)
+        _save(fig, out / f"ire_weights_{ds}.png")
+
+
+def ire_pred_vs_obs(cp: pd.DataFrame, out: Path, col: str = "p_loto"):
+    for ds, d in cp.groupby("dataset"):
+        models = sorted(d.model.unique())
+        fig, axes = plt.subplots(1, len(models), figsize=(3.4 * len(models), 3.3), squeeze=False)
+        for ax, m in zip(axes.flat, models):
+            g = d[d.model == m]
+            techs = sorted(d.technique.unique())
+            cmap = plt.get_cmap("tab20", max(len(techs), 2))
+            for t, h in g.groupby("technique"):
+                ax.scatter(100 * h.flip, 100 * h[col], s=10, color=cmap(techs.index(t)), label=t)
+            mx = 100 * max(g.flip.max(), g[col].max(), 0.01)
+            ax.plot([0, mx], [0, mx], "k--", lw=0.6)
+            ax.set_title(m, fontsize=8)
+            ax.set_xlabel("flip observado (%)")
+        axes.flat[0].set_ylabel(f"flip previsto pelo IRE (%) [{col}]")
+        axes.flat[-1].legend(fontsize=6, bbox_to_anchor=(1.02, 1), loc="upper left")
+        fig.suptitle(f"IRE: P(flip) = 1 − exp(−[Σ w·D^γ + Σ c·Dcor^γ + Σ u·(1−ρ)^γ]), leave-one-technique-out — {ds}", fontsize=9)
+        _save(fig, out / f"ire_pred_vs_obs_{ds}.png")

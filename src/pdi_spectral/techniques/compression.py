@@ -85,7 +85,8 @@ def _fancy_upsample(c: np.ndarray) -> np.ndarray:
     return out
 
 
-def jpeg(img: np.ndarray, quality: int) -> np.ndarray:
+def jpeg(img: np.ndarray, quality: int, subsampling: str = "420") -> np.ndarray:
+    """subsampling: "420" (padrão do libjpeg/PIL) ou "444" (sem subamostragem de cor)."""
     h, w = img.shape[:2]
     ph, pw = (-h) % 16, (-w) % 16
     x = np.pad(img, ((0, ph), (0, pw), (0, 0)), mode="edge")
@@ -97,7 +98,10 @@ def jpeg(img: np.ndarray, quality: int) -> np.ndarray:
 
     ql, qc = scaled_table(Q_LUMA, quality), scaled_table(Q_CHROMA, quality)
     y_r = _blocks_roundtrip(y, ql)
-    cb_r = _fancy_upsample(_blocks_roundtrip(down(cb), qc))
-    cr_r = _fancy_upsample(_blocks_roundtrip(down(cr), qc))
+    if str(subsampling) == "444":
+        cb_r, cr_r = _blocks_roundtrip(cb, qc), _blocks_roundtrip(cr, qc)
+    else:
+        cb_r = _fancy_upsample(_blocks_roundtrip(down(cb), qc))
+        cr_r = _fancy_upsample(_blocks_roundtrip(down(cr), qc))
     rgb = ycbcr_to_rgb(np.stack([y_r, cb_r, cr_r], axis=-1) / 255.0)
     return to_uint8(rgb)[:h, :w]

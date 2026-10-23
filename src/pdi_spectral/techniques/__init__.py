@@ -40,6 +40,14 @@ def _ref_fsrcnn(img, scale, _model_dir="data/sr_models"):
     return reference.sr_learned(img, scale, "fsrcnn", _model_dir)
 
 
+def _jpeg444(img, quality):
+    return compression.jpeg(img, quality, "444")
+
+
+def _ref_jpeg444(img, quality):
+    return reference.jpeg(img, quality, "444")
+
+
 TECHNIQUES: dict[str, Technique] = {
     t.name: t
     for t in [
@@ -55,8 +63,13 @@ TECHNIQUES: dict[str, Technique] = {
         Technique("gaussian", "suavizacao", "control", "remove", smoothing.gaussian, reference.gaussian),
         Technique("median", "suavizacao", "control", "remove", smoothing.median, reference.median),
         Technique("bilateral", "suavizacao", "control", "remove", smoothing.bilateral, reference.bilateral),
-        Technique("wiener", "restauracao", "control", "remove", restoration.wiener, reference.wiener),
+        # backend "reference" do Wiener = versão do zero (já rápida); o SciPy estima o ruído de
+        # outro jeito e fica só para validação (tests/test_techniques.py)
+        Technique("wiener", "restauracao", "control", "remove", restoration.wiener, restoration.wiener),
         Technique("jpeg", "compressao", "control", "remove", compression.jpeg, reference.jpeg),
+        # variantes de dose baixa (mesma função, outro eixo de dose)
+        Technique("clahe_blend", "equalizacao", "primary", "redistribute", contrast.clahe, reference.clahe),
+        Technique("jpeg444", "compressao", "control", "remove", _jpeg444, _ref_jpeg444),
         # --- oráculo espectral (calibração) ---
         Technique("oracle_band", "oraculo", "oracle", "mixed", oracle.band_gain, oracle.band_gain),
         Technique("oracle_lowpass", "oraculo", "oracle", "remove", oracle.lowpass, oracle.lowpass),

@@ -125,6 +125,11 @@ def feature_matrix(df: pd.DataFrame, fs: str) -> pd.DataFrame:
         return posneg([f"dErel_{f}" for f in fine])
     if fs == "spec_bands+coh":
         return pd.concat([posneg([f"dErel_{b}" for b in bands]), df[[f"coh_{b}" for b in bands]]], axis=1)
+    if fs == "spec_bands+coh+chroma":
+        chroma = [c for c in df.columns if c.startswith("Dc_") and not c.startswith("Dc_f") and c != "Dc_tot"]
+        return pd.concat([posneg([f"dErel_{b}" for b in bands]), df[[f"coh_{b}" for b in bands] + chroma]], axis=1)
+    if fs == "spec_AP_bands":
+        return df[[f"A_{b}" for b in bands] + [f"P_{b}" for b in bands]]
     if fs == "spec_fine+coh":
         return pd.concat([posneg([f"dErel_{f}" for f in fine]), df[[f"coh_{b}" for b in bands]]], axis=1)
     raise ValueError(fs)
@@ -303,6 +308,68 @@ def run_analysis(cfg: dict) -> Path:
                    "≈ 0: informação destruída. `info_loss` = probe_oo − probe_pp.\n", _md(sm)]
         plots.adaptation_bars(ad, fig)
 
+    if pred_m is not None and cfg.get("thresholds", {}).get("enabled", True):
+        report += threshold_report(cfg, pred_m, spec_m, pred_o, spec_o, out, fig)
+
     (out / "summary.md").write_text("\n".join(report), encoding="utf-8")
     print(f"[analyze] relatório em {out / 'summary.md'}")
     return out
+
+
+# ---------------------------------------------------------------------------
+# Limiares + IRE (ver thresholds.py)
+# ---------------------------------------------------------------------------
+def threshold_report(cfg, pred_m, spec_m, pred_o, spec_o, out: Path, fig: Path) -> list[str]:
+    from . import plots
+    from .thresholds import budget, compute_thresholds, run_ire
+
+    tcfg = cfg.get("thresholds", {})
+    acc_tau = tcfg.get("acc_tol", [0.01])[0]
+    flip_tau = tcfg.get("flip_tol", [0.01])[0]
+    thr, curves = compute_thresholds(pred_m, spec_m, cfg)
+    thr.to_csv(out / "thresholds.csv", index=False)
+    curves.to_csv(out / "threshold_curves.csv", index=False)
+    plots.threshold_curves(thr, curves, fig, acc_tau)
+
+    a = f"acc{acc_tau:g}"
+    cols = ["dataset", "model", "technique", "unit", "x_min", "x_max", f"bmd_{a}", f"bmdl_{a}", f"bmdu_{a}",
+            f"bmd_{a}_status", f"bmd_flip{flip_tau:g}", "noael", "loael", "best_dose", "best_gain",
+            "best_gain_lo", "gain_significant", "hormesis", "objective", "perc_dose", "perc_status", "window_lo", "window_hi",
+            "window_exists", "brisque_better_dose", "brisque_worse_dose", "brisque_best_dose", "brisque_best_change",
+            "brisque_window_exists"]
+    cols = [c for c in cols if c in thr]
+    rep = ["## Limiares de dose (BMD) e janela operacional\n",
+           f"Intensidade crescente da esquerda para a direita (JPEG: 100 − qualidade). "
+           f"`bmd_{a}` = dose em que a acurácia cai {100*acc_tau:g} p.p.; `bmdl/bmdu` = IC "
+           f"{100*tcfg.get('ci', 0.9):.0f}% por bootstrap pareado; `>x_max` = não cruzou até a maior dose testada; `<x_min` = já cruza na 1ª dose testada; `entre_id_e_x_min` = cruza entre a dose identidade e a 1ª testada (valor interpolado, não medido: teste doses menores). "
+           "`noael`/`loael` = maior dose sem dano significativo / primeira com dano. "
+           "`gain_significant` = alguma dose MELHORA a acurácia com IC acima de 0 (`hormesis` se depois piora). "
+           "`perc_dose` = dose em que a técnica atinge seu objetivo visual; janela = [perc_dose, bmdl]. "
+           "`brisque_better/worse_dose` = dose em que o BRISQUE (qualidade perceptual sem referência) melhora/piora 5 %; "
+           "`brisque_window_exists` = o BRISQUE já melhorou antes do BMDL.\n",
+           _md(thr.sort_values(["dataset", "model", "technique"])[cols], max_rows=500)]
+
+    try:
+        w, cp, tp, sm = run_ire(pred_m, spec_m, cfg, thr, pred_o, spec_o)
+    except Exception as e:  # dados insuficientes (ex.: um único nível)
+        return rep + [f"_IRE não ajustado: {e}_\n"]
+    from .spectral import SpectralAnalyzer, SpectralConfig
+
+    an = SpectralAnalyzer(SpectralConfig.from_dict(cfg.get("spectral")), (32, 32))
+    centers = {f"D_f{i:02d}": float(c) for i, c in enumerate(an.fine_centers)}
+    centers.update({f"D_{k}": float(np.mean([v[0], min(v[1], 0.7071)])) for k, v in an.cfg.bands.items()})
+    w.to_csv(out / "ire_weights.csv", index=False)
+    cp.to_csv(out / "ire_condition_predictions.csv", index=False)
+    tp.to_csv(out / "ire_threshold_predictions.csv", index=False)
+    sm.to_csv(out / "ire_summary.csv", index=False)
+    plots.ire_weights(w, centers, fig)
+    plots.ire_pred_vs_obs(cp, fig)
+    rep += ["## Índice de Risco Espectral (IRE)\n",
+            "Fórmula: **P(flip) = 1 − exp(−IRE)**, **IRE = Σ_b w_b·D_b^γ + Σ_b u_b·(1 − ρ_b)^γ**, pesos ≥ 0 por modelo. "
+            "D_b = energia da perturbação na banda b (luminância e cor); ρ_b = coerência espectral (estrutura/fase preservada). "
+            "Como Δacc ≥ −flip, manter IRE ≤ −ln(1−τ) garante queda ≤ τ "
+            f"(orçamento para τ = {100*flip_tau:g}%: **{budget(flip_tau):.4f}**).\n",
+            "`r2_p_loto` = R² do flip por condição prevendo cada técnica com pesos ajustados só nas outras; "
+            "`r2_p_oracle` = pesos ajustados só nos filtros ideais (E1).\n", _md(sm),
+            f"### Limiar de flip {100*flip_tau:g}% previsto pela fórmula (LOTO) × observado\n", _md(tp, max_rows=300)]
+    return rep

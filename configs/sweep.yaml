@@ -1,0 +1,40 @@
+# Varredura densa de intensidade para estimar LIMIARES (BMD, NOAEL, janela operacional)
+# e calibrar o Índice de Risco Espectral. Mais níveis perto de zero, onde o limiar costuma estar.
+#   make sweep                         (CIFAR-10, roda em CPU)
+#   make sweep DATASETS=imagenette     (GPU recomendada)
+extends: default.yaml
+run_name: sweep
+backend: reference      # equivalência com o "do zero" documentada em `make verify`
+
+datasets:
+  _replace: true
+  cifar10:
+    n_images: 2000
+    n_train: 5000
+    models: [cifar10_resnet20, cifar10_resnet56, cifar10_vgg16_bn]
+  imagenette:
+    enabled: false      # habilite (ou use DATASETS=imagenette) com GPU
+    n_images: 2000
+    n_train: 2000
+    models: [resnet50, efficientnet_b0, vit_b_16]
+
+techniques:             # mescla com o default: só os níveis mudam
+  hist_eq:   {levels: [{alpha: 0.05}, {alpha: 0.1}, {alpha: 0.2}, {alpha: 0.3}, {alpha: 0.4}, {alpha: 0.5}, {alpha: 0.6}, {alpha: 0.8}, {alpha: 1.0}]}
+  # clip < 2 é idêntico a clip = 1 no CIFAR (blocos de 16 px): a dose fina abaixo disso vem do clahe_blend
+  clahe:     {levels: [{clip_limit: 1.0}, {clip_limit: 2.0}, {clip_limit: 3.0}, {clip_limit: 4.0}, {clip_limit: 6.0}, {clip_limit: 8.0}]}
+  clahe_blend: {levels: [{clip_limit: 2.0, alpha: 0.02}, {clip_limit: 2.0, alpha: 0.05}, {clip_limit: 2.0, alpha: 0.1}, {clip_limit: 2.0, alpha: 0.15}, {clip_limit: 2.0, alpha: 0.2}, {clip_limit: 2.0, alpha: 0.3}, {clip_limit: 2.0, alpha: 0.5}, {clip_limit: 2.0, alpha: 0.75}, {clip_limit: 2.0, alpha: 1.0}]}
+  unsharp:   {levels: [{amount: 0.1, sigma: 1.0}, {amount: 0.2, sigma: 1.0}, {amount: 0.3, sigma: 1.0}, {amount: 0.5, sigma: 1.0}, {amount: 0.75, sigma: 1.0}, {amount: 1.0, sigma: 1.0}, {amount: 1.5, sigma: 1.0}, {amount: 2.0, sigma: 1.0}, {amount: 3.0, sigma: 1.0}]}
+  laplacian: {levels: [{c: 0.05}, {c: 0.1}, {c: 0.2}, {c: 0.3}, {c: 0.5}, {c: 0.75}, {c: 1.0}, {c: 1.5}]}
+  sr_bicubic: {levels: [{scale: 1.05}, {scale: 1.1}, {scale: 1.15}, {scale: 1.2}, {scale: 1.25}, {scale: 1.5}, {scale: 2.0}, {scale: 2.5}, {scale: 3.0}, {scale: 4.0}]}
+  gaussian:  {levels: [{sigma: 0.25}, {sigma: 0.4}, {sigma: 0.5}, {sigma: 0.6}, {sigma: 0.75}, {sigma: 1.0}, {sigma: 1.25}, {sigma: 1.5}, {sigma: 2.0}, {sigma: 3.0}]}
+  median:    {levels: [{k: 3}, {k: 5}, {k: 7}, {k: 9}]}
+  bilateral: {levels: [{sigma_s: 0.5, sigma_r: 0.025}, {sigma_s: 1.0, sigma_r: 0.05}, {sigma_s: 1.5, sigma_r: 0.075}, {sigma_s: 2.0, sigma_r: 0.10}, {sigma_s: 3.0, sigma_r: 0.15}, {sigma_s: 4.0, sigma_r: 0.20}]}
+  wiener:    {levels: [{k: 3}, {k: 5}, {k: 7}, {k: 9}]}
+  jpeg:      {levels: [{quality: 100}, {quality: 99}, {quality: 98}, {quality: 95}, {quality: 90}, {quality: 85}, {quality: 80}, {quality: 70}, {quality: 60}, {quality: 50}, {quality: 40}, {quality: 30}, {quality: 20}, {quality: 10}]}
+  jpeg444:   {levels: [{quality: 100}, {quality: 99}, {quality: 98}, {quality: 95}, {quality: 90}, {quality: 85}, {quality: 80}, {quality: 70}, {quality: 50}, {quality: 30}, {quality: 10}]}
+
+quality:
+  brisque: true           # BRISQUE em CPU (piq); CIFAR é ampliado para 128 px antes
+
+adaptation:
+  conditions: [clahe@4, unsharp@5, laplacian@4, gaussian@5, median@0, bilateral@3, wiener@1, jpeg@5, jpeg@9]

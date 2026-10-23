@@ -88,6 +88,16 @@ def hist_eq(img: np.ndarray, alpha: float = 1.0) -> np.ndarray:
     return _apply_on_luma(img, f)
 
 
-def clahe(img: np.ndarray, clip_limit: float, grid: int | str = "auto") -> np.ndarray:
+def clahe(img: np.ndarray, clip_limit: float, grid: int | str = "auto", alpha: float = 1.0) -> np.ndarray:
+    """CLAHE no canal Y. alpha < 1 mistura com o original (dose contínua abaixo do clip mínimo).
+
+    Atenção: o clip efetivo é max(int(clip_limit * area_do_bloco / 256), 1). Em blocos de
+    16x16 px (CIFAR, grade 2x2) isso arredonda o clip para inteiro: todo clip < 2 dá o mesmo resultado.
+    """
     g = auto_grid(img.shape) if grid == "auto" else (int(grid), int(grid))
-    return _apply_on_luma(img, lambda y8: clahe_u8(y8, clip_limit, g))
+
+    def f(y8):
+        eq = clahe_u8(y8, clip_limit, g).astype(np.float64)
+        return np.clip(np.rint((1 - alpha) * y8 + alpha * eq), 0, 255) if alpha != 1.0 else eq
+
+    return _apply_on_luma(img, f)

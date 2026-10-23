@@ -32,10 +32,11 @@ def median(img, k):
 
 
 def bilateral(img, sigma_s, sigma_r, radius=None):
-    # Atenção: em imagens coloridas o OpenCV usa distância L1 entre cores
-    # (a versão do zero usa L2). Em escala de cinza são idênticas.
+    # Em imagens coloridas o OpenCV usa distância L1 entre cores (a versão do zero usa L2).
+    # Como L1 ~ sqrt(3)*L2 quando os canais variam juntos, sigma_r * sqrt(3) aproxima o
+    # filtro do zero (diferença média ~0,1-0,4 nível de cinza no CIFAR-10, contra ~3 sem a correção).
     r = radius if radius is not None else max(1, int(np.ceil(2.0 * sigma_s)))
-    return _cv2().bilateralFilter(np.ascontiguousarray(img), 2 * r + 1, sigma_r * 255.0, sigma_s)
+    return _cv2().bilateralFilter(np.ascontiguousarray(img), 2 * r + 1, sigma_r * 255.0 * np.sqrt(3), sigma_s)
 
 
 def unsharp_mask(img, amount, sigma=1.0):
@@ -74,26 +75,39 @@ def hist_eq(img, alpha=1.0):
     return _on_luma(img, f)
 
 
-def clahe(img, clip_limit, grid="auto"):
+def clahe(img, clip_limit, grid="auto", alpha=1.0):
     cv2 = _cv2()
     g = auto_grid(img.shape) if grid == "auto" else (int(grid), int(grid))
     op = cv2.createCLAHE(clipLimit=float(clip_limit), tileGridSize=(g[1], g[0]))
-    return _on_luma(img, op.apply)
+
+    def f(y):
+        eq = op.apply(y)
+        if alpha == 1.0:
+            return eq
+        return np.clip(np.rint((1 - alpha) * y + alpha * eq.astype(np.float64)), 0, 255).astype(np.uint8)
+
+    return _on_luma(img, f)
 
 
 def wiener(img, k, noise=None):
     from scipy.signal import wiener as _w
 
+    # O SciPy preenche a borda com zeros (bordas escuras) e divide por zero em regiões
+    # planas (NaN). Para servir de backend equivalente: borda refletida, como no resto do
+    # pacote, e NaN -> o próprio pixel (região plana: média local = pixel).
+    r = k // 2
     x = to_float(img)
-    out = np.stack([_w(x[..., c], (k, k), noise) for c in range(x.shape[2])], axis=-1)
-    return to_uint8(np.nan_to_num(out))
+    xp = np.pad(x, ((r, r), (r, r), (0, 0)), mode="reflect")
+    with np.errstate(divide="ignore", invalid="ignore"):
+        out = np.stack([_w(xp[..., c], (k, k), noise) for c in range(x.shape[2])], axis=-1)[r:-r, r:-r]
+    return to_uint8(np.where(np.isfinite(out), out, x))
 
 
-def jpeg(img, quality):
+def jpeg(img, quality, subsampling="420"):
     from PIL import Image
 
     buf = io.BytesIO()
-    Image.fromarray(img).save(buf, format="JPEG", quality=int(quality), subsampling=2)
+    Image.fromarray(img).save(buf, format="JPEG", quality=int(quality), subsampling=0 if str(subsampling) == "444" else 2)
     buf.seek(0)
     return np.array(Image.open(buf).convert("RGB"))
 

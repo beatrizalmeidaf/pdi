@@ -9,7 +9,10 @@ Comandos:
   oracle     E1: calibração com filtros espectrais ideais
   main       E2: experimento principal dose-resposta (inferência congelada)
   adapt      E4: domain shift x perda de informação (BN-adapt, sondas, fine-tuning opcional)
-  analyze    E3: estatística, previsibilidade, figuras e relatório
+  analyze    E3: estatística, previsibilidade, limiares (BMD), IRE, figuras e relatório
+  safe-dose  dose segura de uma técnica pela fórmula IRE, sem rodar a rede
+  human-export   gera o estudo com pessoas (pasta com index.html local, escolha entre 2 imagens)
+  human-analyze  analisa as respostas: dose em que as pessoas percebem melhora/piora
   all        oracle + main + adapt + analyze
 """
 from __future__ import annotations
@@ -23,12 +26,17 @@ from .config import load_config
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="pdi_spectral", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["download", "verify", "examples", "oracle", "main", "adapt", "analyze", "all", "show-config"])
+    ap.add_argument("command", choices=["download", "verify", "examples", "oracle", "main", "adapt", "analyze", "all", "show-config", "safe-dose", "human-export", "human-analyze"])
     ap.add_argument("--config", default="configs/default.yaml")
     ap.add_argument("--set", dest="overrides", action="append", default=[], help="sobrescreve chave do YAML, ex.: --set backend=reference")
     ap.add_argument("--datasets", nargs="*", help="restringe aos datasets indicados")
     ap.add_argument("--verify-dataset", default=None, help="verify: usa imagens reais deste dataset (padrão: sintéticas)")
     ap.add_argument("--n", type=int, default=6, help="verify/examples: número de imagens")
+    ap.add_argument("--technique", help="safe-dose: técnica")
+    ap.add_argument("--model", help="safe-dose: modelo (precisa de ire_weights.csv do analyze)")
+    ap.add_argument("--dataset", help="safe-dose: dataset")
+    ap.add_argument("--grid", type=float, nargs="+", help="safe-dose: doses a testar")
+    ap.add_argument("--tau", type=float, default=0.01, help="safe-dose: flip/queda máxima tolerada")
     a = ap.parse_args(argv)
     cfg = load_config(a.config, a.overrides)
 
@@ -49,6 +57,26 @@ def main(argv=None):
         from .verify import run_verify
 
         run_verify(cfg, a.verify_dataset, a.n)
+    elif a.command == "safe-dose":
+        from .thresholds import safe_dose
+
+        ds = a.dataset or next(iter(cfg["datasets"]))
+        model = a.model or cfg["datasets"][ds]["models"][0]
+        tc = cfg["techniques"][a.technique]
+        grid = a.grid or [lv[tc.get("dose") or next(iter(lv))] for lv in tc["levels"]]
+        df = safe_dose(cfg, a.technique, model, ds, grid, a.tau, n_images=a.n if a.n != 6 else 200)
+        print(df.to_string(index=False))
+        print(f"orçamento IRE para tau={a.tau}: {df.attrs['budget']:.4f}  (sem rodar a rede)")
+    elif a.command == "human-export":
+        from .human import export_study
+
+        ds = a.dataset or next(iter(cfg["datasets"]))
+        export_study(cfg, ds, n_images=a.n if a.n != 6 else 12,
+                     techniques=[a.technique] if a.technique else None)
+    elif a.command == "human-analyze":
+        from .human import analyze_study
+
+        analyze_study(cfg)
     elif a.command == "examples":
         from .plots import examples
 

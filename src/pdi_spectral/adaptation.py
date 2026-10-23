@@ -108,7 +108,7 @@ def run_adaptation(cfg: dict, only: list[str] | None = None) -> Path:
     conds = list(all_conds.values()) if wanted == "all" else [all_conds[c] for c in wanted if c in all_conds]
     rows = []
     for ds_name, dcfg in cfg["datasets"].items():
-        if (only and ds_name not in only) or not dcfg.get("enabled", True):
+        if (only and ds_name not in only) or (not only and not dcfg.get("enabled", True)):
             continue
         tr = load_dataset(ds_name, "train", dcfg.get("n_train", 2000), seed, cfg["paths"])
         te = load_dataset(ds_name, "val", dcfg.get("n_images"), seed, cfg["paths"])
