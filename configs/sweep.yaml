@@ -37,4 +37,5 @@ quality:
   brisque: true           # BRISQUE em CPU (piq); CIFAR é ampliado para 128 px antes
 
 adaptation:
-  conditions: [clahe@4, unsharp@5, laplacian@4, gaussian@5, median@0, bilateral@3, wiener@1, jpeg@5, jpeg@9]
+  # clip 2, amount 1, c 0,5, sigma 1, k 3, sigma_s 2, k 5, qualidade 70 e 30
+  conditions: [clahe@1, unsharp@5, laplacian@4, gaussian@5, median@0, bilateral@3, wiener@1, jpeg@7, jpeg@11]

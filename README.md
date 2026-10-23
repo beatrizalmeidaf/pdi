@@ -1,5 +1,7 @@
 # Quando melhorar piora — pré-processamento perceptual, energia espectral e acurácia de CNNs
 
+> **Resultados consolidados: [results.md](results.md).**
+
 Aplicação experimental que acompanha a revisão sistemática em [revisao_literatura/main.tex](revisao_literatura/main.tex).
 Ela mede, para cada técnica clássica de pré-processamento e cada nível de intensidade, **quanta energia espectral foi removida ou adicionada em cada banda de frequência** e **quanto a decisão de classificadores pré-treinados muda**, e testa se a primeira prevê a segunda.
 
@@ -19,6 +21,7 @@ Ela mede, para cada técnica clássica de pré-processamento e cada nível de in
 8. [Análise estatística](#8-análise-estatística)
    - [8.1 Limiares de dose e janela operacional](#81-limiares-de-dose-e-janela-operacional)
    - [8.2 Índice de Risco Espectral (IRE)](#82-índice-de-risco-espectral-ire--fórmula-proposta)
+   - [8.3 Validação perceptual: BRISQUE e pessoas](#83-validação-perceptual-brisque-e-estudo-com-pessoas)
 9. [Arquitetura do código](#9-arquitetura-do-código)
 10. [Como rodar](#10-como-rodar)
 11. [Saídas](#11-saídas)
@@ -292,6 +295,34 @@ Saídas: `ire_*.csv` e as figuras `ire_weights_*.png` (perfil de vulnerabilidade
 
 A fórmula prevê **dano**, não ganho: o flip é sempre ≥ 0. Os ganhos (hormese) são identificados pelo bootstrap do §8.1.
 
+### 8.3 Validação perceptual: BRISQUE e estudo com pessoas
+
+As métricas do §8.1 medem se a técnica fez o que promete (por exemplo, mais nitidez). Elas não medem se a imagem ficou *melhor*. Há duas validações independentes:
+
+**BRISQUE** (Mittal et al., 2012; via `piq`, roda em CPU). É uma qualidade perceptual sem referência; menor é melhor. Ativa com `quality.brisque: true` (já ligado no `sweep.yaml`).
+- Em 32 px ele é instável. Por isso o CIFAR é ampliado para 128 px (bicúbica) antes do cálculo.
+- Checagem de sanidade em 300 imagens do CIFAR-10, ampliadas: o BRISQUE piora em **100 %** delas com blur σ = 1 e σ = 2 (e piora mais com σ = 2) e em **97 %** com JPEG qualidade 10. Melhora com *unsharp* e CLAHE.
+- Limitação: ampliado, ele não detecta ruído aditivo. Isso não afeta o estudo, porque ruído não é uma das técnicas.
+- Saídas em `thresholds.csv`:
+  - `brisque_better_dose` e `brisque_worse_dose`: doses em que o BRISQUE melhora ou piora 5 %;
+  - `brisque_window_exists`: se o BRISQUE melhora antes do BMDL.
+
+**Estudo com pessoas** ([human.py](src/pdi_spectral/human.py)). É uma escolha forçada entre duas imagens (2AFC): "qual tem melhor qualidade visual?".
+1. `make human-export` gera `results/sweep/human_study/` com as imagens e um `index.html` que roda localmente, sem servidor e sem internet:
+   - cada participante vê ~120 pares, original × processada, em lado sorteado, com atalhos ← →;
+   - ~8 % dos pares são de atenção (original × blur forte);
+   - no fim, o navegador baixa um CSV.
+2. Compacte a pasta e envie aos participantes. Os CSVs que eles devolverem vão para `human_study/respostas/`.
+3. `make human-analyze`:
+   - descarta quem acertou < 80 % dos pares de atenção;
+   - calcula P(prefere a processada) por técnica e dose, com IC 90 % de Wilson;
+   - define a **dose em que a melhora é percebida** (IC acima de 50 %) e a **dose em que a piora é percebida** (IC abaixo de 50 %);
+   - cruza com o BMDL do classificador e responde se existe **janela humana**.
+
+   Saídas: `human_preference_by_dose.csv` e `human_thresholds.csv`.
+
+Para estimar P com IC de ±10 p.p. por dose são necessárias ~60 respostas por condição. Com 120 pares por pessoa e ~70 condições, isso dá **~35 participantes**. Se for preciso reduzir, use `--technique` para focar uma técnica.
+
 ---
 
 ## 9. Arquitetura do código
@@ -346,7 +377,8 @@ repo/
 │   ├── adaptation.py         E4
 │   ├── analysis.py           E3 + relatório
 │   ├── thresholds.py         limiares (BMD/NOAEL/janela) + fórmula IRE + safe-dose
-│   ├── quality.py            métricas perceptuais sem referência (do zero)
+│   ├── quality.py            métricas perceptuais sem referência (do zero) + BRISQUE
+│   ├── human.py              estudo com pessoas: exporta o kit (HTML local) e analisa as respostas
 │   ├── plots.py              figuras
 │   ├── verify.py             E0
 │   └── cli.py                linha de comando
@@ -380,6 +412,8 @@ make examples                      # figuras qualitativas e assinatura espectral
 make sweep                         # varredura densa -> limiares, janela operacional, IRE (CIFAR-10)
 make sweep DATASETS=imagenette     # idem no Imagenette (GPU recomendada)
 make safe-dose T=gaussian M=cifar10_resnet20 TAU=0.01   # dose segura pela fórmula, sem rede
+make human-export                  # kit do estudo com pessoas (index.html local)
+make human-analyze                 # analisa os CSVs de respostas
 ```
 
 Etapas isoladas e variações:
@@ -472,7 +506,7 @@ Use `backend: scratch` para as figuras do relatório da disciplina e para a vali
 
 ### 14.1 Resultados preliminares — CIFAR-10 (`make sweep`)
 
-Configuração: 2000 imagens de teste, três CNNs pré-treinadas (ResNet-20, ResNet-56, VGG-16-BN; acurácia de base 92,9 %, 94,9 % e 93,7 %), 83 doses e 27 filtros-oráculo. São resultados **preliminares**: um só dataset, de 32 px, e sem ViT.
+Configuração: 2000 imagens de teste, três CNNs pré-treinadas (ResNet-20, ResNet-56, VGG-16-BN; acurácia de base 92,9 %, 94,9 % e 93,7 %), 106 doses e 27 filtros-oráculo. São resultados **preliminares**: um só dataset, de 32 px, e sem ViT.
 
 **Limiares de 1 p.p. (BMD, média dos 3 modelos) e janela operacional:**
 
@@ -480,19 +514,26 @@ Configuração: 2000 imagens de teste, três CNNs pré-treinadas (ResNet-20, Res
 |---|---|---|---|---|
 | Gaussiano | σ ≈ 0,44 (0,43–0,45) | σ ≈ 0,55 | σ ≈ 0,33 (−10 % ruído) | **sim**, σ ∈ [0,33; ~0,42] |
 | *Unsharp* | amount ≈ 0,51 (0,45–0,56) | ≈ 1,44 | ≈ 0,26 (+10 % nitidez) | **sim**, amount ∈ [0,26; ~0,30–0,40] |
-| CLAHE | já na 1ª dose testada (clip 0,5: −1,4 a −2,1 p.p.) | clip ≈ 3,8 | clip 0,5 | marginal (só no limite inferior) |
+| CLAHE (clip) | já no menor clip possível (−1,4 a −2,1 p.p.)¹ | clip ≈ 3,8 | clip 1 | marginal |
+| CLAHE misturado ao original (α, clip 2) | α ≈ 0,54 (BMDL ≈ 0,37) | > 1 | α ≈ 0,32 | **sim** em 2 de 3 modelos, α ∈ [0,32; ~0,42] |
 | Equalização (HE) | α ≈ 0,19 | α ≈ 0,67 | α ≈ 0,16 | **não**: o limiar chega antes ou junto do objetivo |
 | Laplaciano | c ≈ 0,11 | c ≈ 0,33 | c ≈ 0,09 | **não** |
 | Bilateral | σ_s ≈ 1,0 | σ_s ≈ 2,4 | σ_s ≈ 1,9 | **não** |
-| JPEG | qualidade ≈ 98 (2–2,4 de intensidade) | qualidade ≈ 88 | — | — |
+| JPEG 4:2:0 (padrão) | qualidade ≈ 98,4; **já na qualidade 100 perde 0,6–1,4 p.p.** | qualidade ≈ 88 | — | — |
+| JPEG 4:4:4 (sem subamostragem de cor) | qualidade ≈ 95,6 (qualidade 100: ≈ 0 p.p.) | qualidade ≈ 82 | — | — |
 | Mediana / Wiener | o menor passo (k = 3) já passa do limiar | — | k = 3 | **não** |
-| SR bicúbica | escala 1,25 já passa | — | — | — |
+| SR bicúbica | **qualquer reamostragem**: escala 1,05 (32 → 30 px) já custa 3,9–5,7 p.p. | — | — | — |
 | ESPCN / FSRCNN | todas as SR perdem 33–47 p.p. já em ×2; mas, **na mesma escala, a SR aprendida recupera 3–11 p.p. sobre a bicúbica** (FSRCNN > ESPCN > bicúbica) | — | — | — |
 
 O que esses números dizem:
 - **Os limiares são estreitos e quase idênticos entre arquiteturas.** No gaussiano, o BMD fica entre 0,43 e 0,45 nos três modelos.
 - **Não houve hormese significativa** no CIFAR-10: nenhuma dose melhorou a acurácia com IC acima de 0. A literatura sugere procurá-la no CLAHE em 224 px (Hendrycks & Dietterich [b6]), o que exige rodar o Imagenette.
-- **A janela operacional existe para suavização leve e *unsharp* leve, e não existe para HE, laplaciano, bilateral e mediana** (H6).
+- **A janela operacional existe para suavização leve, *unsharp* leve e CLAHE fraco (misturado ao original), e não existe para HE, laplaciano, bilateral e mediana** (H6).
+- **Em JPEG de alta qualidade, quase toda a perda vem da cor**: na qualidade 100, a versão 4:2:0 perde até 1,4 p.p. e a 4:4:4 perde ~0. Só a subamostragem de croma já basta para mudar decisões.
+- **Redimensionar é muito danoso em 32 px**: reduzir para 30 px e voltar custa 4–6 p.p.; o limiar fica abaixo da menor escala possível.
+- **Pelo BRISQUE, nenhuma técnica tem janela.** Onde o BRISQUE melhora ≥ 5 %, o classificador já perdeu ≥ 1 p.p. ou está no limite: *unsharp* em amount ≈ 0,58 (BMD 0,51), laplaciano c ≈ 0,094 (BMD 0,107), HE α ≈ 0,69 (BMD 0,19), CLAHE clip ≈ 3,7. A suavização nunca melhora o BRISQUE em imagens limpas, e ele piora 5 % em σ ≈ 0,43, quase no mesmo ponto em que o classificador perde 1 p.p. (σ ≈ 0,44). Em resumo, **a melhora perceptual medida por uma métrica independente só chega depois do limiar do classificador**, o que confirma a hipótese central.
+
+¹ No CIFAR (blocos de 16×16 px), o algoritmo do CLAHE arredonda o clip para inteiro, com mínimo 1: todo clip < 2 dá exatamente a mesma imagem. Por isso a dose fraca de CLAHE é feita misturando com o original (`clahe_blend`).
 - **Aprimoramento ajuda quando a entrada está de fato degradada**: partindo da mesma imagem reduzida, a SR aprendida é melhor que a bicúbica para o classificador (QP4 da revisão).
 
 **Previsibilidade (H2, H5).** Na regressão *leave-one-technique-out* por condição:
@@ -524,9 +565,10 @@ O que esses números dizem:
 | Prioridade | Item | Como |
 |---|---|---|
 | Alta | **Segundo dataset em 224 px e ViT** (H3: a banda crítica muda com resolução e arquitetura) | `make download-imagenette` e `make sweep DATASETS=imagenette` (GPU) |
-| Alta | Doses menores onde o limiar caiu antes da 1ª dose testada: CLAHE (clip < 0,5), SR bicúbica (escala 1,05–1,2), JPEG (qualidade 99–100 e 4:4:4) | ajustar `levels` em `configs/sweep.yaml` |
-| Alta | Melhorar a fórmula nas técnicas redistributivas, que ela superestima ~2×. Candidatos: um termo que desconte mudança de ganho global (`dshape_b`) ou um peso por tipo de mudança | testar como em §8.2 |
-| Média | Validação humana do "objetivo visual" (as métricas são proxies) ou BRISQUE/NIQE | `quality.brisque: true` + `pip install piq` |
+| ~~Alta~~ feito | Doses menores (CLAHE misturado, SR 1,05–1,2, JPEG 99–100 e 4:4:4) | §14.1 |
+| Alta | Melhorar a fórmula nas técnicas de equalização (superestima ~2×). Já testados sem sucesso: separar amplitude × estrutura e tirar a curva tonal global (corrige o HE mas piora o resto). Próximo: curva tonal por bloco | ver [results.md](results.md) §6 |
+| ~~Média~~ feito | BRISQUE como métrica perceptual independente | `quality.brisque: true` (§8.3) |
+| Média | **Aplicar o estudo com pessoas** (kit pronto, falta coletar respostas) | `make human-export`, enviar a pasta e `make human-analyze` (§8.3) |
 | Média | ImageNet-val local, em vez do Imagenette, para os números finais | `paths.imagenet_val` |
 | Média | Fine-tuning completo no E4 (hoje: BN-adapt e sondas lineares) | `adaptation.finetune_epochs > 0` (GPU) |
 | Baixa | E5: entradas realmente degradadas (CIFAR-10-C), para a QP4 | `bash scripts/download_data.sh cifar10c` |
