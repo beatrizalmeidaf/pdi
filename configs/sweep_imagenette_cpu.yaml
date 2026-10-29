@@ -1,0 +1,15 @@
+# Varredura densa no Imagenette (224 px) dimensionada para CPU (H3: CNN x ViT em 224 px).
+# Mesmas doses do sweep.yaml; menos imagens. Em CPU de 4 núcleos o ViT-B/16 roda a ~4 img/s,
+# então 300 imagens x ~130 condições ≈ 3 h só para ele.
+#   CONFIG=configs/sweep_imagenette_cpu.yaml bash scripts/run_experiments.sh oracle main adapt analyze
+extends: sweep.yaml
+run_name: sweep_imagenette_cpu
+device: cpu
+batch_size: 8           # ViT + BRISQUE em 224 px: lotes de 32 passaram de 5 GB de RSS
+
+datasets:
+  _replace: true
+  imagenette:
+    n_images: 300
+    n_train: 300
+    models: [resnet50, efficientnet_b0, vit_b_16]

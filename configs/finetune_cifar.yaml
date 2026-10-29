@@ -1,0 +1,18 @@
+# E4 com fine-tuning completo (CIFAR-10): compara BN-adapt e sondas com re-treino de verdade.
+# Só a etapa adapt é necessária:
+#   CONFIG=configs/finetune_cifar.yaml bash scripts/run_experiments.sh adapt
+extends: sweep.yaml
+run_name: finetune_cifar
+device: cpu
+
+datasets:
+  _replace: true
+  cifar10:
+    n_images: 2000
+    n_train: 5000
+    models: [cifar10_resnet20, cifar10_resnet56, cifar10_vgg16_bn]
+
+adaptation:
+  finetune_epochs: 3
+  finetune_lr: 0.001
+  finetune_bs: 64

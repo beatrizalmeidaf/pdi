@@ -59,6 +59,12 @@ def _acc_logits(logits, labels, subset) -> float:
     return float((pred == labels).mean())
 
 
+def recoverable_fraction(oo: float, op: float, pp: float) -> float:
+    """R = (pp - op) / (oo - op): 1 -> domain shift, 0 -> perda de informação. NaN sem queda."""
+    gap = oo - op
+    return (pp - op) / gap if abs(gap) > 1e-9 else np.nan
+
+
 def _finetune(clf: Classifier, imgs, labels, epochs: int, lr: float, bs: int, seed: int) -> Classifier:
     import torch
 
@@ -149,8 +155,7 @@ def run_adaptation(cfg: dict, only: list[str] | None = None) -> Path:
                                    acfg.get("finetune_bs", 64), seed)
                     row["acc_ft_pp"] = _acc_logits(ft.logits(p_te), te.labels, te.class_subset)
                     row["acc_ft_oo"] = b["acc_ft_oo"]
-                gap = row["acc_probe_oo"] - row["acc_probe_op"]
-                row["recoverable_frac"] = (row["acc_probe_pp"] - row["acc_probe_op"]) / gap if abs(gap) > 1e-9 else np.nan
+                row["recoverable_frac"] = recoverable_fraction(row["acc_probe_oo"], row["acc_probe_op"], row["acc_probe_pp"])
                 row["info_loss"] = row["acc_probe_oo"] - row["acc_probe_pp"]
                 rows.append(row)
             print(f"  [{ds_name}] {c.cond_id} ok ({(time.time()-t0)/60:.1f} min)", flush=True)
