@@ -1,0 +1,28 @@
+# E4 no Imagenette com doses que de fato derrubam a acurácia.
+# Entre as 10 classes do Imagenette o problema satura (99,8 % nas originais): com as condições
+# do sweep.yaml, todas ficaram entre 98,8 % e 99,7 %. Aqui entram doses fortes, e o congelado e o
+# BN-adapt também são medidos nas 1000 classes (colunas *_full em adaptation.csv).
+# Comentários: queda média dos 3 modelos no E2, 1000 classes / 10 classes.
+#   CONFIG=configs/e4_imagenette.yaml DATASETS=imagenette bash scripts/run_experiments.sh adapt analyze
+extends: sweep.yaml
+run_name: sweep_imagenette   # mesmo run do sweep: só adaptation.csv e a análise são refeitos
+
+datasets:
+  imagenette: {enabled: true}
+
+adaptation:
+  finetune_epochs: 3
+  conditions:
+    - gaussian@5      # σ = 1        −6,8 / −0,5 p.p.
+    - gaussian@9      # σ = 3       −35,6 / −9,1
+    - median@2        # k = 7       −21,4 / −4,0
+    - median@3        # k = 9       −32,6 / −7,1
+    - wiener@3        # k = 9       −15,6 / −1,9
+    - bilateral@5     # σ_s = 4     −11,0 / −1,1
+    - jpeg@13         # qualidade 10  −20,7 / −3,0
+    - sr_bicubic@9    # ×4          −23,0 / −4,1
+    - sr_espcn@2      # ×4          −22,3 / −3,8
+    - clahe@5         # clip 8       −9,2 / −0,4
+    - hist_eq@8       # α = 1        −2,9 / −0,4
+    - laplacian@7     # c = 1,5      −6,7 / −1,5
+    - unsharp@8       # amount 3     −2,4 / −0,2

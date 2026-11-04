@@ -114,3 +114,23 @@ def test_run_adaptation_offline(tmp_path):
         assert df[c].between(0, 1).all(), c
     assert df.acc_probe_oo.nunique() == 1 and df.acc_ft_oo.nunique() == 1   # linha de base comum
     assert np.allclose(df.info_loss, df.acc_probe_oo - df.acc_probe_pp)
+    assert "acc_frozen_full" not in df  # sem subconjunto de classes: não há coluna *_full
+
+
+def test_run_adaptation_class_subset_adds_full_accuracy(tmp_path, monkeypatch):
+    import dataclasses
+
+    import pdi_spectral.adaptation as A
+    from pdi_spectral.config import load_config
+
+    load = A.load_dataset
+    # subconjunto = todas as 10 saídas da CNN minúscula: medir nas K classes ou em todas dá o mesmo
+    monkeypatch.setattr(A, "load_dataset", lambda *a, **k: dataclasses.replace(load(*a, **k), class_subset=list(range(10))))
+    cfg = load_config(ROOT / "configs" / "offline.yaml",
+                      [f"paths.results={tmp_path.as_posix()}", "n_workers=0", "device=cpu",
+                       "datasets.synthetic.n_images=24", "datasets.synthetic.n_train=48",
+                       "adaptation.conditions=[gaussian@1]"])
+    run_adaptation(cfg)
+    df = pd.read_csv(tmp_path / "offline" / "adaptation" / "adaptation.csv")
+    for k in ("orig", "frozen", "bn", "bn_oo"):
+        assert np.allclose(df[f"acc_{k}_full"], df[f"acc_{k}"]), k

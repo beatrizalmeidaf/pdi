@@ -100,6 +100,22 @@ def filter_available(conds: list[Condition]) -> list[Condition]:
     return ok
 
 
+def release_memory() -> None:
+    """Devolve ao sistema a memória já liberada pelo glibc (Linux).
+
+    Sem isso, os arrays de vários MB alocados e liberados a cada condição (224 px)
+    fragmentam o heap e o RSS cresce ~290 MB por lote de 8 imagens no Imagenette,
+    embora os objetos Python fiquem estáveis (medido com tracemalloc). Em outros
+    sistemas não faz nada.
+    """
+    try:
+        import ctypes
+
+        ctypes.CDLL("libc.so.6").malloc_trim(0)
+    except (OSError, AttributeError):
+        pass
+
+
 def apply_batch(cond: Condition, imgs: np.ndarray, backend: str, pool: ThreadPoolExecutor | None) -> np.ndarray:
     fn = lambda im: T.apply(cond.technique, im, cond.params, backend)
     if pool is None:
@@ -198,6 +214,7 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
                 spec_parts.append(sp)
                 for m in models:
                     pred_parts.append(_pred_frame(c, ids, labels, m, imgset.class_subset, m.logits(proc), base[m.name]))
+            release_memory()
             n_done += len(ids)
             el = time.time() - t0
             print(f"  [{ds_name}] {n_done}/{len(imgset)} imagens  ({el/60:.1f} min)", flush=True)

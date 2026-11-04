@@ -527,11 +527,11 @@ Configuração: 2000 imagens de teste, três CNNs pré-treinadas (ResNet-20, Res
 
 O que esses números dizem:
 - **Os limiares são estreitos e quase idênticos entre arquiteturas.** No gaussiano, o BMD fica entre 0,43 e 0,45 nos três modelos.
-- **Não houve hormese significativa** no CIFAR-10: nenhuma dose melhorou a acurácia com IC acima de 0. A literatura sugere procurá-la no CLAHE em 224 px (Hendrycks & Dietterich [b6]), o que exige rodar o Imagenette.
+- **Não houve hormese significativa** no CIFAR-10: nenhuma dose melhorou a acurácia com IC acima de 0. A literatura sugere procurá-la no CLAHE em 224 px (Hendrycks & Dietterich [b6]). No Imagenette ela apareceu, mas no aguçamento, não no CLAHE (§14.2).
 - **A janela operacional existe para suavização leve, *unsharp* leve e CLAHE fraco (misturado ao original), e não existe para HE, laplaciano, bilateral e mediana** (H6).
 - **Em JPEG de alta qualidade, quase toda a perda vem da cor**: na qualidade 100, a versão 4:2:0 perde até 1,4 p.p. e a 4:4:4 perde ~0. Só a subamostragem de croma já basta para mudar decisões.
 - **Redimensionar é muito danoso em 32 px**: reduzir para 30 px e voltar custa 4–6 p.p.; o limiar fica abaixo da menor escala possível.
-- **Pelo BRISQUE, nenhuma técnica tem janela.** Onde o BRISQUE melhora ≥ 5 %, o classificador já perdeu ≥ 1 p.p. ou está no limite: *unsharp* em amount ≈ 0,58 (BMD 0,51), laplaciano c ≈ 0,094 (BMD 0,107), HE α ≈ 0,69 (BMD 0,19), CLAHE clip ≈ 3,7. A suavização nunca melhora o BRISQUE em imagens limpas, e ele piora 5 % em σ ≈ 0,43, quase no mesmo ponto em que o classificador perde 1 p.p. (σ ≈ 0,44). Em resumo, **a melhora perceptual medida por uma métrica independente só chega depois do limiar do classificador**, o que confirma a hipótese central.
+- **Pelo BRISQUE, nenhuma técnica tem janela.** Onde o BRISQUE melhora ≥ 5 %, o classificador já perdeu ≥ 1 p.p. ou está no limite: *unsharp* em amount ≈ 0,58 (BMD 0,51), laplaciano c ≈ 0,094 (BMD 0,107), HE α ≈ 0,69 (BMD 0,19), CLAHE clip ≈ 3,7. A suavização nunca melhora o BRISQUE em imagens limpas, e ele piora 5 % em σ ≈ 0,43, quase no mesmo ponto em que o classificador perde 1 p.p. (σ ≈ 0,44). Em resumo, **a melhora perceptual medida por uma métrica independente só chega depois do limiar do classificador**, o que confirma a hipótese central em 32 px. Em 224 px isso se inverte para o aguçamento (§14.2).
 
 ¹ No CIFAR (blocos de 16×16 px), o algoritmo do CLAHE arredonda o clip para inteiro, com mínimo 1: todo clip < 2 dá exatamente a mesma imagem. Por isso a dose fraca de CLAHE é feita misturando com o original (`clahe_blend`).
 - **Aprimoramento ajuda quando a entrada está de fato degradada**: partindo da mesma imagem reduzida, a SR aprendida é melhor que a bicúbica para o classificador (QP4 da revisão).
@@ -559,17 +559,33 @@ O que esses números dizem:
 **Domain shift × informação (H4)**, em ResNet-20/56/VGG, média:
 - Gaussiano σ = 1,0: congelado 39,6 %. Só re-estimar o BatchNorm leva a **83,0 %**; o controle (BN re-estimado nas originais) dá 91,1 %. A maior parte da queda é **domain shift**.
 - JPEG qualidade 20: o BN não recupera nada (66,8 % → 66,7 %). Aí a perda é estrutural.
+- **Fine-tuning completo** (3 épocas, `finetune_cifar.yaml`): recupera 91–99 % da queda no aguçamento e no gaussiano σ = 1, mas só 38–50 % no JPEG e na mediana, que ficam 7–13 p.p. abaixo do controle. A sonda linear subestima o quanto é recuperável (detalhes em [results.md](results.md) §8).
 
-### 14.2 O que falta
+### 14.2 Resultados — Imagenette (224 px) e ViT
+
+Configuração: `sweep.yaml` com `DATASETS=imagenette`, 2000 imagens, ResNet-50, EfficientNet-B0 e ViT-B/16 (acurácia top-1 em 1000 classes: 83,9 %, 84,3 % e 90,9 %), rodado no Colab (A100). Detalhes e tabelas em [results.md](results.md) §10.
+
+- **H3 confirmada.** Em 224 px a banda crítica é a mais baixa (< 0,1 ciclo/pixel: removê-la custa 68–77 p.p.), não a média-alta do CIFAR. O **ViT depende quase só dela**; as CNNs também usam 0,06–0,19 ciclo/pixel.
+- **Há hormese no aguçamento**: o laplaciano leve melhora a acurácia com significância nos 3 modelos (até +2,8 p.p. na ResNet-50) e o *unsharp* em 2 de 3. O CLAHE só piora.
+- **A janela operacional do aguçamento é larga** (*unsharp*: amount de 0,28 até 1,1–2,3) e **o BRISQUE melhora antes do limiar do classificador**: a conclusão do CIFAR pelo BRISQUE não vale em 224 px.
+- **O ViT é até 2× mais robusto** às técnicas que removem frequência, mas não ao aguçamento forte.
+- A SR aprendida não supera a bicúbica em 224 px.
+- **H2, H5 e H7 se repetem**: R² LOTO 0,86–0,94 com ΔE + coerência + cor; IRE com R² 0,85–0,92. Mas a fórmula calibrada só no oráculo falha em 224 px (R² negativo).
+- **H4 em 224 px** (E4 refeito com `configs/e4_imagenette.yaml`): o aguçamento continua sendo domain shift (laplaciano forte na ResNet-50: BN recupera 83 %, fine-tuning 98 %). JPEG forte, SR ×4, mediana e blur forte deixam perda real (1,5–2,9 p.p. depois do fine-tuning). Em 224 px, o BN-adapt recupera bem menos que no CIFAR (22–41 % no blur σ = 1, contra ~84 %). A primeira rodada do E4 saturou (99,8 % entre as 10 classes).
+
+### 14.3 O que falta
 
 | Prioridade | Item | Como |
 |---|---|---|
-| Alta | **Segundo dataset em 224 px e ViT** (H3: a banda crítica muda com resolução e arquitetura) | `make download-imagenette` e `make sweep DATASETS=imagenette` (GPU) |
+| ~~Alta~~ feito | Segundo dataset em 224 px e ViT (H3) | §14.2 |
+| ~~Alta~~ feito | Refazer o E4 no Imagenette com doses fortes e congelado/BN nas 1000 classes | `configs/e4_imagenette.yaml` (§14.2) |
+| Baixa | E4 sem o teto das 10 classes (as doses moderadas ainda saturam) | ImageNet-val com treino de várias classes |
 | ~~Alta~~ feito | Doses menores (CLAHE misturado, SR 1,05–1,2, JPEG 99–100 e 4:4:4) | §14.1 |
 | Alta | Melhorar a fórmula nas técnicas de equalização (superestima ~2×). Já testados sem sucesso: separar amplitude × estrutura e tirar a curva tonal global (corrige o HE mas piora o resto). Próximo: curva tonal por bloco | ver [results.md](results.md) §6 |
 | ~~Média~~ feito | BRISQUE como métrica perceptual independente | `quality.brisque: true` (§8.3) |
 | Média | **Aplicar o estudo com pessoas** (kit pronto, falta coletar respostas) | `make human-export`, enviar a pasta e `make human-analyze` (§8.3) |
+| Média | Oráculo com anéis finos na faixa baixa: testar se a banda crítica é fixa em ciclos/imagem | aumentar `oracle.n_bins` ([results.md](results.md) §10.1) |
 | Média | ImageNet-val local, em vez do Imagenette, para os números finais | `paths.imagenet_val` |
-| Média | Fine-tuning completo no E4 (hoje: BN-adapt e sondas lineares) | `adaptation.finetune_epochs > 0` (GPU) |
-| Baixa | E5: entradas realmente degradadas (CIFAR-10-C), para a QP4 | `bash scripts/download_data.sh cifar10c` |
+| ~~Média~~ feito | Fine-tuning completo no E4 (CIFAR-10) | `configs/finetune_cifar.yaml` (§14.1) |
+| Baixa | E5: entradas realmente degradadas (CIFAR-10-C), para a QP4. O download existe, mas falta o código que usa os dados | implementar o loader e o experimento |
 | Baixa | Seções de Métodos e Resultados do artigo em `revisao_literatura/main.tex` | a partir de `results/sweep/analysis/summary.md` |

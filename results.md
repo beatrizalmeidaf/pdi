@@ -2,7 +2,7 @@
 
 Esse arquivo reúne o que foi executado e os resultados obtidos até agora. A modelagem, as hipóteses e os métodos estão no [README.md](README.md). As figuras e tabelas citadas aqui ficam em [docs/resultados/](docs/resultados/), e os dados brutos em `results/` (não versionado).
 
-> **Escopo.** Todos os números são de **CIFAR-10** (32×32 px), com **3 CNNs** pré-treinadas, rodando em **CPU**. Ainda não há dataset de 224 px nem Vision Transformer, o que exige GPU (ver [§10](#10-o-que-ainda-não-foi-feito)). Por isso, trate as conclusões como **preliminares**.
+> **Escopo.** As seções 2 a 9 usam **CIFAR-10** (32×32 px) com **3 CNNs** pré-treinadas, rodando em CPU. A [§10](#10-imagenette-224-px-e-vit-o-que-muda) repete a varredura no **Imagenette** (224 px) com **ResNet-50, EfficientNet-B0 e ViT-B/16** (Colab, A100) e mostra o que muda. Várias conclusões do CIFAR **não valem em 224 px**; quando é o caso, a seção do CIFAR aponta para a §10.
 
 ---
 
@@ -17,23 +17,27 @@ Esse arquivo reúne o que foi executado e os resultados obtidos até agora. A mo
 7. [Sensibilidade por banda — oráculo (E1, H3)](#7-sensibilidade-por-banda--oráculo-e1-h3)
 8. [Domain shift × perda de informação (E4, H4)](#8-domain-shift--perda-de-informação-e4-h4)
 9. [Validação perceptual: BRISQUE e estudo com pessoas](#9-validação-perceptual-brisque-e-estudo-com-pessoas)
-10. [O que ainda não foi feito](#10-o-que-ainda-não-foi-feito)
-11. [Como reproduzir](#11-como-reproduzir)
+10. [Imagenette (224 px) e ViT: o que muda](#10-imagenette-224-px-e-vit-o-que-muda)
+11. [O que ainda não foi feito](#11-o-que-ainda-não-foi-feito)
+12. [Como reproduzir](#12-como-reproduzir)
 
 ---
 
 ## 1. O que rodou
 
-| Execução | Config | Dados | Etapas | Tempo (CPU) | Status |
+| Execução | Config | Dados | Etapas | Tempo | Status |
 |---|---|---|---|---|---|
-| Testes unitários | — | sintéticos | técnicas × referência, quantificador espectral, limiares, IRE, kit humano, pipeline offline | ~10 s | ✅ 23 passam, 1 pulado* |
+| Testes unitários | — | sintéticos | técnicas × referência, quantificador espectral, limiares, IRE, adaptação, qualidade/BRISQUE, análise, kit humano, pipeline offline | ~40 s | ✅ 62 passam* |
 | `make verify` | `sweep.yaml` | 50 imagens CIFAR-10 | E0 | ~1 min | ✅ |
 | `make offline` | `offline.yaml` | 48 imagens sintéticas + CNN sem pesos | E1, E2, E4, E3 | ~1 min | ✅ (checa que o pipeline roda; números sem significado) |
 | `make smoke` | `smoke.yaml` | 64 imagens CIFAR-10, 2 modelos | E1, E2, E4, E3 | ~2 min | ✅ |
 | **`make sweep`** | `sweep.yaml` | **2000 imagens CIFAR-10, 3 modelos, 106 doses + 27 filtros-oráculo** | E1 (11 min), E2 (54 min), E4 (14 min), E3 (17 min) | ~1h40 | ✅ **base deste relatório** |
+| E4 com fine-tuning | `finetune_cifar.yaml` | 2000 imagens CIFAR-10 (5000 de treino), 3 modelos, 9 condições, 3 épocas | E4 | 2h07 (CPU) | ✅ §8 |
+| **Sweep no Imagenette** | `sweep.yaml`, `DATASETS=imagenette` | **2000 imagens Imagenette (224 px), ResNet-50, EfficientNet-B0, ViT-B/16** | E1 (44 min), E2 (2h42), E4 (14 min), E3 | ~3h40 + E3 (Colab, A100) | ✅ §10 (o E4 desta rodada saturou) |
+| E4 no Imagenette, refeito | `e4_imagenette.yaml` | mesmas 2000 imagens + 2000 de treino, 13 condições com doses fortes, fine-tuning de 3 épocas | E4, E3 | 19 min + E3 (Colab, A100) | ✅ §10.7 |
 | `make human-export` | `sweep.yaml` | 12 imagens × 74 condições | kit do estudo com pessoas | <1 min | ✅ gerado; **sem respostas coletadas ainda** |
 
-\* O teste do pipeline completo é pulado em ambientes sem torchvision (Anaconda local). No Python 3.12, com torch, ele passa.
+\* Os testes que precisam de torch, torchvision ou dos pesos de SR são pulados quando eles não estão instalados.
 
 Classificadores (pesos `chenyaofo/pytorch-cifar-models`, `model.eval()`, sem nenhum ajuste):
 
@@ -97,7 +101,7 @@ Tabela completa: [thresholds.csv](docs/resultados/thresholds.csv). Valores = fai
 *Um painel por técnica. Azul = Δacc com IC 90 %; vermelho tracejado = −flip; linha vermelha = BMD 1 p.p., com faixa do IC; verde tracejado = dose do objetivo visual; faixa verde = janela operacional. Os outros modelos: [ResNet-56](docs/resultados/thresholds_cifar10_cifar10_resnet56.png), [VGG-16-BN](docs/resultados/thresholds_cifar10_cifar10_vgg16_bn.png).*
 
 **Leituras principais**
-- **H1 confirmada no CIFAR-10.** Todas as técnicas degradam a acurácia de forma monotônica com a dose, inclusive as que só *adicionam* alta frequência (aguçamento) ou *redistribuem* (equalização). Nenhuma técnica melhorou a acurácia com significância: **não houve hormese**. O maior ganho pontual foi +0,2 p.p. (*unsharp* 0,1; CLAHE misturado 0,02), com IC cruzando 0.
+- **H1 confirmada no CIFAR-10.** Todas as técnicas degradam a acurácia de forma monotônica com a dose, inclusive as que só *adicionam* alta frequência (aguçamento) ou *redistribuem* (equalização). Nenhuma técnica melhorou a acurácia com significância: **não houve hormese**. O maior ganho pontual foi +0,2 p.p. (*unsharp* 0,1; CLAHE misturado 0,02), com IC cruzando 0. **Em 224 px isso muda**: o aguçamento leve melhora a acurácia nos 3 modelos ([§10.2](#102-hormese-e-janela-operacional-h1-h6)).
 - **Os limiares são estreitos e quase iguais entre arquiteturas.** No gaussiano, o BMD fica entre 0,43 e 0,45 nos 3 modelos. Entre perder 1 p.p. (σ = 0,44) e perder 5 p.p. (σ = 0,55) há só 0,11 de σ.
 - **H6 parcialmente confirmada.** Existe janela operacional para **suavização gaussiana leve, *unsharp* leve e CLAHE fraco** (misturado ao original). **Não existe** para equalização global, laplaciano, bilateral, mediana e Wiener: nelas, quando o objetivo visual é atingido, o classificador já perdeu ≥ 1 p.p.
 - As janelas que existem são **estreitas**: σ ∈ [0,33; 0,42] no gaussiano e amount ∈ [0,26; 0,32] no *unsharp*.
@@ -123,7 +127,7 @@ Na qualidade 98, o erro de **cor** da versão 4:2:0 é ~10× o de luminância. A
 
 **CLAHE: o clip é quantizado em imagens pequenas.** Em blocos de 16×16 px (CIFAR, grade 2×2), o clip efetivo é `max(int(clip × 256 / 256), 1)`. Ou seja, **todo clip < 2 gera exatamente a mesma imagem**, e a versão mais fraca possível já custa 1,4–2,1 p.p. Por isso a dose fraca de CLAHE foi feita misturando a saída com o original (α).
 
-**Redimensionar é muito danoso em 32 px.** Reduzir 32 → 30 px e voltar (escala 1,05) já custa 3,9–5,7 p.p.; o limiar fica abaixo da menor escala possível. Na mesma escala de redução, a **SR aprendida é melhor que a bicúbica** para o classificador (FSRCNN > ESPCN > bicúbica). Isso é coerente com a QP4 da revisão: aprimorar ajuda quando a entrada está de fato degradada.
+**Redimensionar é muito danoso em 32 px.** Reduzir 32 → 30 px e voltar (escala 1,05) já custa 3,9–5,7 p.p.; o limiar fica abaixo da menor escala possível. Na mesma escala de redução, a **SR aprendida é melhor que a bicúbica** para o classificador (FSRCNN > ESPCN > bicúbica). Isso é coerente com a QP4 da revisão: aprimorar ajuda quando a entrada está de fato degradada. **Em 224 px a vantagem some** ([§10.5](#105-super-resolução)).
 
 | Escala | Bicúbica | ESPCN | FSRCNN |
 |---|---|---|---|
@@ -249,7 +253,8 @@ Filtros ideais: removem (ganho 0) ou dobram (ganho 2) **um** anel de frequência
 - As **ResNets** dependem mais da **média-alta frequência** (0,28–0,41 ciclos/pixel), embora quase não haja energia ali.
 - A **VGG** é mais plana e bem menos sensível nos cantos.
 - Mexer em qualquer banda isolada custa 3–7 p.p. em ambos os sentidos, removendo ou amplificando.
-- Esse perfil, aprendido só com filtros sintéticos, já prevê as técnicas reais com R² 0,76–0,81 (§6). Isso dá suporte parcial a H3. Falta comparar com outra resolução e com ViT para testar a dependência de dataset e arquitetura.
+- Esse perfil, aprendido só com filtros sintéticos, já prevê as técnicas reais com R² 0,76–0,81 (§6).
+- A comparação com 224 px e ViT está na [§10.1](#101-banda-crítica-h3): a banda crítica muda com a resolução e com a arquitetura, e a transferência oráculo → técnicas não se sustenta em 224 px.
 
 ![Sensibilidade por banda](docs/resultados/band_sensitivity_cifar10.png)
 
@@ -276,9 +281,33 @@ Mesmo extrator pré-treinado; muda só o quanto o modelo pode se adaptar às ima
 - **JPEG forte é perda estrutural.** O BN não recupera nada (66,8 % → 66,7 %) e a sonda re-treinada pouco.
 - **Aguçamento e CLAHE em doses moderadas** custam pouco e já estão perto do controle. O espaço para recuperar é pequeno.
 
-As sondas lineares (64–512 features) recuperam menos que o ajuste do BN nas CNNs de CIFAR. O fine-tuning completo, que exigiria GPU, não foi feito.
+As sondas lineares (64–512 features) recuperam menos que o ajuste do BN nas CNNs de CIFAR.
 
 ![Adaptação](docs/resultados/adaptation_cifar10.png)
+
+### Fine-tuning completo
+
+Mesmas 9 condições, modelo inteiro re-treinado por 3 épocas (SGD, lr 0,001) nas 5000 imagens de treino processadas. Controle: o mesmo fine-tuning nas originais (92,8 %; a acurácia original é 93,8 %). Média dos 3 modelos ([adaptation_finetune_cifar10.csv](docs/resultados/adaptation_finetune_cifar10.csv)).
+
+| Condição | Congelado | BN-adapt | Fine-tuning | Perda que sobra | Recuperado pelo fine-tuning |
+|---|---|---|---|---|---|
+| Laplaciano c = 0,5 | 84,9 % | 89,3 % | **92,8 %** | 0,1 p.p. | 99 % |
+| *Unsharp* amount = 1 | 90,8 % | 89,9 % | **92,6 %** | 0,2 p.p. | 92 % |
+| Gaussiano σ = 1 | 39,6 % | 83,0 % | **88,2 %** | 4,6 p.p. | 91 % |
+| Wiener k = 5 | 72,7 % | 82,2 % | 86,6 % | 6,2 p.p. | 69 % |
+| Mediana k = 3 | 79,1 % | 81,7 % | 85,9 % | 6,9 p.p. | 50 % |
+| JPEG qualidade 30 | 66,8 % | 66,7 % | 79,5 % | **13,3 p.p.** | 49 % |
+| JPEG qualidade 70 | 81,7 % | 79,2 % | 85,9 % | 6,9 p.p. | 38 % |
+| Bilateral σ_s = 2 | 89,6 % | 89,2 % | 90,6 % | 2,2 p.p. | 33 % |
+| CLAHE clip = 2 | 91,5 % | 89,1 % | 91,5 % | 1,3 p.p. | (queda pequena demais) |
+
+*Recuperado = (fine-tuning − congelado) / (controle − congelado). Instável quando a queda é pequena (CLAHE, bilateral).*
+
+- **No aguçamento, a queda é quase toda domain shift**: re-treinado, o modelo volta ao nível do controle.
+- **No gaussiano σ = 1, também** (39,6 % → 88,2 %), o que confirma e reforça o resultado do BN-adapt.
+- **No JPEG e na mediana sobra perda real**: mesmo re-treinando, ficam 7–13 p.p. abaixo. No JPEG, onde o BN não recuperava nada, o fine-tuning recupera cerca de metade: há também um componente de shift que a re-estimação do BN não alcança.
+- **A sonda linear subestima o quanto é recuperável.** O `recoverable_frac` fica entre 0,1 e 0,44 mesmo onde o fine-tuning recupera > 90 %. A sonda mede a informação que sobra nas *features congeladas*, não na imagem.
+- O padrão se repete nos 3 modelos. Limitações: um único seed e 3 épocas.
 
 ---
 
@@ -309,6 +338,8 @@ Há duas leituras complementares:
 - as janelas do §3 dependem do critério de "objetivo visual" (proxies como nitidez e ruído);
 - por um critério perceptual geral, **não há dose de aprimoramento que seja grátis para o classificador** em imagens limpas de 32 px. Isso confirma a pergunta de pesquisa.
 
+**Em 224 px esse resultado se inverte para o aguçamento** ([§10.3](#103-brisque-em-224-px)): o BRISQUE melhora logo na primeira dose, muito antes do limiar do classificador.
+
 ### Estudo com pessoas
 
 O kit está pronto em `results/sweep/human_study/` (gerado por `make human-export`):
@@ -319,27 +350,200 @@ O kit está pronto em `results/sweep/human_study/` (gerado por `make human-expor
 
 ---
 
-## 10. O que ainda não foi feito
+## 10. Imagenette (224 px) e ViT: o que muda
+
+Mesma varredura do `sweep.yaml` (106 doses + 25 filtros-oráculo), em 2000 imagens de validação do Imagenette, com ResNet-50, EfficientNet-B0 e ViT-B/16 (pesos oficiais do torchvision, `model.eval()`). A acurácia é top-1 entre as **1000 classes** do ImageNet: 83,9 % (ResNet-50), 84,3 % (EfficientNet-B0) e **90,9 %** (ViT-B/16). Tabelas em `docs/resultados/*_imagenette.csv`; relatório completo em `results/sweep_imagenette/analysis/summary.md`.
+
+Nas tabelas abaixo, a ordem dos modelos é **EffNet / R50 / ViT**.
+
+### 10.1 Banda crítica (H3)
+
+Oráculo: remover (ganho 0) ou dobrar (ganho 2) um anel por vez ([band_sensitivity_imagenette.csv](docs/resultados/band_sensitivity_imagenette.csv)).
+
+| Centro do anel (ciclos/pixel) | Remover: Imagenette | Remover: CIFAR (R20 / R56 / VGG) | Dobrar: Imagenette |
+|---|---|---|---|
+| 0,03 | **−68,3 / −68,3 / −76,8** | −4,1 / −3,7 / −3,8 | −8,8 / −12,3 / −5,3 |
+| 0,09 | −28,9 / −22,1 / **−9,7** | — | −11,9 / −9,9 / −5,3 |
+| 0,16 | −15,5 / −11,0 / **−2,6** | −5,1 / −4,3 / −3,4 | −13,7 / −4,9 / −6,7 |
+| 0,28 | −6,7 / −4,2 / −3,4 | **−7,4 / −5,7** / −3,4 | −3,7 / −1,2 / −1,2 |
+| 0,41 | −1,9 / −1,0 / −0,5 | −6,6 / **−6,2** / −3,6 | 0,0 / +1,2 / +0,8 |
+| 0,60 (cantos) | +0,4 / +0,2 / −0,1 | −3,1 / −2,5 / −0,9 | +0,8 / +1,1 / 0,0 |
+
+- **H3 confirmada: a banda crítica depende da resolução e da arquitetura.** Em 224 px quase toda a informação útil está abaixo de 0,1 ciclo/pixel. A faixa de 0,375–0,44 ciclo/pixel, crítica para as ResNets no CIFAR (−6 a −7 p.p.), custa no máximo 1,9 p.p.
+- **O ViT depende quase só da banda mais baixa.** Removendo 0,06–0,19 ciclo/pixel, ele perde 3–10 p.p.; as CNNs perdem 11–29 p.p.
+- *Hipótese a testar:* em **ciclos por imagem**, o pico do CIFAR (0,28–0,41 ciclo/pixel ≈ 9–14 ciclos/imagem) cai dentro da banda mais crítica do Imagenette (0–0,06 ciclo/pixel ≈ 0–14 ciclos/imagem). A escala crítica pode ser relativa ao objeto, não ao pixel. Para testar, é preciso um oráculo com anéis mais finos na faixa baixa.
+- **A transferência oráculo → técnicas reais não se sustenta em 224 px** ([oracle_transfer_imagenette.csv](docs/resultados/oracle_transfer_imagenette.csv)). Com ΔE por banda + coerência, o R² é 0,20 / 0,69 / −2,19 (no CIFAR, 0,76–0,81). A ordem das técnicas se mantém em parte (Spearman 0,80 / 0,80 / 0,63), mas a escala não. Leitura provável: o oráculo em 224 px é dominado pela remoção catastrófica da banda mais baixa (−70 p.p.), longe do regime de dano pequeno das técnicas reais.
+
+![Sensibilidade por banda — Imagenette](docs/resultados/band_sensitivity_imagenette.png)
+
+### 10.2 Hormese e janela operacional (H1, H6)
+
+Tabela completa: [thresholds_imagenette.csv](docs/resultados/thresholds_imagenette.csv). Mesmas definições da §3.
+
+| Técnica (parâmetro) | BMD 1 p.p. | BMDL | Objetivo visual | Janela operacional | Melhor ganho (dose) | CIFAR (BMD 1 p.p.) |
+|---|---|---|---|---|---|---|
+| Laplaciano (c) | 0,63–1,47 | 0,43–1,16 | 0,10 | ✅ **[0,10; 0,43–1,16]** nos 3 | **+1,2 / +2,8 / +0,7 p.p.** (c 0,2–0,3), significativo nos 3 | 0,09–0,13, sem janela |
+| *Unsharp* (amount) | 1,55–2,64 | 1,11–2,26 | 0,28 | ✅ **[0,28; 1,1–2,3]** nos 3 | +0,1 / **+2,0** / +0,5 p.p. (0,2–0,75), significativo em R50 e ViT | 0,45–0,56, janela [0,26; 0,28–0,37] |
+| Gaussiano (σ) | 0,38–0,47 | 0,34–0,43 | 0,35 | ✅ em EffNet e ViT ([0,35; 0,42–0,43]); ❌ R50 | — | 0,43–0,45: **quase igual em pixels** |
+| Equalização (α) | 0,46–0,70 | 0,20–0,40 | 0,34 | só no ViT ([0,34; 0,40]) | — | 0,19–0,20 |
+| CLAHE (clip) | 1,0–1,7 (a R50 já perde no clip 1) | 1,0–1,2 | 2,25 | ❌ | nenhum (o CLAHE só piora) | < 1 |
+| CLAHE misturado (α, clip 2) | 0,48–0,90 | 0,33–0,61 | não atinge +10 % de contraste | ❌ | — | 0,42–0,62 |
+| Bilateral (σ_s) | 0,77–1,19 | 0,68–0,91 | 1,0 | ❌ | — | 0,88–1,11 |
+| Mediana / Wiener (k) | k = 3 já passa: −5,8 / −6,8 / −3,4 e −4,1 / −4,5 / −2,6 p.p. | — | k = 3 | ❌ | — | k = 3 já custa 12–18 p.p. |
+| JPEG 4:2:0 (qualidade) | ≈ 91 / **já na 100** (−1,5 p.p.) / ≈ 93 | — | — | — | — | 97,6–100 |
+| JPEG 4:4:4 (qualidade) | ≈ 88 / 74 / 74 | — | — | — | — | 95,2–95,9 |
+| SR bicúbica (escala) | ≈ 1,03–1,05 (1,05 já custa 1,0 / 1,7 / 1,8 p.p.) | — | — | — | — | < 1,05 |
+
+- **Há hormese em 224 px, no aguçamento.** O laplaciano leve melhora a acurácia com significância nos 3 modelos (até +2,8 p.p. na ResNet-50), e o *unsharp* em 2 de 3. No CIFAR, nenhuma técnica melhorou.
+- **O CLAHE não mostrou hormese**, ao contrário do que a literatura sugeria (Hendrycks & Dietterich [b6]). Ele só piora, e a ResNet-50 já perde 1,3 p.p. no clip 1.
+- **H6 em 224 px:** a janela operacional é **larga** para o aguçamento (o objetivo visual chega com amount 0,28 e o dano só depois de 1,1–2,3) e estreita ou ausente para o resto. Gaussiano, CLAHE, bilateral, mediana e Wiener se comportam como no CIFAR.
+- **O efeito da cor no JPEG se repete só na ResNet-50**: 4:2:0 em qualidade 100 custa 1,5 p.p.; 4:4:4, +0,1. EfficientNet e ViT não reagem à subamostragem de croma.
+- No geral, os modelos de 224 px toleram doses bem maiores de aguçamento, equalização e JPEG. Na suavização gaussiana, o limiar em σ (pixels) é quase o mesmo nas duas resoluções.
+
+![Limiares ResNet-50](docs/resultados/thresholds_imagenette_resnet50.png)
+*Os outros modelos: [EfficientNet-B0](docs/resultados/thresholds_imagenette_efficientnet_b0.png), [ViT-B/16](docs/resultados/thresholds_imagenette_vit_b_16.png). Dose-resposta: [dose_response_imagenette.png](docs/resultados/dose_response_imagenette.png).*
+
+### 10.3 BRISQUE em 224 px
+
+Em 224 px o BRISQUE roda na resolução nativa (sem ampliar).
+
+| Técnica | BRISQUE | Classificador (BMD 1 p.p.) | Janela pelo BRISQUE? |
+|---|---|---|---|
+| *Unsharp* | melhora ≥ 5 % já antes da menor dose (amount 0,1); melhor: −41 % | 1,55–2,64 | ✅ nos 3 |
+| Laplaciano | melhora ≥ 5 % já antes da menor dose (c 0,05); melhor: −17 % | 0,63–1,47 | ✅ nos 3 |
+| Gaussiano | nunca melhora; **piora 5 % em σ ≈ 0,28** | 0,38–0,47 | ❌ |
+| Equalização | nunca melhora; piora 5 % em α ≈ 0,19 | 0,46–0,70 | ❌ |
+| CLAHE | nunca melhora (piora ≥ 21 %) | 1,0–1,7 | ❌ |
+
+- **O "resultado central" da §9 não vale em 224 px para o aguçamento.** Pela métrica perceptual independente, a imagem melhora logo na primeira dose, muito antes do limiar do classificador. Em imagens limpas de 224 px, **há dose de aguçamento que é grátis**, e até benéfica (§10.2).
+- Na suavização, em 224 px o BRISQUE "percebe" o blur **antes** do classificador (σ ≈ 0,28 × 0,38–0,47). No CIFAR, os dois quebravam juntos.
+- Ao contrário do CIFAR ampliado, o BRISQUE em 224 px considera que HE e CLAHE **pioram** a imagem.
+- O BRISQUE também aparece "melhorando" no JPEG em qualidade 100. Como o JPEG não tem objetivo visual declarado, isso foi tratado como artefato e desconsiderado.
+
+### 10.4 CNN × ViT
+
+Δacc (p.p.) em doses iguais:
+
+| Condição | EffNet | R50 | ViT |
+|---|---|---|---|
+| Gaussiano σ = 1 | −7,3 | −7,4 | **−5,6** |
+| Gaussiano σ = 2 | −24,1 | −21,1 | **−13,6** |
+| Bilateral σ_s = 4 | −13,5 | −12,8 | **−6,6** |
+| Mediana k = 5 | −13,7 | −15,0 | **−9,1** |
+| Wiener k = 5 | −8,0 | −9,7 | **−4,5** |
+| JPEG qualidade 10 | −19,6 | −25,1 | **−17,5** |
+| CLAHE clip 4 | −6,1 | −5,7 | **−4,0** |
+| *Unsharp* amount 3 | **−1,6** | −2,1 | −3,4 |
+| Laplaciano c = 1,5 | **−1,1** | −13,0 | −6,0 |
+
+- **O ViT é bem mais robusto a técnicas que removem frequência** (até 2× menos dano), coerente com o perfil do oráculo (§10.1): ele depende pouco das bandas médias.
+- **No aguçamento forte não é o mais robusto**: perde para a EfficientNet. Somar alta frequência afeta o ViT mais que removê-la.
+- O dano entre as duas CNNs é parecido na suavização, mas muito diferente no laplaciano forte (−1,1 × −13,0 p.p.).
+
+### 10.5 Super-resolução
+
+| Escala | Bicúbica | ESPCN | FSRCNN |
+|---|---|---|---|
+| ×2 | −7,4 / −5,6 / −5,9 | −7,3 / −7,0 / −5,4 | −7,0 / −7,8 / −4,8 |
+| ×3 | −15,7 / −15,5 / −10,8 | −15,3 / −16,1 / −10,6 | −14,3 / −17,3 / −9,8 |
+| ×4 | −25,7 / −25,3 / −17,8 | −23,9 / −24,7 / −18,1 | −23,1 / −27,7 / −19,1 |
+
+**A vantagem da SR aprendida sobre a bicúbica não se repete em 224 px.** Na mesma escala, ESPCN e FSRCNN ficam a ±2 p.p. da bicúbica, com sinal misto (no CIFAR recuperavam 3–11 p.p.). A partir de ×3, o ViT é o mais robusto à redução de resolução.
+
+### 10.6 Previsibilidade (H2, H5, H7)
+
+| Preditor | R² LOTO Imagenette (EffNet / R50 / ViT) | Média CIFAR |
+|---|---|---|
+| parâmetro nominal (`dose_rank`) | 0,26 / 0,28 / 0,29 | 0,21 |
+| PSNR | 0,05 / 0,06 / 0,06 | 0,06 |
+| SSIM | 0,40 / 0,46 / 0,44 | 0,56 |
+| energia da perturbação por banda | 0,55 / 0,30 / 0,58 | 0,49 |
+| ΔE por banda | 0,61 / 0,31 / 0,54 | 0,69 |
+| ΔE por banda + coerência | 0,74 / 0,80 / 0,76 | 0,78 |
+| ΔE por banda + coerência + cor | **0,87 / 0,86 / 0,94** | 0,81 |
+| ΔE em 16 anéis finos | −2,6 / −10,8 / −6,3 | 0,61 |
+
+- **H2 e H5 se repetem.** O ΔE medido supera o parâmetro nominal e as métricas de pixel. Em 224 px, a coerência e a cor pesam ainda mais: só com ΔE por banda o R² é menor que no CIFAR, mas com coerência e cor ele é maior.
+- Os 16 anéis finos sofrem *overfitting* em 224 px (34 features para 106 condições). As 3 bandas agregadas são o nível certo de detalhe.
+- **Por imagem**, a AUC do *flip* sobe de 0,70 (ΔE por banda) para 0,76–0,77 com a coerência (no CIFAR, 0,77 → 0,84–0,86).
+- **H7: o IRE se repete** em validação LOTO: R² 0,85 / 0,92 / 0,85 e Spearman 0,94–0,97 (no CIFAR, 0,86–0,87). **Calibrado só no oráculo, falha** em 224 px: R² −1,7 / −0,5 / −1,0, embora o Spearman fique em 0,87–0,93 (no CIFAR, 0,76–0,81). Em 224 px a fórmula precisa ser calibrada com técnicas reais.
+
+![LOTO — Imagenette](docs/resultados/loto_r2_imagenette.png)
+
+### 10.7 Domain shift × perda de informação (H4)
+
+**Primeira rodada: saturou.** Com as condições do `sweep.yaml`, toda a adaptação foi medida entre as 10 classes do Imagenette, o único problema em que sondas e fine-tuning podem ser treinados. Ele é fácil demais: 99,8 % nas originais e 98,8–99,7 % em todas as condições, sem espaço para medir recuperação ([adaptation_summary_imagenette_saturado.csv](docs/resultados/adaptation_summary_imagenette_saturado.csv)).
+
+**Segunda rodada** ([configs/e4_imagenette.yaml](configs/e4_imagenette.yaml), [adaptation_summary_imagenette.csv](docs/resultados/adaptation_summary_imagenette.csv)): 13 condições com doses fortes, fine-tuning de 3 épocas em 2000 imagens de treino e, para o congelado e o BN-adapt, acurácia também nas **1000 classes**.
+
+**Sondas e fine-tuning (10 classes).** Média dos 3 modelos. Só entram as condições em que a queda congelada é ≥ 3 p.p. Nas outras, o problema de 10 classes continua saturado (gaussiano σ = 1, bilateral, CLAHE, HE e *unsharp* caem < 1,1 p.p.).
+
+| Condição | Congelado | Fine-tuning | Controle (fine-tuning nas originais) | Perda que sobra | Recuperado pelo fine-tuning (EffNet / R50 / ViT) |
+|---|---|---|---|---|---|
+| Gaussiano σ = 3 | 90,7 % | 96,6 % | 99,5 % | 2,9 p.p. | 0,66 / 0,71 / 0,60 |
+| Mediana k = 9 | 92,7 % | 97,3 % | 99,5 % | 2,2 p.p. | 0,53 / 0,75 / — |
+| Mediana k = 7 | 95,8 % | 98,2 % | 99,5 % | 1,3 p.p. | 0,49 / 0,73 / — |
+| SR bicúbica ×4 | 95,7 % | 97,5 % | 99,5 % | 2,0 p.p. | 0,32 / 0,50 / — |
+| ESPCN ×4 | 96,0 % | 97,3 % | 99,5 % | 2,3 p.p. | 0,08 / 0,54 / — |
+| JPEG qualidade 10 | 96,7 % | 98,1 % | 99,5 % | 1,5 p.p. | 0,28 / 0,64 / — |
+| Laplaciano c = 1,5 (só R50 cai ≥ 3 p.p.) | 95,2 % (R50) | 99,2 % (R50) | 99,4 % (R50) | 0,2 p.p. | — / **0,98** / — |
+
+*"—" = queda < 3 p.p. naquele modelo (o ViT só cai ≥ 3 p.p. no σ = 3).*
+
+**BN-adapt (1000 classes, só CNNs; o ViT não tem BatchNorm).** Aqui o controle importa: re-estimar o BN nas *originais* já derruba a acurácia de 84,3 → 74,8 % (EffNet) e 83,9 → 78,0 % (R50), porque as estatísticas vêm de só 10 classes. A fração recuperada compara a queda congelada com a queda depois do BN, medida em relação a esse controle.
+
+| Condição | Queda congelada (EffNet / R50) | Recuperado pelo BN (EffNet / R50) |
+|---|---|---|
+| Gaussiano σ = 1 | 7,3 / 7,4 p.p. | 0,22 / 0,41 |
+| Gaussiano σ = 3 | 42,1 / 38,6 | −0,05 / 0,04 |
+| Mediana k = 9 | 32,3 / 40,2 | 0,12 / 0,31 |
+| Bilateral σ_s = 4 | 13,5 / 12,8 | 0,27 / 0,32 |
+| CLAHE clip 8 | 10,7 / 10,0 | 0,06 / 0,25 |
+| JPEG qualidade 10 | 19,6 / 25,1 | −0,52 / −0,05 (piora) |
+| SR bicúbica ×4 / ESPCN ×4 | 25,7 / 25,3 e 24,0 / 24,7 | ≤ 0,02 (nada ou piora) |
+| Laplaciano c = 1,5 | 1,1 / **13,0** | — / **0,83** |
+
+O que se conclui:
+- **H4 se mantém em 224 px nas pontas.** O aguçamento é domain shift: na ResNet-50, onde o laplaciano forte custa 13 p.p., o BN recupera 83 % e o fine-tuning 98 %. JPEG forte, SR ×4, mediana e blur forte deixam **perda real**: mesmo re-treinando, sobram 1,5–2,9 p.p. num problema de 10 classes em que o controle está em 99,5 %.
+- **Em 224 px, o BN-adapt deixa de ser a alavanca principal.** No CIFAR, só re-estimar o BN recuperava ~84 % da queda do blur σ = 1. No Imagenette recupera 22–41 % (σ = 1) e nada no blur forte, no JPEG e na SR. Parte disso pode vir de as estatísticas serem estimadas com só 10 classes (o controle já perde 6–10 p.p.).
+- **No JPEG, de novo, o BN não ajuda e o fine-tuning ajuda em parte** (28–64 %), como no CIFAR: há um componente de shift que a re-estimação de primeira e segunda ordem não alcança.
+- **O ViT quase não cai entre as 10 classes** (só σ = 3 passa de 3 p.p.), coerente com a robustez maior da §10.4. Nas 1000 classes, ele perde de 2 p.p. (HE) a 26 p.p. (σ = 3) nessas condições.
+- **Ao contrário do CIFAR, a sonda linear e o fine-tuning ficam na mesma faixa** (0,3–0,7) na maioria das condições. As exceções são o JPEG na R50 (sonda 0,03 × fine-tuning 0,64) e a ESPCN na EffNet (0,49 × 0,08).
+- Limitações: um seed; o problema de 10 classes ainda satura nas doses moderadas; o controle do BN é afetado pelas 10 classes.
+
+![Adaptação — Imagenette](docs/resultados/adaptation_imagenette.png)
+
+---
+
+## 11. O que ainda não foi feito
 
 | Item | Por quê | Como fazer |
 |---|---|---|
-| Dataset de 224 px (Imagenette/ImageNet) e ViT | Testa H3 (banda crítica × resolução/arquitetura) e a hormese do CLAHE relatada na literatura. Inviável em CPU (~1,6 M inferências, ViT-B/16 incluso) | `make sweep DATASETS=imagenette` com GPU (Colab/servidor) |
+| E4 no Imagenette sem o teto das 10 classes | as doses moderadas ainda saturam (§10.7) | ImageNet-val com treino de várias classes (`paths.imagenet_val`), ou estimar o BN com imagens de mais classes |
 | Coleta do estudo com pessoas | depende de participantes | `make human-export` → enviar → `make human-analyze` |
-| Fine-tuning completo no E4 | exige GPU | `adaptation.finetune_epochs > 0` |
+| Oráculo com anéis finos na faixa baixa | testar se a banda crítica é fixa em ciclos/imagem (§10.1) | aumentar `oracle.n_bins` ou usar bandas em escala log |
 | Fórmula IRE nas técnicas de equalização (superestima ~2×; a correção global testada não serviu) | ver §6 | curva tonal por bloco; resíduo tonal junto às features atuais |
-| E5: entradas realmente degradadas (CIFAR-10-C) | QP4; download de ~2,9 GB | `bash scripts/download_data.sh cifar10c` |
+| ImageNet-val e os 5 modelos ImageNet | números finais com mais classes e arquiteturas | `paths.imagenet_val` + `default.yaml` (GPU) |
+| E5: entradas realmente degradadas (CIFAR-10-C) | QP4; o download existe, mas falta o código que usa os dados | implementar o loader e o experimento |
 | Métodos e Resultados no artigo LaTeX | — | a partir deste arquivo |
 
 ---
 
-## 11. Como reproduzir
+## 12. Como reproduzir
 
 ```bash
 make setup && make download-sr && make download-cifar   # ambiente e dados
 make test && make verify                               # E0
 make sweep                                             # E1 + E2 + E4 + E3 no CIFAR-10 (~1h40 em CPU)
+CONFIG=configs/finetune_cifar.yaml bash scripts/run_experiments.sh adapt   # E4 com fine-tuning (~2h em CPU)
 make safe-dose T=gaussian M=cifar10_resnet20           # dose segura pela fórmula, sem rede
 make human-export                                      # kit do estudo com pessoas
+
+# Imagenette (GPU)
+make download-imagenette
+CONFIG=configs/sweep.yaml DATASETS=imagenette \
+  EXTRA="--set run_name=sweep_imagenette --set device=cuda --set batch_size=128" \
+  bash scripts/run_experiments.sh oracle main adapt analyze examples
 ```
 
-Relatório automático completo, com todas as tabelas: `results/sweep/analysis/summary.md`.
+Relatórios automáticos completos, com todas as tabelas: `results/sweep/analysis/summary.md` (CIFAR-10) e `results/sweep_imagenette/analysis/summary.md` (Imagenette).
