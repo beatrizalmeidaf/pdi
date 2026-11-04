@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Quando melhorar piora</title>
+<meta name="description" content="Pré-processamento perceptual, energia espectral e acurácia de classificadores de imagem: limiares de dose, janela operacional e uma fórmula que prevê o dano. UFG — Processamento Digital de Imagens.">
+<meta property="og:title" content="Quando melhorar piora">
+<meta property="og:description" content="14 técnicas clássicas de pré-processamento, 6 classificadores, 2 resoluções: quando 'melhorar' a imagem piora a rede, e como prever o dano pelo espectro.">
+<meta property="og:image" content="figures/amostras.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0b0b'/%3E%3Cpath d='M6 22 Q12 6 16 16 T26 10' stroke='%23eb6834' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="stylesheet" href="assets/style.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.css">
+<script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.11/dist/katex.min.js"></script>
+<script defer src="https://cdn.jsdelivr.net/npm/plotly.js-dist-min@2.35.2/plotly.min.js"></script>
+<script defer src="assets/app.js"></script>
+</head>
+<body>
+<nav class="nav" aria-label="Seções">
+  <div class="wrap">
+    <a class="brand" href="#top">Quando melhorar piora</a>
+    <div class="nav-links">
+      <a href="#achados">Achados</a><a href="#inovacao">Inovação</a><a href="#explorador">Explorador</a>
+      <a href="#limiares">Limiares</a><a href="#espectro">Espectro</a><a href="#formula">Fórmula IRE</a>
+      <a href="#adaptacao">Domain shift</a><a href="#amostras">Amostras</a><a href="#metodo">Método</a><a href="#reproduzir">Reproduzir</a>
+    </div>
+    <button class="icon-btn" id="theme" type="button" aria-label="Alternar tema claro/escuro">◐</button>
+    <a class="icon-btn" href="https://github.com/beatrizalmeidaf/pdi" aria-label="Repositório no GitHub">GitHub</a>
+  </div>
+</nav>
+
+<header class="hero" id="top">
+  <div class="wrap">
+    <div class="eyebrow">Processamento Digital de Imagens · Instituto de Informática · UFG</div>
+    <h1>Quando melhorar piora</h1>
+    <p class="lede">Técnicas clássicas que deixam a imagem <em>melhor para pessoas</em> — suavizar, aguçar, equalizar, comprimir,
+      super-resolver — também deixam melhor para um classificador de imagens? Medimos, dose a dose, quanto cada técnica muda a
+      acurácia de 6 redes pré-treinadas, achamos o <strong>limiar</strong> a partir do qual cada uma começa a prejudicar e
+      propomos uma <strong>fórmula que prevê esse dano a partir do espectro de Fourier</strong>, sem rodar a rede.</p>
+    <div class="authors">Beatriz Almeida Felicio · Júlio Cesar Alves Pereira · Kamilla Jordana R. de Moura</div>
+    <div class="cta">
+      <a class="btn primary" href="#explorador">Explorar os resultados</a>
+      <a class="btn" href="https://github.com/beatrizalmeidaf/pdi">Código no GitHub</a>
+      <a class="btn" href="https://github.com/beatrizalmeidaf/pdi/blob/main/results.md">Relatório completo</a>
+    </div>
+  </div>
+</header>
+
+<section aria-labelledby="numeros" style="border-top:0;padding-top:8px">
+  <div class="wrap">
+    <h2 id="numeros" class="sr-only">Em números</h2>
+    <div class="grid g4" id="kpis"><div class="loading">Carregando dados…</div></div>
+  </div>
+</section>
+
+<section id="achados">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>O que encontramos</h2>
+      <p class="muted">Dois datasets em resoluções diferentes — CIFAR-10 (32 px, 3 CNNs) e Imagenette (224 px, 2 CNNs + 1 Vision
+        Transformer) — 14 técnicas em 8 a 12 doses cada (106 condições), 2000 imagens por dataset. Sem fine-tuning: os modelos rodam congelados,
+        como seriam usados na prática.</p>
+    </div>
+    <div class="grid g3">
+      <article class="card finding"><span class="tag">Hipótese central</span><div class="num">Quase sempre piora</div>
+        <p>As 14 técnicas degradam a acurácia de forma monotônica a partir de alguma dose. Em 32 px, <strong>nenhuma</strong> dose de
+          nenhuma técnica melhorou o classificador com significância.</p></article>
+      <article class="card finding"><span class="tag">Limiares</span><div class="num">σ ≈ 0,44</div>
+        <p>O limiar de dano é estreito e quase igual entre arquiteturas: o desfoque gaussiano custa 1 p.p. em σ = 0,43–0,45 nas 3 CNNs
+          de CIFAR e 0,38–0,47 em 224 px. De 1 para 5 p.p. de perda bastam +0,11 de σ.</p></article>
+      <article class="card finding"><span class="tag">Hormese</span><div class="num">+2,8 p.p.</div>
+        <p>Em 224 px, o aguçamento leve <strong>melhora</strong> a rede: laplaciano até +2,8 p.p. (ResNet-50), unsharp até +2,0 p.p.,
+          com IC acima de zero. Doses maiores voltam a piorar — melhora em dose baixa, dano em dose alta.</p></article>
+      <article class="card finding"><span class="tag">Banda crítica</span><div class="num">32 px ≠ 224 px</div>
+        <p>Em 32 px o que pesa é a média-alta frequência; em 224 px, a mais baixa (removê-la custa 68–77 p.p.). O ViT depende quase só
+          dela e perde até 2× menos que as CNNs com técnicas que removem frequência.</p></article>
+      <article class="card finding"><span class="tag">Previsibilidade</span><div class="num">R² 0,2 → 0,9</div>
+        <p>O parâmetro nominal (σ, k, clip…) explica pouco o dano em técnicas nunca vistas (R² ≈ 0,2) e o PSNR quase nada (0,06).
+          Medir o espectro — energia por banda, coerência de fase e cor — chega a R² 0,78–0,94.</p></article>
+      <article class="card finding"><span class="tag">JPEG</span><div class="num">A culpa é da cor</div>
+        <p>Mesmo na qualidade 100, o JPEG padrão (subamostragem de croma 4:2:0) já custa até 1,4 p.p.; sem subamostrar a cor
+          (4:4:4), ~0. Em alta qualidade, quem muda a decisão é a cor, não a compressão.</p></article>
+    </div>
+    <figure class="static" style="margin-top:20px">
+      <img src="figures/amostras.png" alt="Uma imagem do Imagenette processada por 8 técnicas em doses diferentes, com a variação de acurácia média abaixo de cada uma." loading="lazy">
+      <figcaption>Mesma imagem, várias técnicas. Abaixo: variação média de acurácia dos 3 modelos no Imagenette (2000 imagens). O aguçamento leve melhora; o resto piora.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="inovacao">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>O que é novo</h2>
+      <p class="muted">A revisão sistemática (29 estudos) apontou quatro lacunas: técnicas sem evidência (equalização, aguçamento,
+        super-resolução), dose medida pelo parâmetro em vez do sinal, confusão entre perda de informação e <em>domain shift</em>,
+        e a fragilidade da hipótese espectral. O estudo ataca as quatro.</p>
+    </div>
+    <ol class="innov">
+      <li><b>Dose medida no sinal, não no parâmetro</b><span>Cada técnica é descrita pelo que faz ao espectro de Fourier — energia por
+        banda, coerência de fase e perturbação de cor —, o que permite comparar e prever técnicas diferentes num mesmo eixo.</span></li>
+      <li><b>Limiares com intervalo de confiança</b><span>Vocabulário de dose-resposta da toxicologia (BMD, BMDL, NOAEL, LOAEL, hormese)
+        aplicado a pré-processamento, com bootstrap pareado sobre as imagens.</span></li>
+      <li><b>Janela operacional</b><span>Cruza a dose em que a técnica cumpre seu objetivo visual com a dose segura do classificador:
+        diz se existe uma intensidade que melhora a imagem sem custar acurácia.</span></li>
+      <li><b>Índice de Risco Espectral (IRE)</b><span>Fórmula própria, P(flip) = 1 − e<sup>−IRE</sup>, com garantia formal
+        (queda de acurácia ≤ P(flip)) e orçamento espectral: dá a dose segura de uma técnica nova sem rodar a rede.</span></li>
+      <li><b>Domain shift × informação perdida</b><span>Na mesma bateria: modelo congelado, só re-estimar o BatchNorm, sonda linear e
+        fine-tuning — separa o que o modelo poderia recuperar do que a imagem perdeu de fato.</span></li>
+      <li><b>Achados de implementação que importam</b><span>A subamostragem de cor domina o JPEG de alta qualidade; o clip do CLAHE é
+        quantizado em imagens pequenas; e o BRISQUE precisa ser resumido pela razão das médias (pode valer ≈ 0).</span></li>
+    </ol>
+  </div>
+</section>
+
+<section id="explorador">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Explorador de dose</h2>
+      <p class="muted">Escolha o dataset e a técnica e arraste a intensidade. As curvas mostram a variação de acurácia de cada modelo com
+        IC 90% (bootstrap pareado, 2000 imagens); as imagens são amostras reais processadas naquela dose.</p>
+    </div>
+    <div class="controls" role="group" aria-label="Filtros do explorador">
+      <div class="seg" id="ex-ds" role="group" aria-label="Dataset"></div>
+      <label class="ctl">Técnica <select id="ex-tech"></select></label>
+    </div>
+    <div class="explorer">
+      <div class="card">
+        <div class="dose-readout"><span class="muted small" id="ex-param">intensidade</span><span class="v" id="ex-dose">—</span></div>
+        <input type="range" id="ex-slider" min="0" max="1" step="1" value="0" aria-label="Intensidade da técnica">
+        <div id="ex-chart" class="chart" role="img" aria-label="Variação de acurácia por dose"></div>
+        <div id="ex-q-chart" class="chart short" role="img" aria-label="Qualidade perceptual por dose"></div>
+      </div>
+      <div class="card">
+        <h3 id="ex-title">Amostras</h3>
+        <div class="pairs" id="ex-pairs"></div>
+        <h3 style="margin-top:18px">Nesta dose</h3>
+        <table class="mtable" id="ex-metrics"></table>
+        <h3 style="margin-top:18px">Limiares desta técnica</h3>
+        <table class="mtable" id="ex-thr"></table>
+        <p class="small muted" style="margin-top:10px">BMD = intensidade em que a acurácia cai 1 p.p.; BMDL = limite inferior do IC
+          (dose segura conservadora). Janela = o objetivo visual chega antes do BMDL.</p>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="limiares">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Mapa de limiares e janelas</h2>
+      <p class="muted">Intensidade em que cada modelo perde 1 p.p. de acurácia. Verde: existe <strong>janela operacional</strong> — o
+        objetivo visual da técnica (+10% de nitidez, −10% de ruído ou +10% de contraste) é atingido antes do limite seguro.</p>
+    </div>
+    <div class="card"><div class="hm-wrap" id="heatmap"></div>
+      <div class="legend-row">
+        <span><span class="sw" style="background:var(--good)"></span>✓ janela existe</span>
+        <span><span class="sw" style="background:var(--surface-2);border:1px solid var(--line)"></span>✗ não existe</span>
+        <span><span class="sw" style="background:var(--warn-bg)"></span>~ só no limite (o menor passo já custa ≥ 1 p.p.)</span>
+        <span>sem fundo = técnica sem objetivo visual definido · &lt; mín. = já cruza na 1ª dose testada</span>
+      </div>
+    </div>
+    <div class="grid g2" style="margin-top:16px">
+      <div class="card"><h3>Hormese: a melhor dose de cada técnica</h3>
+        <p class="small muted">Melhor variação de acurácia em alguma dose, com IC 90%. Ponto cheio = IC acima de zero.</p>
+        <div class="controls"><div class="seg" id="hz-ds"></div></div>
+        <div id="hz-chart" class="chart tall"></div></div>
+      <div class="card"><h3>CNN × Vision Transformer (224 px)</h3>
+        <p class="small muted">Mesma dose, três arquiteturas. O ViT perde até 2× menos com técnicas que removem frequência.</p>
+        <div id="vit-chart" class="chart tall"></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="espectro">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>O espectro explica o dano</h2>
+      <p class="muted">Um filtro ideal remove (ou dobra) um anel de frequência por vez. Isso revela de que faixa cada modelo depende — e
+        ela muda com a resolução e com a arquitetura.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3>Banda crítica</h3>
+        <div class="controls"><div class="seg" id="bd-mode"></div></div>
+        <div class="grid g2"><div id="bd-cifar10" class="chart short"></div><div id="bd-imagenette" class="chart short"></div></div>
+        <p class="small muted">Eixo x: centro do anel em ciclos por pixel (0,5 = Nyquist).</p></div>
+      <div class="card"><h3>O que prevê o dano em técnicas nunca vistas</h3>
+        <p class="small muted">R² <em>leave-one-technique-out</em>: cada técnica é prevista por um modelo ajustado só nas outras. Barra = média dos 3 modelos.</p>
+        <div id="pred-chart" class="chart"></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="formula">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Índice de Risco Espectral (IRE)</h2>
+      <p class="muted">Uma fórmula proposta neste trabalho: cada unidade de perturbação numa banda de frequência é uma chance independente
+        de mudar a decisão da rede, com taxa própria daquela banda. Os pesos são o perfil de vulnerabilidade de cada modelo.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card">
+        <div class="formula" id="f1"></div>
+        <div class="formula" id="f2"></div>
+        <ul class="small" style="padding-left:18px;color:var(--ink-2)">
+          <li><b>D<sub>b</sub></b>: energia da perturbação no anel <i>b</i> (luminância); <b>D<sup>cor</sup><sub>b</sub></b>: o mesmo nos canais de cor.</li>
+          <li><b>1 − ρ<sub>B</sub></b>: perda de coerência espectral (estrutura e fase) nas bandas baixa, média e alta.</li>
+          <li><b>w, c, u ≥ 0</b> e o expoente <b>γ</b>: ajustados uma vez por modelo, por máxima verossimilhança.</li>
+        </ul>
+        <div class="formula" id="f3"></div>
+        <p class="small muted">Só uma decisão que muda pode virar erro, então manter o IRE abaixo desse orçamento garante queda de acurácia
+          ≤ τ. Para τ = 1%, o orçamento é 0,01005. <code>make safe-dose</code> usa isso para achar a dose segura sem rodar a rede.</p>
+        <table class="mtable" id="ire-table"></table>
+      </div>
+      <div class="card"><h3>Previsto × observado</h3>
+        <p class="small muted">Cada ponto é técnica × dose × modelo, previsto com pesos ajustados <strong>sem</strong> aquela técnica.</p>
+        <div id="ire-chart" class="chart tall"></div></div>
+    </div>
+  </div>
+</section>
+
+<section id="adaptacao">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Domain shift ou informação perdida?</h2>
+      <p class="muted">Se re-treinar o modelo nas imagens processadas recupera a queda, a informação continuava na imagem — o problema
+        era o modelo não estar calibrado para ela. Se não recupera, a técnica destruiu sinal útil.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3>CIFAR-10: congelado → BatchNorm → fine-tuning</h3><div id="ad-chart" class="chart tall"></div></div>
+      <div class="card"><h3>O que se conclui</h3>
+        <ul style="padding-left:18px;color:var(--ink-2)">
+          <li><b>Aguçamento e desfoque leve são domain shift.</b> Só re-estimar as estatísticas do BatchNorm leva o blur σ = 1 de 39,6% para
+            83%; o fine-tuning de 3 épocas, a 88% (controle 92,8%).</li>
+          <li><b>JPEG forte e mediana perdem informação.</b> Mesmo re-treinando, ficam 7–13 p.p. abaixo do controle; no JPEG o BatchNorm
+            não recupera nada.</li>
+          <li><b>Em 224 px</b> o padrão se repete nas pontas (laplaciano forte: fine-tuning recupera 98%; JPEG Q10, SR ×4 e blur forte
+            deixam 1,5–2,9 p.p.), mas re-estimar o BatchNorm ajuda bem menos.</li>
+          <li>A sonda linear subestima o quanto é recuperável: ela mede a informação nas <em>features</em> congeladas, não na imagem.</li>
+        </ul>
+        <figure class="static"><img src="figures/jpeg_cor.png" alt="JPEG 4:2:0 versus 4:4:4 em alta qualidade: a subamostragem de cor já custa acurácia na qualidade 100." loading="lazy"></figure>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="amostras">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Amostras</h2>
+      <p class="muted">Cada técnica na menor, numa intermediária e na maior dose testada, em imagens reais. Abaixo de cada uma, a variação
+        média de acurácia dos 3 modelos naquela dose.</p>
+    </div>
+    <div class="controls"><div class="seg" id="ga-ds"></div><label class="ctl">Imagem <select id="ga-img"></select></label></div>
+    <div class="gallery" id="gallery"></div>
+  </div>
+</section>
+
+<section id="metodo">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Método</h2>
+      <p class="muted">Todas as técnicas foram implementadas do zero em NumPy e validadas contra OpenCV, PIL e SciPy (diferença média
+        ≤ 1,7 níveis de cinza, PSNR ≥ 37 dB). Classificadores com pesos públicos, em <code>model.eval()</code>, sem ajuste.</p>
+    </div>
+    <div class="steps">
+      <div class="card flat"><h3>1 · Técnicas</h3><p>14 técnicas em 3 grupos: aguçamento (adiciona alta frequência), equalização
+        (redistribui) e suavização, restauração, compressão e SR (removem).</p></div>
+      <div class="card flat"><h3>2 · Doses</h3><p>8 a 12 intensidades por técnica, mais densas perto de zero, onde o limiar costuma estar.
+        106 condições + 27 filtros ideais.</p></div>
+      <div class="card flat"><h3>3 · Espectro</h3><p>FFT 2D com janela de Hann; energia, coerência e perturbação de cor em 16 anéis e 3
+        bandas, imagem a imagem.</p></div>
+      <div class="card flat"><h3>4 · Decisão</h3><p>Acurácia, mudança de decisão (flip), KL e confiança; McNemar com Holm e bootstrap
+        pareado para os limiares.</p></div>
+      <div class="card flat"><h3>5 · Validação</h3><p>Previsão de técnicas nunca vistas, transferência dos filtros ideais, adaptação
+        (BN, sonda, fine-tuning) e BRISQUE.</p></div>
+    </div>
+    <div class="card" style="margin-top:16px">
+      <h3>Hipóteses</h3>
+      <div class="tbl-wrap"><table class="t">
+        <thead><tr><th>#</th><th>Hipótese</th><th>Resultado</th><th>Evidência</th></tr></thead>
+        <tbody>
+          <tr><td>H1</td><td>Técnicas perceptuais degradam classificadores, de forma monotônica com a dose</td><td><span class="pill ok">confirmada</span> <span class="pill part">exceção em 224 px</span></td><td>Todas degradam em dose alta; em 224 px o aguçamento leve melhora (hormese).</td></tr>
+          <tr><td>H2</td><td>ΔE medido prevê o dano melhor que o parâmetro nominal e o PSNR</td><td><span class="pill ok">confirmada</span></td><td>R² LOTO 0,2 (nominal) e 0,06 (PSNR) → 0,78–0,94 (espectro).</td></tr>
+          <tr><td>H3</td><td>A banda crítica depende do dataset e da arquitetura</td><td><span class="pill ok">confirmada</span></td><td>32 px: média-alta; 224 px: a mais baixa; ViT quase só ela.</td></tr>
+          <tr><td>H4</td><td>Técnicas invertíveis causam domain shift; destrutivas, perda de informação</td><td><span class="pill ok">confirmada nas pontas</span></td><td>Aguçamento e blur leve recuperam 91–99%; JPEG e mediana deixam 7–13 p.p.</td></tr>
+          <tr><td>H5</td><td>A coerência de fase acrescenta poder explicativo à energia</td><td><span class="pill ok">confirmada</span></td><td>+0,06 a +0,10 de R² em 32 px e +0,13 a +0,49 em 224 px; AUC por imagem +0,06 a +0,09.</td></tr>
+          <tr><td>H6</td><td>Existe janela operacional para técnicas redistributivas</td><td><span class="pill part">parcial</span></td><td>Sim para blur leve, unsharp e CLAHE fraco; não para HE, laplaciano (32 px), bilateral, mediana.</td></tr>
+          <tr><td>H7</td><td>O IRE prevê o dano de técnicas que não viu</td><td><span class="pill ok">confirmada</span> <span class="pill part">calibrar com técnicas reais</span></td><td>R² 0,85–0,92; calibrado só nos filtros ideais funciona em 32 px (0,76–0,81), não em 224 px.</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+</section>
+
+<section id="reproduzir">
+  <div class="wrap">
+    <div class="section-head"><h2>Reproduzir</h2>
+      <p class="muted">Python ≥ 3.10, bash e make. O CIFAR-10 roda em CPU (~1h40); o Imagenette com ViT pede GPU.</p></div>
+    <div class="grid g2">
+<pre><code>git clone https://github.com/beatrizalmeidaf/pdi && cd pdi
+make setup                 # .venv + dependências
+make download              # SR, CIFAR-10, Imagenette, pesos
+make verify                # técnicas do zero × OpenCV/PIL/SciPy
+make sweep                 # varredura completa no CIFAR-10
+make sweep DATASETS=imagenette   # 224 px (GPU)
+make report                # figuras do README e dados deste site</code></pre>
+<pre><code># dose segura pela fórmula, sem rodar a rede
+make safe-dose T=gaussian M=cifar10_resnet20 TAU=0.01
+
+# estudo com pessoas (escolha entre 2 imagens)
+make human-export          # gera o kit (index.html local)
+make human-analyze         # analisa as respostas</code></pre>
+    </div>
+  </div>
+</section>
+
+<footer>
+  <div class="wrap">
+    Trabalho da disciplina de Processamento Digital de Imagens — Instituto de Informática, Universidade Federal de Goiás.
+    Dados e código: <a href="https://github.com/beatrizalmeidaf/pdi">github.com/beatrizalmeidaf/pdi</a> ·
+    <a href="https://github.com/beatrizalmeidaf/pdi/blob/main/results.md">relatório completo</a> ·
+    <a href="https://github.com/beatrizalmeidaf/pdi/blob/main/revisao_literatura/main.tex">revisão sistemática</a>.
+  </div>
+</footer>
+</body>
+</html>

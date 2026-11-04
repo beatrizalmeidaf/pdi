@@ -16,7 +16,7 @@ export CONFIG EXTRA DATASETS
 
 .DEFAULT_GOAL := help
 .PHONY: help setup download download-sr download-cifar download-imagenette download-models \
-        test verify examples smoke offline sweep safe-dose human-export human-analyze oracle main adapt analyze all fast clean clean-results
+        test verify examples smoke offline sweep safe-dose human-export human-analyze report oracle main adapt analyze all fast clean clean-results
 
 help:  ## lista os alvos
 	@grep -E '^[a-zA-Z_-]+:.*?## ' $(MAKEFILE_LIST) | awk 'BEGIN{FS=":.*?## "}{printf "  \033[36m%-20s\033[0m %s\n", $$1, $$2}'
@@ -59,6 +59,9 @@ human-export:  ## estudo com pessoas: gera results/<run>/human_study/index.html 
 
 human-analyze:  ## analisa os CSVs de respostas em results/<run>/human_study/respostas/
 	bash -c 'source scripts/_common.sh && pdi human-analyze --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG))'
+
+report:  ## figuras do README + site (docs/) a partir de results/sweep e results/sweep_imagenette
+	bash -c 'source scripts/_common.sh && pdi report --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG)) $(if $(NO_SAMPLES),--no-samples)'
 
 offline:  ## pipeline completo sem internet (imagens sintéticas + CNN minúscula)
 	CONFIG=configs/offline.yaml bash scripts/run_experiments.sh oracle main adapt analyze examples

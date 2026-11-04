@@ -1,6 +1,6 @@
-# Quando melhorar piora — pré-processamento perceptual, energia espectral e acurácia de CNNs
+# Modelagem detalhada — Quando melhorar piora
 
-> **Resultados consolidados: [results.md](results.md).**
+> Visão geral e principais resultados: [README.md](README.md) · resultados completos: [results.md](results.md) · site: [beatrizalmeidaf.github.io/pdi](https://beatrizalmeidaf.github.io/pdi/).
 
 Aplicação experimental que acompanha a revisão sistemática em [revisao_literatura/main.tex](revisao_literatura/main.tex).
 Ela mede, para cada técnica clássica de pré-processamento e cada nível de intensidade, **quanta energia espectral foi removida ou adicionada em cada banda de frequência** e **quanto a decisão de classificadores pré-treinados muda**, e testa se a primeira prevê a segunda.
@@ -531,7 +531,7 @@ O que esses números dizem:
 - **A janela operacional existe para suavização leve, *unsharp* leve e CLAHE fraco (misturado ao original), e não existe para HE, laplaciano, bilateral e mediana** (H6).
 - **Em JPEG de alta qualidade, quase toda a perda vem da cor**: na qualidade 100, a versão 4:2:0 perde até 1,4 p.p. e a 4:4:4 perde ~0. Só a subamostragem de croma já basta para mudar decisões.
 - **Redimensionar é muito danoso em 32 px**: reduzir para 30 px e voltar custa 4–6 p.p.; o limiar fica abaixo da menor escala possível.
-- **Pelo BRISQUE, nenhuma técnica tem janela.** Onde o BRISQUE melhora ≥ 5 %, o classificador já perdeu ≥ 1 p.p. ou está no limite: *unsharp* em amount ≈ 0,58 (BMD 0,51), laplaciano c ≈ 0,094 (BMD 0,107), HE α ≈ 0,69 (BMD 0,19), CLAHE clip ≈ 3,7. A suavização nunca melhora o BRISQUE em imagens limpas, e ele piora 5 % em σ ≈ 0,43, quase no mesmo ponto em que o classificador perde 1 p.p. (σ ≈ 0,44). Em resumo, **a melhora perceptual medida por uma métrica independente só chega depois do limiar do classificador**, o que confirma a hipótese central em 32 px. Em 224 px isso se inverte para o aguçamento (§14.2).
+- **Pelo BRISQUE, nenhuma técnica tem janela.** Onde o BRISQUE melhora ≥ 5 %, o classificador já perdeu ≥ 1 p.p. ou está no limite: *unsharp* em amount ≈ 0,58 (BMD 0,51), laplaciano c ≈ 0,095 (BMD 0,107), HE α ≈ 0,67 (BMD 0,19), CLAHE clip ≈ 3,6. A suavização nunca melhora o BRISQUE em imagens limpas, e ele piora 5 % em σ ≈ 0,44, quase no mesmo ponto em que o classificador perde 1 p.p. (σ ≈ 0,44). Em resumo, **a melhora perceptual medida por uma métrica independente só chega depois do limiar do classificador**, o que confirma a hipótese central em 32 px. Em 224 px isso se inverte para o aguçamento (§14.2).
 
 ¹ No CIFAR (blocos de 16×16 px), o algoritmo do CLAHE arredonda o clip para inteiro, com mínimo 1: todo clip < 2 dá exatamente a mesma imagem. Por isso a dose fraca de CLAHE é feita misturando com o original (`clahe_blend`).
 - **Aprimoramento ajuda quando a entrada está de fato degradada**: partindo da mesma imagem reduzida, a SR aprendida é melhor que a bicúbica para o classificador (QP4 da revisão).
