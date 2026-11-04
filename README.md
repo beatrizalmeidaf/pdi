@@ -8,7 +8,7 @@ Técnicas clássicas que deixam uma imagem *melhor para pessoas* também a deixa
 Medimos, dose a dose, 14 técnicas em 6 classificadores pré-treinados e 2 resoluções, achamos o limiar a partir do qual cada uma
 prejudica a rede e propomos uma fórmula que prevê esse dano a partir do espectro de Fourier.
 
-[**🌐 Site interativo**](https://beatrizalmeidaf.github.io/pdi/) ·
+[**Site interativo**](https://beatrizalmeidaf.github.io/pdi/) ·
 [Resultados completos](results.md) ·
 [Modelagem detalhada](MODELAGEM.md) ·
 [Revisão sistemática](revisao_literatura/main.tex)
@@ -190,19 +190,6 @@ cinza, PSNR ≥ 37 dB.
 | H7 | O IRE prevê o dano de técnicas que não viu | ✅ R² 0,85–0,92. Calibrado só em filtros ideais, só funciona em 32 px |
 
 ## Como funciona
-
-```mermaid
-flowchart LR
-    A[Imagem limpa<br/>CIFAR-10 · Imagenette] --> B[14 técnicas<br/>8–12 doses cada]
-    B --> C[Espectro da perturbação<br/>ΔE · coerência · cor]
-    B --> D[6 classificadores<br/>congelados]
-    D --> E[Δ acurácia · decisões mudadas]
-    C --> F[Limiares BMD<br/>janela operacional]
-    E --> F
-    C --> G[Fórmula IRE<br/>previsão sem rede]
-    E --> G
-    B --> H[Adaptação<br/>BN · sonda · fine-tuning]
-```
 
 1. **Técnicas.** Suavização (gaussiano, mediana, bilateral), restauração (Wiener), compressão (JPEG 4:2:0 e 4:4:4), aguçamento
    (unsharp, laplaciano), equalização (global, CLAHE, CLAHE misturado) e super-resolução (bicúbica, ESPCN, FSRCNN).
