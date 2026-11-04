@@ -325,11 +325,13 @@ Checagem de sanidade antes do uso (300 imagens):
 | Técnica | BRISQUE melhora ≥ 5 % em | BMD do classificador (1 p.p.) | Janela pelo BRISQUE? |
 |---|---|---|---|
 | *Unsharp* | amount ≈ 0,58 | 0,45–0,56 | ❌ (melhora só depois do limiar) |
-| Laplaciano | c ≈ 0,094 | 0,09–0,13 (BMDL 0,05–0,08) | ❌ (no limite) |
-| Equalização | α ≈ 0,69 | 0,19–0,20 | ❌ |
-| CLAHE (clip) | clip ≈ 3,7 | < 1 | ❌ |
-| CLAHE misturado | nunca chega a 5 % (melhor: −3,6 % em α = 1) | 0,42–0,62 | ❌ |
-| Gaussiano | nunca melhora; **piora 5 % em σ ≈ 0,43** | 0,43–0,45 | ❌ |
+| Laplaciano | c ≈ 0,095 | 0,09–0,13 (BMDL 0,05–0,08) | ❌ (no limite) |
+| Equalização | α ≈ 0,67 | 0,19–0,20 | ❌ |
+| CLAHE (clip) | clip ≈ 3,6 | < 1 | ❌ |
+| CLAHE misturado | nunca chega a 5 % (melhor: −3,7 % em α = 1) | 0,42–0,62 | ❌ |
+| Gaussiano | nunca melhora; **piora 5 % em σ ≈ 0,44** | 0,43–0,45 | ❌ |
+
+*(BRISQUE resumido pela variação da média; ver a correção na §10.3. No CIFAR os números mudam na segunda casa decimal.)*
 | Mediana, Wiener, bilateral, JPEG, SR | nunca melhora | — | ❌ |
 
 **Resultado central.** Medida por uma métrica perceptual independente, **a melhora visual só chega depois que o classificador já perdeu ≥ 1 p.p., ou exatamente no limite**. Em nenhuma técnica o BRISQUE melhora antes do BMDL. Na suavização, o BRISQUE e o classificador "quebram" quase no mesmo ponto (σ ≈ 0,43–0,44).
@@ -407,18 +409,22 @@ Tabela completa: [thresholds_imagenette.csv](docs/resultados/thresholds_imagenet
 
 Em 224 px o BRISQUE roda na resolução nativa (sem ampliar).
 
-| Técnica | BRISQUE | Classificador (BMD 1 p.p.) | Janela pelo BRISQUE? |
-|---|---|---|---|
-| *Unsharp* | melhora ≥ 5 % já antes da menor dose (amount 0,1); melhor: −41 % | 1,55–2,64 | ✅ nos 3 |
-| Laplaciano | melhora ≥ 5 % já antes da menor dose (c 0,05); melhor: −17 % | 0,63–1,47 | ✅ nos 3 |
-| Gaussiano | nunca melhora; **piora 5 % em σ ≈ 0,28** | 0,38–0,47 | ❌ |
-| Equalização | nunca melhora; piora 5 % em α ≈ 0,19 | 0,46–0,70 | ❌ |
-| CLAHE | nunca melhora (piora ≥ 21 %) | 1,0–1,7 | ❌ |
+> **Correção (nov/2026).** A primeira versão desta tabela resumia o BRISQUE pela *média das variações relativas por imagem*, (q − q₀)/|q₀|. No Imagenette, ~10 % das imagens originais têm BRISQUE < 5 e ~3 % < 0. Nelas essa razão explode e domina a média: no laplaciano leve, a média das razões dizia "+43 % (pior)" e a mediana, "−18 % (melhor)". O resumo correto é a **variação da média**, mean(q)/mean(q₀) − 1, calculada com o BRISQUE das 2000 imagens originais. Ele já é usado pelo código ([brisque_fix.py](src/pdi_spectral/brisque_fix.py)), e a tabela abaixo foi refeita com ele. Nada mudou nos limiares de acurácia, e o CIFAR praticamente não mudou (BRISQUE médio ≈ 60, longe de zero). A versão antiga fica em `thresholds_brisque_media_das_razoes.csv`.
 
-- **O "resultado central" da §9 não vale em 224 px para o aguçamento.** Pela métrica perceptual independente, a imagem melhora logo na primeira dose, muito antes do limiar do classificador. Em imagens limpas de 224 px, **há dose de aguçamento que é grátis**, e até benéfica (§10.2).
-- Na suavização, em 224 px o BRISQUE "percebe" o blur **antes** do classificador (σ ≈ 0,28 × 0,38–0,47). No CIFAR, os dois quebravam juntos.
-- Ao contrário do CIFAR ampliado, o BRISQUE em 224 px considera que HE e CLAHE **pioram** a imagem.
-- O BRISQUE também aparece "melhorando" no JPEG em qualidade 100. Como o JPEG não tem objetivo visual declarado, isso foi tratado como artefato e desconsiderado.
+| Técnica | BRISQUE melhora ≥ 5 % em | BRISQUE piora ≥ 5 % em | Melhor variação | Classificador (BMD 1 p.p.) | Janela pelo BRISQUE? |
+|---|---|---|---|---|---|
+| *Unsharp* | amount ≈ 0,08 | amount ≈ 1,7 | −17 % | 1,55–2,64 | ✅ nos 3 |
+| Laplaciano | c ≈ 0,05 | c ≈ 0,30 | −8 % | 0,63–1,47 | ✅ nos 3 |
+| CLAHE | clip 1 (a menor dose) | clip ≈ 3,8 | −5 % | 1,0–1,7 (a R50 já perde no clip 1) | no limite |
+| CLAHE misturado | nunca chega a 5 % | nunca | −4,6 % | 0,48–0,90 | ❌ |
+| Equalização | nunca | nunca | −1,9 % | 0,46–0,70 | ❌ (neutra) |
+| Gaussiano | nunca | **σ ≈ 0,37** | 0 | 0,38–0,47 | ❌ |
+| Bilateral, mediana, Wiener, SR | nunca | já nas primeiras doses | 0 | — | ❌ |
+| JPEG 4:2:0 / 4:4:4 | nunca | qualidade ≈ 76 | −4 % | — | — |
+
+- **O "resultado central" da §9 não vale em 224 px para o aguçamento.** Pela métrica perceptual independente, a imagem melhora logo nas primeiras doses (amount ≈ 0,08, c ≈ 0,05), muito antes do limiar do classificador. Em imagens limpas de 224 px, **há dose de aguçamento que é grátis**, e até benéfica (§10.2). O ganho perceptual tem teto: o BRISQUE volta a piorar a partir de amount ≈ 1,7 e c ≈ 0,30.
+- Na suavização, em 224 px o BRISQUE "percebe" o blur **um pouco antes** do classificador (σ ≈ 0,37 × 0,38–0,47). No CIFAR, os dois quebravam juntos (0,44).
+- Em 224 px o BRISQUE é **neutro para a equalização global** e melhora um pouco com o CLAHE fraco (−5 % no clip 1). A versão anterior desta seção dizia que ele "piorava" com HE e CLAHE; isso era efeito da média das razões.
 
 ### 10.4 CNN × ViT
 

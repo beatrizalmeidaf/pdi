@@ -252,6 +252,13 @@ def run_analysis(cfg: dict) -> Path:
     report = [f"# Resumo da análise — `{cfg['run_name']}`\n"]
 
     pred_m, spec_m = load_kind(run_dir, "main")
+    if spec_m is not None:  # BRISQUE das originais para runs antigos (ver brisque_fix.py)
+        from .brisque_fix import attach
+
+        origs = [pd.read_csv(f) for ds in spec_m.dataset.unique()
+                 if (f := run_dir / "main" / ds / "brisque_orig.csv").exists()]
+        if origs:
+            spec_m = attach(spec_m, pd.concat(origs, ignore_index=True))
     pred_o, spec_o = load_kind(run_dir, "oracle")
     ct_m = ct_o = None
     if pred_m is not None:

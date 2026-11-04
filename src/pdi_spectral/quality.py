@@ -106,5 +106,6 @@ def compare(orig: dict[str, np.ndarray], proc_imgs: np.ndarray, brisque_orig=Non
         b = _brisque(proc_imgs)
         if b is not None:
             out["q_brisque"] = b
+            out["q_brisque_orig"] = brisque_orig  # para resumir como razão das médias (ver brisque_fix.py)
             out["dq_brisque"] = (b - brisque_orig) / (np.abs(brisque_orig) + 1e-8)  # BRISQUE: menor = melhor
     return out

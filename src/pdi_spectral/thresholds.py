@@ -118,6 +118,13 @@ def compute_thresholds(pred: pd.DataFrame, spec: pd.DataFrame, cfg: dict):
     p["d"] = p["correct"] - p["c0"]
     qcols = [c for c in spec.columns if c.startswith("dq_")]
     qmean = spec.groupby(["dataset", "cond_id"])[qcols].mean().reset_index() if qcols else None
+    if qmean is not None and {"q_brisque", "q_brisque_orig"} <= set(spec.columns):
+        # BRISQUE pode ser ~0 ou negativo: a média das razões explode; usa a razão das médias
+        from .brisque_fix import ratio_of_means
+
+        rb = ratio_of_means(spec)
+        qmean = qmean.drop(columns=["dq_brisque"], errors="ignore").merge(rb[["dataset", "cond_id", "dq_brisque"]],
+                                                                          on=["dataset", "cond_id"], how="left")
 
     rows, curves = [], []
     for (ds, model, tech), g in p.groupby(["dataset", "model", "technique"]):
