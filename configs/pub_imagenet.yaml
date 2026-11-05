@@ -1,0 +1,26 @@
+# Rodada para publicação — ImageNet-1k val COMPLETO (50 000 imagens, 1000 classes, 224 px), 7 modelos.
+# Sem sementes: usa todas as imagens. Sem E4 (não há treino do ImageNet local).
+# Paralelizado em fatias (--set shard=k/n) e juntado com `pdi merge-shards`.
+extends: sweep.yaml
+run_name: pub_imagenet
+seed: 0
+device: cuda
+n_workers: 4
+batch_size: 32
+
+paths:
+  imagenet_val: data/imagenet/val
+
+datasets:
+  _replace: true
+  imagenet_val:
+    n_images: null
+    models: [resnet18, resnet50, vgg16_bn, efficientnet_b0, convnext_tiny, vit_b_16, swin_t]
+
+quality:
+  brisque: true
+  lpips: true
+  feature_distance: true
+
+thresholds:
+  bootstrap: 300           # 50 mil imagens: IC já é estreito; 1000 reamostragens levariam horas

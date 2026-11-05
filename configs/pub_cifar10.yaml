@@ -1,0 +1,25 @@
+# Rodada para publicação — CIFAR-10 (32 px): 5 CNNs, 3 sementes, LPIPS e distância entre features.
+# A semente muda o subconjunto de 2000 imagens de teste (e de treino do E4) e o fine-tuning.
+# Uma pasta por semente (run_name é trocado pelo script):
+#   bash scripts/run_publicacao.sh
+extends: sweep.yaml
+run_name: pub_cifar10_s0
+seed: 0
+device: cuda
+n_workers: 16
+batch_size: 128
+
+datasets:
+  _replace: true
+  cifar10:
+    n_images: 2000
+    n_train: 5000
+    models: [cifar10_resnet20, cifar10_resnet56, cifar10_vgg16_bn, cifar10_mobilenetv2_x1_0, cifar10_repvgg_a0]
+
+quality:
+  brisque: true
+  lpips: true
+  feature_distance: true
+
+adaptation:
+  finetune_epochs: 3

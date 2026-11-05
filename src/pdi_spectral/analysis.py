@@ -72,6 +72,9 @@ def condition_table(pred: pd.DataFrame, spec: pd.DataFrame) -> pd.DataFrame:
                acc_top5=("correct_top5", "mean"), acc_top5_orig=("correct_top5_orig", "mean"),
                flip=("flip", "mean"), kl=("kl", "mean"), dp_true=("dp_true", "mean"), conf=("conf", "mean"),
                d_std=("_d", "std"), lost=("_lost", "sum"), gained=("_gain", "sum"))
+    for c in ("feat_cos", "feat_l2"):  # distância entre features (depende do modelo)
+        if c in p:
+            agg[c] = (c, "mean")
     if "correct_sub" in p:
         agg.update(acc_sub=("correct_sub", "mean"), acc_sub_orig=("correct_sub_orig", "mean"),
                    flip_sub=("flip_sub", "mean"))
@@ -115,6 +118,10 @@ def feature_matrix(df: pd.DataFrame, fs: str) -> pd.DataFrame:
         return df[["psnr"]]
     if fs == "ssim":
         return df[["ssim"]]
+    if fs in ("lpips", "feat_cos", "feat_l2"):  # preditores de comparação (LPIPS; distância entre features)
+        return df[[fs]]
+    if fs == "lpips+ssim":
+        return df[["lpips", "ssim"]]
     if fs == "spec_bands":
         return posneg([f"dErel_{b}" for b in bands])
     if fs == "spec_bands_dB":
@@ -193,7 +200,8 @@ def image_level(pred, spec, feature_sets, max_rows=200_000, seed=0):
     from sklearn.pipeline import make_pipeline
     from sklearn.preprocessing import StandardScaler
 
-    p = pred[pred.cond_id != "original"][["dataset", "model", "image_id", "cond_id", "technique", "flip"]]
+    p = pred[pred.cond_id != "original"][["dataset", "model", "image_id", "cond_id", "technique", "flip"]
+                                         + [c for c in ("feat_cos", "feat_l2") if c in pred]]
     df = p.merge(spec, on=["dataset", "image_id", "cond_id"])
     res = []
     for (ds, model), g in df.groupby(["dataset", "model"]):
@@ -319,6 +327,9 @@ def run_analysis(cfg: dict) -> Path:
     if pred_m is not None and cfg.get("thresholds", {}).get("enabled", True):
         report += threshold_report(cfg, pred_m, spec_m, pred_o, spec_o, out, fig)
 
+    if ct_m is not None:
+        report += predictor_comparison(ct_m, acfg, out)
+
     (out / "summary.md").write_text("\n".join(report), encoding="utf-8")
     print(f"[analyze] relatório em {out / 'summary.md'}")
     return out
@@ -381,3 +392,37 @@ def threshold_report(cfg, pred_m, spec_m, pred_o, spec_o, out: Path, fig: Path) 
             "`r2_p_oracle` = pesos ajustados só nos filtros ideais (E1).\n", _md(sm),
             f"### Limiar de flip {100*flip_tau:g}% previsto pela fórmula (LOTO) × observado\n", _md(tp, max_rows=300)]
     return rep
+
+
+# ---------------------------------------------------------------------------
+# IRE x preditores existentes, no mesmo alvo (flip por condição) e no mesmo protocolo (LOTO)
+# ---------------------------------------------------------------------------
+COMPARE_SETS = ["dose_rank", "psnr", "ssim", "lpips", "delta_bands", "spec_bands+coh+chroma", "feat_cos", "feat_l2"]
+COMPARE_LABELS = {
+    "dose_rank": "parâmetro nominal", "psnr": "PSNR", "ssim": "SSIM", "lpips": "LPIPS (Zhang et al., 2018)",
+    "delta_bands": "energia por banda (Yin et al., 2019)", "spec_bands+coh+chroma": "ΔE por banda + coerência + cor (ridge)",
+    "feat_cos": "distância cosseno entre features (requer a rede)", "feat_l2": "distância L2 entre features (requer a rede)",
+}
+
+
+def predictor_comparison(ct: pd.DataFrame, acfg: dict, out: Path) -> list[str]:
+    sets = [fs for fs in acfg.get("compare_feature_sets", COMPARE_SETS)
+            if fs not in ("lpips", "feat_cos", "feat_l2") or fs in ct]
+    rows = []
+    for target in ("flip", "delta_acc"):
+        r, _ = loto(ct, sets, target)
+        rows.append(r)
+    res = pd.concat(rows, ignore_index=True)
+    ire_path = out / "ire_summary.csv"
+    if ire_path.exists():
+        ire = pd.read_csv(ire_path)
+        ire = ire.rename(columns={"r2_p_loto": "r2", "spearman_p_loto": "spearman"})
+        res = pd.concat([res, ire[["dataset", "model", "family", "r2", "spearman"]].assign(features="IRE", target="flip")],
+                        ignore_index=True)
+    res["predictor"] = res.features.map(lambda f: COMPARE_LABELS.get(f, f))
+    res.to_csv(out / "predictor_comparison.csv", index=False)
+    piv = (res[res.target == "flip"].pivot_table(index="predictor", columns="dataset", values="r2", aggfunc="mean")
+           .sort_values(by=list(res.dataset.unique())[:1], ascending=False).reset_index())
+    return ["## IRE × preditores existentes (R² LOTO do flip por condição, média dos modelos)\n",
+            "Mesmo alvo e mesmo protocolo do IRE: cada técnica prevista com ajuste só nas outras. "
+            "As distâncias entre features precisam rodar a rede; as demais, não.\n", _md(piv)]

@@ -14,6 +14,7 @@ Comandos:
   human-export   gera o estudo com pessoas (pasta com index.html local, escolha entre 2 imagens)
   human-analyze  analisa as respostas: dose em que as pessoas percebem melhora/piora
   report     figuras do README + dados e amostras do site (docs/), a partir das análises já rodadas
+  merge-shards  junta as fatias de oracle/main rodadas com --set shard=k/n
   all        oracle + main + adapt + analyze
 """
 from __future__ import annotations
@@ -27,7 +28,7 @@ from .config import load_config
 
 def main(argv=None):
     ap = argparse.ArgumentParser(prog="pdi_spectral", description=__doc__, formatter_class=argparse.RawDescriptionHelpFormatter)
-    ap.add_argument("command", choices=["download", "verify", "examples", "oracle", "main", "adapt", "analyze", "all", "show-config", "safe-dose", "human-export", "human-analyze", "report"])
+    ap.add_argument("command", choices=["download", "verify", "examples", "oracle", "main", "adapt", "analyze", "all", "show-config", "safe-dose", "human-export", "human-analyze", "report", "merge-shards"])
     ap.add_argument("--config", default="configs/default.yaml")
     ap.add_argument("--set", dest="overrides", action="append", default=[], help="sobrescreve chave do YAML, ex.: --set backend=reference")
     ap.add_argument("--datasets", nargs="*", help="restringe aos datasets indicados")
@@ -75,6 +76,11 @@ def main(argv=None):
         ds = a.dataset or next(iter(cfg["datasets"]))
         export_study(cfg, ds, n_images=a.n if a.n != 6 else 12,
                      techniques=[a.technique] if a.technique else None)
+    elif a.command == "merge-shards":
+        from .pipeline import merge_shards
+
+        for kind in ("oracle", "main"):
+            merge_shards(cfg, kind, a.datasets)
     elif a.command == "report":
         from .report import run_report
 

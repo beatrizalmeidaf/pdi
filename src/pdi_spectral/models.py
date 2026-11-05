@@ -82,6 +82,17 @@ class Classifier:
                 out.append(self.net(self._tensor(imgs[s : s + batch_size])).float().cpu().numpy())
         return np.concatenate(out)
 
+    def logits_and_features(self, imgs: np.ndarray, batch_size: int = 128) -> tuple[np.ndarray, np.ndarray]:
+        """Logits e representação penúltima numa única passada."""
+        import torch
+
+        lg, ft = [], []
+        with torch.no_grad():
+            for s in range(0, len(imgs), batch_size):
+                lg.append(self.net(self._tensor(imgs[s : s + batch_size])).float().cpu().numpy())
+                ft.append(self._feat.flatten(1).float().cpu().numpy())
+        return np.concatenate(lg), np.concatenate(ft)
+
     def features(self, imgs: np.ndarray, batch_size: int = 128) -> np.ndarray:
         """Entrada da última camada linear (representação penúltima)."""
         import torch

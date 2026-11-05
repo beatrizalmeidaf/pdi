@@ -109,3 +109,37 @@ def compare(orig: dict[str, np.ndarray], proc_imgs: np.ndarray, brisque_orig=Non
             out["q_brisque_orig"] = brisque_orig  # para resumir como razão das médias (ver brisque_fix.py)
             out["dq_brisque"] = (b - brisque_orig) / (np.abs(brisque_orig) + 1e-8)  # BRISQUE: menor = melhor
     return out
+
+
+# ---------------------------------------------------------------------------
+# LPIPS (Zhang et al., 2018): distância perceptual COM referência, preditor de comparação
+# ---------------------------------------------------------------------------
+LPIPS_MIN_SIDE = 64
+_LPIPS: dict = {}
+
+
+def lpips_distance(orig: np.ndarray, proc: np.ndarray, device: str = "cpu", net: str = "alex") -> np.ndarray | None:
+    """LPIPS por imagem entre original e processada (maior = mais diferente).
+
+    Imagens menores que 64 px (CIFAR) são ampliadas por interpolação bilinear antes:
+    com 32 px as camadas finais da AlexNet ficam com 1x1 pixel.
+    """
+    try:
+        import lpips
+        import torch
+    except ImportError:
+        return None
+    key = (net, device)
+    if key not in _LPIPS:
+        _LPIPS[key] = lpips.LPIPS(net=net, verbose=False).to(device).eval()
+    m = _LPIPS[key]
+
+    def t(x):
+        x = torch.from_numpy(np.ascontiguousarray(x)).to(device).permute(0, 3, 1, 2).float() / 127.5 - 1.0
+        if min(x.shape[2:]) < LPIPS_MIN_SIDE:
+            s = LPIPS_MIN_SIDE / min(x.shape[2:])
+            x = torch.nn.functional.interpolate(x, scale_factor=s, mode="bilinear", align_corners=False)
+        return x
+
+    with torch.no_grad():
+        return m(t(orig), t(proc)).flatten().float().cpu().numpy()

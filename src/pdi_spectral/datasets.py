@@ -28,7 +28,7 @@ IMAGENETTE = {
     "n03417042": 569,  # garbage truck
     "n03425413": 571,  # gas pump
     "n03445777": 574,  # golf ball
-    "n03888605": 701,  # parachute
+    "n03888257": 701,  # parachute (o wnid antigo, n03888605, não existe no Imagenette: a classe ficava de fora)
 }
 IMAGENETTE_URL = "https://s3.amazonaws.com/fast-ai-imageclas/imagenette2-320.tgz"
 
@@ -53,6 +53,13 @@ class ImageSet:
             idx = range(s, min(s + batch_size, len(self)))
             imgs = np.stack([self.loader(i) for i in idx])
             yield [self.ids[i] for i in idx], imgs, self.labels[list(idx)], self.local_labels[list(idx)]
+
+    def take(self, idx: list[int]) -> "ImageSet":
+        """Subconjunto pelas posições ``idx`` (usado para dividir o trabalho em fatias)."""
+        idx = list(idx)
+        return ImageSet(self.name, [self.ids[i] for i in idx], self.labels[idx], self.local_labels[idx],
+                        lambda j, f=self.loader, m=idx: f(m[j]), self.image_size, self.domain,
+                        self.class_subset, dict(self.meta))
 
     def load_all(self) -> np.ndarray:
         return np.stack([self.loader(i) for i in range(len(self))])

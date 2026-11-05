@@ -1,0 +1,21 @@
+# Rodada para publicação — Imagenette (224 px, 10 classes): 7 modelos (5 CNNs, 2 transformers), 3 sementes.
+# Corrige o wnid do parachute (antes a classe ficava de fora: 9 classes).
+# E4 com as doses fortes de e4_imagenette.yaml (as do sweep saturam em 10 classes).
+extends: e4_imagenette.yaml
+run_name: pub_imagenette_s0
+seed: 0
+device: cuda
+n_workers: 16
+batch_size: 32
+
+datasets:
+  _replace: true
+  imagenette:
+    n_images: 2000
+    n_train: 2000
+    models: [resnet18, resnet50, vgg16_bn, efficientnet_b0, convnext_tiny, vit_b_16, swin_t]
+
+quality:
+  brisque: true
+  lpips: true
+  feature_distance: true

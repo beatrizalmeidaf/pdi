@@ -123,7 +123,14 @@ def apply_batch(cond: Condition, imgs: np.ndarray, backend: str, pool: ThreadPoo
     return np.stack(list(pool.map(fn, imgs)))
 
 
-def _pred_frame(cond: Condition, ids, labels, model: Classifier, ds_subset, logits, base) -> pd.DataFrame:
+def _feat_dist(f: np.ndarray, f0: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+    """Distância cosseno e L2 relativa entre as features penúltimas da processada e da original."""
+    n0, n1 = np.linalg.norm(f0, axis=1), np.linalg.norm(f, axis=1)
+    cos = 1.0 - (f * f0).sum(1) / np.maximum(n0 * n1, 1e-12)
+    return cos, np.linalg.norm(f - f0, axis=1) / np.maximum(n0, 1e-12)
+
+
+def _pred_frame(cond: Condition, ids, labels, model: Classifier, ds_subset, logits, base, feats=None) -> pd.DataFrame:
     lp = log_softmax(logits)
     p = np.exp(lp)
     pred = logits.argmax(1)
@@ -152,11 +159,15 @@ def _pred_frame(cond: Condition, ids, labels, model: Classifier, ds_subset, logi
         rows["flip"] = (pred != b_pred).astype(np.int8)
         rows["kl"] = (np.exp(b_lp) * (b_lp - lp)).sum(1)  # KL(p_orig || p_proc)
         rows["dp_true"] = rows["p_true"] - np.exp(b_lp)[np.arange(n), labels]
+        if feats is not None and "feat" in base:
+            rows["feat_cos"], rows["feat_l2"] = _feat_dist(feats, base["feat"])
     else:
         rows["pred_orig"] = pred
         rows["flip"] = np.zeros(n, np.int8)
         rows["kl"] = np.zeros(n)
         rows["dp_true"] = np.zeros(n)
+        if feats is not None:
+            rows["feat_cos"] = rows["feat_l2"] = np.zeros(n)
     if ds_subset is not None:  # acurácia restrita às classes do subconjunto (ex.: Imagenette)
         sub = np.asarray(ds_subset)
         ps = sub[logits[:, sub].argmax(1)]
@@ -174,6 +185,9 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
     out_root = Path(cfg["paths"]["results"]) / cfg["run_name"] / kind
     spec_cfg = SpectralConfig.from_dict(cfg.get("spectral"))
     use_brisque = bool(cfg.get("quality", {}).get("brisque", False))
+    use_lpips = bool(cfg.get("quality", {}).get("lpips", False))
+    use_feat = bool(cfg.get("quality", {}).get("feature_distance", False))
+    shard = cfg.get("shard")  # "k/n": só as imagens k, k+n, k+2n... (para paralelizar em processos)
     conds = filter_available(build_conditions(cfg, kind))
     pool = ThreadPoolExecutor(n_workers) if n_workers > 0 else None
     print(f"[{kind}] device={device} backend={backend} condições={len(conds)}")
@@ -184,9 +198,16 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
         if not only and not dcfg.get("enabled", True):  # --datasets explícito liga mesmo se enabled: false
             continue
         imgset = load_dataset(ds_name, "val", dcfg.get("n_images"), cfg["seed"], cfg["paths"])
+        out = out_root / ds_name
+        if shard:
+            k, n_sh = (int(v) for v in str(shard).split("/"))
+            imgset = imgset.take(list(range(k, len(imgset), n_sh)))
+            out = out_root / "_shards" / ds_name / f"{k:03d}"
+            if (out / "meta.json").exists():
+                print(f"[{kind}] {ds_name} fatia {k}/{n_sh} já existe em {out}")
+                continue
         models = [Classifier(m, device) for m in dcfg["models"]]
         analyzer = SpectralAnalyzer(spec_cfg, imgset.image_size)
-        out = out_root / ds_name
         out.mkdir(parents=True, exist_ok=True)
         spec_parts, pred_parts, profiles = [], [], []
         n_done = 0
@@ -197,23 +218,30 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
             b_orig = Q._brisque(imgs) if use_brisque else None
             base = {}
             for m in models:
-                lg = m.logits(imgs)
+                lg, ft = m.logits_and_features(imgs) if use_feat else (m.logits(imgs), None)
                 b = {"lp": log_softmax(lg), "pred": lg.argmax(1)}
+                if ft is not None:
+                    b["feat"] = ft
                 if imgset.class_subset is not None:
                     sub = np.asarray(imgset.class_subset)
                     b["pred_sub"] = sub[lg[:, sub].argmax(1)]
                 base[m.name] = b
-                pred_parts.append(_pred_frame(ORIGINAL, ids, labels, m, imgset.class_subset, lg, None))
+                pred_parts.append(_pred_frame(ORIGINAL, ids, labels, m, imgset.class_subset, lg, None, ft))
             for c in conds:
                 proc = apply_batch(c, imgs, backend, pool)
                 sp = analyzer.compare(imgs, proc, Fx, dcx)
                 sp.update(Q.compare(q_orig, proc, b_orig, use_brisque))
+                if use_lpips:
+                    lp_ = Q.lpips_distance(imgs, proc, device)
+                    if lp_ is not None:
+                        sp["lpips"] = lp_
                 sp = pd.DataFrame(sp)
                 sp.insert(0, "image_id", ids)
                 sp.insert(1, "cond_id", c.cond_id)
                 spec_parts.append(sp)
                 for m in models:
-                    pred_parts.append(_pred_frame(c, ids, labels, m, imgset.class_subset, m.logits(proc), base[m.name]))
+                    lg, ft = m.logits_and_features(proc) if use_feat else (m.logits(proc), None)
+                    pred_parts.append(_pred_frame(c, ids, labels, m, imgset.class_subset, lg, base[m.name], ft))
             release_memory()
             n_done += len(ids)
             el = time.time() - t0
@@ -234,3 +262,32 @@ def run_inference(cfg: dict, kind: str, only: list[str] | None = None) -> Path:
     if pool:
         pool.shutdown()
     return out_root
+
+
+def merge_shards(cfg: dict, kind: str, only: list[str] | None = None) -> None:
+    """Junta ``results/<run>/<kind>/_shards/<ds>/<k>/`` em ``results/<run>/<kind>/<ds>/``."""
+    out_root = Path(cfg["paths"]["results"]) / cfg["run_name"] / kind
+    base = out_root / "_shards"
+    if not base.exists():
+        return
+    for ds_dir in sorted(p for p in base.iterdir() if p.is_dir()):
+        if only and ds_dir.name not in only:
+            continue
+        parts = sorted(p for p in ds_dir.iterdir() if (p / "meta.json").exists())
+        if not parts:
+            continue
+        out = out_root / ds_dir.name
+        out.mkdir(parents=True, exist_ok=True)
+        for f in ("spectral.parquet", "predictions.parquet"):
+            pd.concat([pd.read_parquet(p / f) for p in parts], ignore_index=True).to_parquet(out / f)
+        (out / "conditions.csv").write_bytes((parts[0] / "conditions.csv").read_bytes())
+        metas = [json.loads((p / "meta.json").read_text(encoding="utf-8")) for p in parts]
+        w = np.array([m["n_images"] for m in metas], float)
+        sp = [pd.read_csv(p / "dataset_spectrum.csv") for p in parts]
+        prof = sp[0][["r_center"]].copy()
+        for c in ("energy_mean", "energy_median"):  # mediana: média ponderada das medianas das fatias (aprox.)
+            prof[c] = np.average(np.stack([s[c].to_numpy() for s in sp]), axis=0, weights=w)
+        prof.to_csv(out / "dataset_spectrum.csv", index=False)
+        meta = {**metas[0], "n_images": int(w.sum()), "minutes": max(m["minutes"] for m in metas), "n_shards": len(parts)}
+        (out / "meta.json").write_text(json.dumps(meta, indent=2), encoding="utf-8")
+        print(f"[{kind}] {ds_dir.name}: {len(parts)} fatias, {int(w.sum())} imagens -> {out}")
