@@ -1,0 +1,63 @@
+// Fluxo do pipeline. Gerar:  dot -Tsvg pipeline.dot -o pipeline.svg && dot -Tpng -Gdpi=170 pipeline.dot -o pipeline.png
+digraph pipeline {
+  graph [rankdir=TB, bgcolor="#fcfcfb", fontname="Liberation Sans", fontsize=13, pad=0.35, nodesep=0.22, ranksep=0.38, concentrate=false,
+         splines=spline, newrank=true, compound=true]
+  node  [shape=box, style="rounded,filled", fontname="Liberation Sans", fontsize=11, color="#c3c2b7", penwidth=1.1,
+         fillcolor="#ffffff", fontcolor="#0b0b0b", margin="0.16,0.09"]
+  edge  [fontname="Liberation Sans", color="#898781", penwidth=1.2, arrowsize=0.7]
+
+  // ---------------------------------------------------------------- entrada
+  subgraph cluster_in {
+    label=<<b>Entrada</b>>; labeljust=l; style="rounded,filled"; fillcolor="#f0efec"; color="#e1e0d9"; fontcolor="#52514e"
+    data [label=<<b>Datasets</b><br/><font point-size="9.5" color="#52514e">CIFAR-10 · 32 px · 2000 imgs × 3 sementes<br/>Imagenette · 224 px · 2000 imgs × 3 sementes<br/>ImageNet-val · 224 px · 50 000 imgs</font>>]
+  }
+
+  // ---------------------------------------------------------------- perturbação
+  subgraph cluster_perturb {
+    label=<<b>Perturbação</b>>; labeljust=l; style="rounded,filled"; fillcolor="#eaf2fb"; color="#c9dcf2"; fontcolor="#2a78d6"
+    tech [label=<<b>E2 · 14 técnicas × 4–14 doses</b><br/><font point-size="9.5" color="#52514e">suavização · Wiener · JPEG 4:2:0 / 4:4:4<br/>aguçamento · equalização · super-resolução</font>>]
+    oracle [label=<<b>E1 · filtros espectrais ideais</b><br/><font point-size="9.5" color="#52514e">remove / dobra um anel de frequência</font>>]
+  }
+
+  // ---------------------------------------------------------------- medição
+  subgraph cluster_measure {
+    label=<<b>Medição</b>>; labeljust=l; style="rounded,filled"; fillcolor="#fdf0ea"; color="#f6d3c2"; fontcolor="#eb6834"
+    spec [label=<<b>Quantificador espectral</b><br/><font point-size="9.5" color="#52514e">FFT 2D + Hann · 16 anéis / 3 bandas<br/>ΔE, coerência ρ, amplitude × fase, cor</font>>]
+    qual [label=<<b>Qualidade da imagem</b><br/><font point-size="9.5" color="#52514e">PSNR · SSIM · LPIPS · BRISQUE<br/>nitidez · ruído · contraste</font>>]
+    dec  [label=<<b>Decisão da rede (congelada)</b><br/><font point-size="9.5" color="#52514e">32 px: 5 CNNs · 224 px: 5 CNNs + ViT + Swin<br/>acerto · flip · KL · distância entre features</font>>]
+  }
+
+  store [shape=cylinder, style=filled, fillcolor="#ffffff", color="#c3c2b7", margin="0.12,0.06",
+         label=<<b>Parquet</b><br/><font point-size="9.5" color="#52514e">spectral · predictions</font>>]
+
+  // ---------------------------------------------------------------- análise
+  subgraph cluster_analysis {
+    label=<<b>Análise · E3 e E4</b>>; labeljust=l; style="rounded,filled"; fillcolor="#e8f6f0"; color="#c4e9d9"; fontcolor="#1baf7a"
+    stats [label=<<b>Dose-resposta</b><br/><font point-size="9.5" color="#52514e">McNemar + Holm · IC pareado</font>>]
+    bmd   [label=<<b>Limiares (BMD)</b><br/><font point-size="9.5" color="#52514e">bootstrap · janela operacional</font>>]
+    loto  [label=<<b>Previsibilidade</b><br/><font point-size="9.5" color="#52514e">leave-one-technique-out<br/>IRE × LPIPS × Yin × features</font>>]
+    adapt [label=<<b>E4 · Adaptação</b><br/><font point-size="9.5" color="#52514e">BN-adapt · sondas · fine-tuning<br/>domain shift × informação perdida</font>>]
+    ire   [label=<<b>Índice de Risco Espectral</b><br/><font point-size="9.5" color="#52514e">P(flip) = 1 − exp(−IRE)</font>>]
+  }
+
+
+  // ---------------------------------------------------------------- saída
+  subgraph cluster_out {
+    label=<<b>Saída</b>>; labeljust=l; style="rounded,filled"; fillcolor="#f0efec"; color="#e1e0d9"; fontcolor="#52514e"
+    safe   [label=<<b>Dose segura sem rodar a rede</b><br/><font point-size="9.5" color="#52514e">make safe-dose</font>>, color="#1baf7a", penwidth=1.6]
+    report [label=<<b>Relatórios e figuras</b><br/><font point-size="9.5" color="#52514e">results.md · site · agregação entre sementes</font>>]
+  }
+
+  data -> tech; data -> oracle
+  tech -> spec; tech -> qual; tech -> dec
+  oracle -> spec; oracle -> dec
+  spec -> store; qual -> store; dec -> store
+  store -> stats; store -> bmd; store -> loto
+  loto -> ire
+  dec -> adapt [style=dashed, xlabel=<<font point-size="9" color="#898781">re-treino  </font>>]
+  ire -> safe
+  stats -> report; bmd -> report; loto -> report; adapt -> report
+
+  { rank=same; stats; bmd; loto; adapt }
+  { rank=same; safe; report }
+}

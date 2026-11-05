@@ -45,6 +45,7 @@ def attach(spec: pd.DataFrame, orig: pd.DataFrame | None) -> pd.DataFrame:
 
 def ratio_of_means(spec: pd.DataFrame) -> pd.DataFrame:
     """dq_brisque robusto por condição: mean(q) / mean(q0) - 1."""
+    spec = spec.dropna(subset=["q_brisque", "q_brisque_orig"])  # BRISQUE indefinido em imagens degeneradas
     g = spec.groupby(["dataset", "cond_id"]).agg(q=("q_brisque", "mean"), q0=("q_brisque_orig", "mean")).reset_index()
     g["dq_brisque"] = g.q / g.q0 - 1
     g["d_brisque"] = g.q - g.q0

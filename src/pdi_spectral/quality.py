@@ -92,7 +92,16 @@ def _brisque(imgs: np.ndarray, min_side: int = BRISQUE_MIN_SIDE) -> np.ndarray |
         imgs = np.stack([resize(im, im.shape[0] * up, im.shape[1] * up) for im in imgs])
     x = torch.from_numpy(np.ascontiguousarray(imgs)).permute(0, 3, 1, 2).float() / 255.0
     with torch.no_grad():
-        return piq.brisque(x, data_range=1.0, reduction="none").numpy()
+        try:
+            return piq.brisque(x, data_range=1.0, reduction="none").numpy()
+        except AssertionError:  # imagem degenerada (ex.: quase uniforme): o piq aborta o lote inteiro
+            out = np.full(len(x), np.nan)
+            for i in range(len(x)):
+                try:
+                    out[i] = float(piq.brisque(x[i : i + 1], data_range=1.0, reduction="none")[0])
+                except AssertionError:
+                    pass
+            return out
 
 
 def compare(orig: dict[str, np.ndarray], proc_imgs: np.ndarray, brisque_orig=None, brisque: bool = False) -> dict:

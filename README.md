@@ -191,6 +191,10 @@ cinza, PSNR ≥ 37 dB.
 
 ## Como funciona
 
+![Fluxo do pipeline: datasets → técnicas e filtros ideais → medição espectral, de qualidade e da decisão da rede → análise (limiares, previsibilidade, IRE, adaptação) → dose segura e relatórios](docs/figures/pipeline.png)
+
+*Cada imagem passa por cada técnica em cada dose; o resultado é medido em três frentes (espectro, qualidade e decisão da rede) e guardado por (imagem, condição). Fonte do diagrama: [docs/figures/pipeline.dot](docs/figures/pipeline.dot).*
+
 1. **Técnicas.** Suavização (gaussiano, mediana, bilateral), restauração (Wiener), compressão (JPEG 4:2:0 e 4:4:4), aguçamento
    (unsharp, laplaciano), equalização (global, CLAHE, CLAHE misturado) e super-resolução (bicúbica, ESPCN, FSRCNN).
 2. **Espectro.** FFT 2D com janela de Hann sobre a luminância e a cor; energia, coerência e decomposição amplitude/fase em 16 anéis
