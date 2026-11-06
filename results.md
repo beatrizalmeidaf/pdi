@@ -153,7 +153,39 @@ Médias dos modelos (5 no CIFAR-10, 7 no Imagenette) e das 3 sementes; o desvio 
 A rodada anterior do E4 no Imagenette tinha um problema: 5 das 10 classes estavam vazias no conjunto de treino, por uma extração
 incompleta. Ela foi refeita com o treino completo (9469 imagens), e os números acima já são posteriores à correção.
 
-### 0.6 Bugs encontrados nesta rodada
+### 0.6 O IRE calibrado num modelo serve para outro?
+
+Os pesos do IRE são ajustados por modelo; o LOTO testa técnicas novas, não modelos novos. [scripts/ire_transfer.py](scripts/ire_transfer.py) ajusta os pesos em outros modelos (com o mesmo número de linhas por modelo) e prevê o modelo que ficou de fora:
+
+| Protocolo | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| Próprio modelo, técnica nova (LOTO) | 0,86 (0,85–0,87) | 0,86 (0,77–0,94) | 0,91 (0,87–0,94) |
+| Outros modelos | 0,89 (0,88–0,90) | 0,66 (−0,10–0,93) | 0,76 (0,42–0,91) |
+| Outros modelos **e** técnica nova | 0,85 (0,84–0,87) | 0,63 (−0,11–0,92) | 0,74 (0,36–0,90) |
+| Mesmo modelo, outra base de 224 px | — | 0,80 (0,64–0,93) | 0,80 (0,69–0,93) |
+
+R² do flip por condição, média dos modelos (mín.–máx.). O Spearman fica entre 0,89 e 0,97 em todos os protocolos.
+
+![Transferência do IRE](docs/figures/ire_transfer.png)
+
+- **Em 32 px o IRE transfere sem perda.** Calibrado nos outros 4 modelos, prevê o quinto tão bem quanto os pesos do próprio
+  modelo, inclusive em técnica nova (0,85).
+- **Em 224 px a ordem transfere, o nível não.** O Spearman continua em 0,89–0,97: o IRE calibrado em outros modelos ordena
+  corretamente as condições, da mais à menos danosa. O que não transfere é a escala.
+  - Nos modelos "medianos" (ResNet-50, EfficientNet-B0, Swin-T) o R² fica em 0,77–0,92.
+  - Nos extremos ele cai. O ViT-B/16, o mais robusto, é superestimado em ~6 p.p. de flip (R² 0,36–0,42 no ImageNet-val, ~0 no
+    Imagenette). A ResNet-18 e a VGG-16-BN, as mais frágeis, são subestimadas em ~5 p.p. (R² 0,68–0,77).
+- **Entre bases, o mesmo modelo transfere razoavelmente** (R² 0,64–0,93), com viés de ~3 p.p.: a mesma perturbação muda mais
+  decisões no ImageNet-val (1000 classes) que no Imagenette (10).
+- **Consequência para a dose segura.** O perfil de vulnerabilidade (quais bandas importam) é parecido entre os modelos, mas a
+  sensibilidade total é própria de cada um. A garantia "IRE ≤ −ln(1 − τ) ⇒ queda ≤ τ" vale com os pesos do próprio modelo. Com
+  pesos emprestados, ela deixa de ser conservadora justamente nos modelos frágeis, onde o IRE subestima o dano.
+- **Próximo passo natural:** manter os pesos de banda compartilhados e recalibrar só um fator de escala por modelo, com poucas
+  condições (por exemplo, só os filtros ideais). Isso testaria se 1 parâmetro por modelo basta.
+
+Tabelas: `ire_transfer.csv` (por modelo e protocolo), `ire_transfer_pares.csv` (matriz calibra em A → aplica em B) e `ire_transfer_resumo.csv`, em [docs/resultados/pub/](docs/resultados/pub/).
+
+### 0.7 Bugs encontrados nesta rodada
 
 - **Classe *parachute* fora do Imagenette:** o wnid estava errado (`n03888605` → `n03888257`). As rodadas antigas de
   `sweep_imagenette` têm só 9 classes.
@@ -692,6 +724,6 @@ CONFIG=configs/sweep.yaml DATASETS=imagenette \
   bash scripts/run_experiments.sh oracle main adapt analyze examples
 ```
 
-Rodada final: `setsid nohup bash scripts/run_publicacao.sh &` (retomável; progresso com `bash scripts/status_publicacao.sh`), depois `python scripts/figuras_publicacao.py`.
+Rodada final: `setsid nohup bash scripts/run_publicacao.sh &` (retomável; progresso com `bash scripts/status_publicacao.sh`), depois `python scripts/figuras_publicacao.py`, `python scripts/ire_transfer.py` (~25 min em CPU) e `make report` (figuras do README e dados do site).
 
 Relatórios automáticos completos, com todas as tabelas: `results/sweep/analysis/summary.md` (CIFAR-10) e `results/sweep_imagenette/analysis/summary.md` (Imagenette).

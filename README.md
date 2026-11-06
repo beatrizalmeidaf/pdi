@@ -21,7 +21,7 @@ Fourier.
 
 </div>
 
-![Uma imagem do Imagenette sob 8 técnicas, com a variação média de acurácia de 3 modelos abaixo de cada uma](docs/figures/amostras.png)
+![Uma imagem do Imagenette sob 8 técnicas, com a variação média de acurácia de 7 modelos abaixo de cada uma](docs/figures/amostras.png)
 
 ---
 
@@ -190,6 +190,15 @@ Desempenho prevendo técnicas que a fórmula não viu:
 
 A coerência de fase foi o que fez a fórmula funcionar: com ela o R² sobe de 0,23 para 0,85.
 
+**O IRE calibrado num modelo serve para outro?** Em parte.
+- Em 32 px, sim: calibrado nos outros 4 modelos, prevê o quinto tão bem quanto os próprios pesos (R² 0,85–0,89).
+- Em 224 px a **ordem** das condições transfere (Spearman 0,89–0,97), mas a **escala** não. Os modelos medianos ficam em R² 0,8–0,9.
+  O ViT, o mais robusto, é superestimado (~6 p.p. de flip), e a ResNet-18 e a VGG, as mais frágeis, subestimadas (~5 p.p.).
+- Ou seja, as bandas que importam são parecidas entre modelos, mas a sensibilidade total é de cada um. A dose segura com garantia
+  exige calibrar no próprio modelo. Detalhes em [results.md](results.md) §0.6.
+
+![Transferência do IRE entre modelos](docs/figures/ire_transfer.png)
+
 ![IRE](docs/figures/ire.png)
 
 ### 7. Domain shift ou informação perdida?
@@ -256,7 +265,7 @@ cinza, PSNR ≥ 37 dB.
 | H4 | Técnicas invertíveis causam *domain shift*; destrutivas, perda de informação | ✅ Aguçamento/blur leve voltam a ~1 p.p.; JPEG forte, mediana e Wiener ficam 6–13 p.p. abaixo (CIFAR-10) |
 | H5 | A coerência de fase acrescenta poder explicativo à energia | ✅ +0,09 a +0,32 de R² nos três datasets |
 | H6 | Existe janela operacional para técnicas redistributivas | 🟡 Parcial: blur leve, unsharp, laplaciano e equalização global sim em 224 px; CLAHE misturado só em 2/7 modelos; mediana quase nunca |
-| H7 | O IRE prevê o dano de técnicas que não viu | ✅ R² 0,86–0,91 e melhor que LPIPS, SSIM e Yin et al. em 224 px. Calibrado só em filtros ideais, só funciona em 32 px |
+| H7 | O IRE prevê o dano de técnicas que não viu | ✅ R² 0,86–0,91 e melhor que LPIPS, SSIM e Yin et al. em 224 px. Entre modelos, transfere em 32 px; em 224 px só a ordem. Calibrado só em filtros ideais, só funciona em 32 px |
 
 ## Como funciona
 
@@ -290,6 +299,8 @@ make human-export                  # kit do estudo com pessoas (index.html local
 # rodada final: ImageNet-val completo + 12 modelos + 3 sementes + LPIPS (≈ 8–9 h em 2 GPUs)
 setsid nohup bash scripts/run_publicacao.sh &   # retomável; progresso: bash scripts/status_publicacao.sh
 python scripts/figuras_publicacao.py            # figuras *_pub.png e tabelas em docs/resultados/pub/
+python scripts/ire_transfer.py                  # IRE entre modelos e bases (~25 min em CPU)
+make report                                     # figuras do README e dados do site a partir da rodada final
 ```
 
 O ImageNet-val deve estar em `data/imagenet/val/<wnid>/*.JPEG` (`paths.imagenet_val` em
@@ -315,6 +326,8 @@ direto.
 
 - **Sem sementes no ImageNet-val.** Ele usa todas as 50 mil imagens; as sementes (3) ficaram para CIFAR-10 e Imagenette, onde o
   desvio entre elas é pequeno: ≤ 0,04 de R² e ≤ 1 p.p. de acurácia.
+- **Os pesos do IRE são por modelo.** Em 224 px, pesos emprestados de outros modelos acertam a ordem do dano, mas não o nível, e
+  subestimam o dano nos modelos frágeis. Recalibrar só um fator de escala por modelo é o próximo passo.
 - **A fórmula superestima o dano da equalização** (~2×), ou seja, erra para o lado seguro. Calibrada só em filtros ideais, ela não
   transfere para 224 px.
 - **O "objetivo visual" usa métricas sem referência** (nitidez, ruído, contraste, BRISQUE). O estudo com pessoas está pronto, mas

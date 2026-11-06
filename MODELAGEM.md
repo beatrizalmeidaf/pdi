@@ -28,6 +28,7 @@ Ela mede, para cada técnica clássica de pré-processamento e cada nível de in
 12. [Custo computacional](#12-custo-computacional)
 13. [Ameaças à validade](#13-ameaças-à-validade)
 14. [Status e o que falta](#14-status-e-o-que-falta)
+   - [14.3 Rodada final](#143-rodada-final-imagenet-val-12-modelos-3-sementes)
 
 ---
 
@@ -153,12 +154,18 @@ Os testes em [tests/test_spectral.py](tests/test_spectral.py) verificam que: a i
 
 | Dataset | Resolução | Imagens (padrão) | Modelos | Pesos |
 |---|---|---|---|---|
-| `cifar10` | 32×32 | 2 000 do teste (+5 000 de treino para E4) | ResNet-20, ResNet-56, VGG-16-BN, MobileNetV2 | `chenyaofo/pytorch-cifar-models` (torch.hub) |
-| `imagenette` | 224×224 | 3 925 (val inteiro) (+2 000 de treino para E4) | ResNet-18, ResNet-50, VGG-16-BN, EfficientNet-B0, ViT-B/16 | torchvision `IMAGENET1K_V1` |
-| `imagenet_val` (opcional) | 224×224 | configurável | idem | idem |
+| `cifar10` | 32×32 | 2 000 do teste × 3 sementes (+5 000 de treino para E4) | ResNet-20, ResNet-56, VGG-16-BN, MobileNetV2, RepVGG-A0 | `chenyaofo/pytorch-cifar-models` (torch.hub) |
+| `imagenette` | 224×224 | 2 000 do val × 3 sementes (+2 000 de treino para E4) | ResNet-18, ResNet-50, VGG-16-BN, EfficientNet-B0, ConvNeXt-T, ViT-B/16, Swin-T | torchvision `IMAGENET1K_V1` |
+| `imagenet_val` | 224×224 | **50 000 (val inteiro)** | os mesmos 7 | idem |
+
+Configurações da rodada final: [pub_cifar10.yaml](configs/pub_cifar10.yaml), [pub_imagenette.yaml](configs/pub_imagenette.yaml) e
+[pub_imagenet.yaml](configs/pub_imagenet.yaml). Cada semente sorteia outro subconjunto de imagens e outro fine-tuning.
 
 - No Imagenette a acurácia é medida **sobre as 1000 classes** (`correct`, rigoroso) e também restrita às 10 (`correct_sub`).
-- Para o artigo, recomenda-se habilitar `imagenet_val` (pasta `<wnid>/*.JPEG`) se houver acesso ao ImageNet. Veja [§13](#13-ameaças-à-validade) sobre a origem das imagens do Imagenette.
+- O ImageNet-val fica em `data/imagenet/val/<wnid>/*.JPEG` (`paths.imagenet_val`). Na rodada final ele veio do espelho público
+  `clip-benchmark/wds_imagenet1k`, com as 50 mil imagens e os rótulos oficiais; as acurácias de base batem com as do torchvision.
+- Para caber em tempo, o ImageNet-val é dividido em fatias (`--set shard=k/n`), processadas em paralelo em 2 GPUs e unidas por
+  `pdi merge-shards` ([scripts/run_publicacao.sh](scripts/run_publicacao.sh)).
 - Não há ViT padrão para CIFAR-10. A comparação CNN × Transformer é feita no Imagenette/ImageNet.
 
 ---
@@ -210,6 +217,17 @@ Implementada em [analysis.py](src/pdi_spectral/analysis.py).
 3. **H3: transferência do oráculo.** A regressão é ajustada **só** nas condições de E1 e aplicada às técnicas reais de E2.
 4. **Nível de imagem.** Regressão logística prevê `flip` por imagem a partir do ΔE daquela imagem; AUC com validação agrupada por técnica.
 5. **H4:** resumo das frações recuperáveis por técnica/nível (E4).
+6. **IRE × preditores existentes** (`predictor_comparison.csv`): no mesmo alvo do IRE (flip por condição) e no mesmo protocolo LOTO,
+   compara PSNR, SSIM, **LPIPS** (Zhang et al., rede AlexNet; CIFAR ampliado para 64 px), energia por banda de Yin et al., o ridge
+   espectral e a **distância entre features** da própria rede (cosseno e L2 da representação penúltima). A distância entre features é
+   um teto, não um concorrente: exige rodar o modelo em cada imagem.
+7. **Imagens planas.** Imagens cuja luminância original é quase constante (desvio < 1/255, `analysis.min_image_std`) são excluídas
+   antes de tudo: nelas a energia original é ~0 e as medidas relativas (D_b, ΔE) explodem. No ImageNet-val, uma única imagem
+   quase branca (`n03623198/s0030765`) tinha perturbação relativa ~4,9·10⁴ (as outras, ≤ 45) e, sozinha, derrubava o R² de Yin et
+   al. de 0,42 para 0,10. A lista sai em `excluded_flat_images.csv`.
+
+Com sementes, [scripts/aggregate_seeds.py](scripts/aggregate_seeds.py) junta as análises em média ± desvio-padrão
+(`results/pub_agregado/`).
 
 O relatório consolidado sai em `results/<run>/analysis/summary.md`, com as figuras em `analysis/figures/`.
 
@@ -282,6 +300,19 @@ Para τ = 1 %, o orçamento é 0,01005.
 
 **Validação (H7).** Por *leave-one-technique-out*: cada técnica é prevista com pesos ajustados só nas outras. Comparam-se o flip por condição (R²) e o limiar previsto contra o observado.
 
+**Transferência entre modelos** ([scripts/ire_transfer.py](scripts/ire_transfer.py)). Os pesos são ajustados por modelo, então o
+LOTO sozinho não mostra se a fórmula serve para um modelo que não foi calibrado. Quatro protocolos, todos no flip por condição:
+
+| Protocolo | Pesos ajustados em | Prevê |
+|---|---|---|
+| `proprio_loto` | o próprio modelo, sem a técnica prevista | técnica nova (o H7 acima) |
+| `outros_modelos` | os **outros** modelos da mesma base, todas as técnicas | modelo novo |
+| `outros_modelos_loto` | os outros modelos, sem a técnica prevista | **modelo e técnica novos** |
+| `outra_base` | o mesmo modelo, na outra base de 224 px (Imagenette ↔ ImageNet-val) | outra distribuição de imagens |
+
+Nos ajustes com vários modelos, cada modelo contribui com o mesmo número de linhas. A matriz `par` (calibra em A, aplica em B) sai
+em `ire_transfer_pares.csv`. Resultados em [§14.3](#143-rodada-final-imagenet-val-12-modelos-3-sementes).
+
 Como a fórmula chegou à forma atual (CIFAR-10, ResNet-20, 2000 imagens, flip por condição, LOTO):
 
 | Variante | R² | Spearman |
@@ -350,14 +381,20 @@ repo/
 │   ├── default.yaml          estudo completo
 │   ├── smoke.yaml            miniatura para testar o pipeline (herda do default)
 │   ├── offline.yaml          pipeline sem internet: imagens sintéticas + CNN minúscula
-│   └── sweep.yaml            varredura densa de dose para limiares e IRE
+│   ├── sweep.yaml            varredura densa de dose para limiares e IRE
+│   └── pub_*.yaml            rodada final (CIFAR-10, Imagenette, ImageNet-val)
 ├── scripts/
 │   ├── _common.sh            detecção do Python/venv, PYTHONPATH, logs, download
 │   ├── setup_env.sh          cria .venv e instala dependências (CPU ou GPU)
 │   ├── download_data.sh      pesos SR, CIFAR-10, Imagenette, pesos dos modelos, CIFAR-10-C
 │   ├── verify.sh             E0: pytest + tabela de concordância
 │   ├── run_experiments.sh    executa etapas em ordem, com log em results/logs/
-│   └── run_smoke.sh          teste de ponta a ponta
+│   ├── run_smoke.sh          teste de ponta a ponta
+│   ├── run_publicacao.sh     rodada final: fatias do ImageNet-val em 2 GPUs, sementes, merge, análise (retomável)
+│   ├── status_publicacao.sh  progresso e estimativa de término da rodada final
+│   ├── aggregate_seeds.py    média ± desvio entre sementes → results/pub_agregado/
+│   ├── figuras_publicacao.py figuras *_pub.png e tabelas em docs/resultados/pub/
+│   └── ire_transfer.py       o IRE calibrado num modelo serve para outro?
 ├── src/pdi_spectral/
 │   ├── techniques/
 │   │   ├── _core.py          convolução, gaussiana, YCbCr, PSNR, SSIM (do zero)
@@ -379,6 +416,8 @@ repo/
 │   ├── thresholds.py         limiares (BMD/NOAEL/janela) + fórmula IRE + safe-dose
 │   ├── quality.py            métricas perceptuais sem referência (do zero) + BRISQUE
 │   ├── human.py              estudo com pessoas: exporta o kit (HTML local) e analisa as respostas
+│   ├── brisque_fix.py        BRISQUE resumido pela razão das médias
+│   ├── report.py             figuras do README e dados do site (docs/)
 │   ├── plots.py              figuras
 │   ├── verify.py             E0
 │   └── cli.py                linha de comando
@@ -452,6 +491,8 @@ results/
         ├── band_sensitivity.csv, adaptation_summary.csv
         ├── thresholds.csv, threshold_curves.csv          limiares (BMD, NOAEL, janela)
         ├── ire_weights.csv, ire_summary.csv, ire_*_predictions.csv   fórmula IRE
+        ├── predictor_comparison.csv      IRE × PSNR/SSIM/LPIPS/Yin/features (flip, LOTO)
+        ├── excluded_flat_images.csv      imagens de luminância quase constante, fora da análise
         └── figures/
             ├── dose_response_<ds>.png          Δacc × parâmetro nominal
             ├── delta_vs_dErel_high_<ds>.png    Δacc × ΔE alta (todas as técnicas no mesmo eixo)
@@ -469,6 +510,8 @@ results/
 
 `predictions.parquet` e `spectral.parquet` se cruzam por `(dataset, image_id, cond_id)`.
 
+A rodada final soma `results/pub_agregado/` (tabelas agregadas entre sementes, `ire_transfer*.csv`) e `results/pub_logs/`.
+
 ---
 
 ## 12. Custo computacional
@@ -481,6 +524,9 @@ Ordem de grandeza: 54 condições em E2, 27 em E1 e 16 em E4.
 | Processamento, backend `scratch` | minutos | **horas** (o bilateral do zero leva ~0,5 s por imagem de 224 px) |
 | Processamento, backend `reference` | segundos | minutos |
 
+Rodada final (2 GPUs, `parallel -j 44`): ~8 h no total, quase todo no ImageNet-val (50 mil imagens × 133 condições × 7 modelos ≈
+47 M inferências, em 80 fatias). As saídas ocupam ~25 GB: gravar em disco local, não no `/home` com cota.
+
 Use `backend: scratch` para as figuras do relatório da disciplina e para a validação. Use `backend: reference` (`make fast`) para a varredura completa; o E0 documenta a concordância entre os dois.
 
 ---
@@ -491,7 +537,11 @@ Use `backend: scratch` para as figuras do relatório da disciplina e para a vali
 |---|---|
 | Diferença entre implementação do zero e bibliotecas | E0 + testes; *backend* de referência disponível. Diferenças conhecidas: o bilateral do OpenCV usa distância L1 entre cores (o do zero usa L2, como Tomasi & Manduchi); o `scipy.signal.wiener` estima o ruído com borda de zeros; o JPEG do zero usa DCT em ponto flutuante (o libjpeg usa inteira). Em todos os casos, PSNR entre as versões > 30 dB. |
 | Janela de Hann altera a medida | É configurável (`spectral.window: none`); os testes conferem Parseval sem janela. Reportar a sensibilidade da conclusão à janela. |
-| Imagenette pode conter imagens vistas no treino do ImageNet | Verificar a origem do split antes de publicar. Preferir `imagenet_val` local para os números finais; usar o Imagenette para iteração. |
+| Imagenette pode conter imagens vistas no treino do ImageNet | Resolvido na rodada final: os números principais vêm do ImageNet-val completo. O Imagenette fica como base de 10 classes, e a hormese que aparece nele **não** se repete no ImageNet-val. |
+| ImageNet-val de um espelho público | 50 000 imagens, 1000 classes × 50, rótulos oficiais; acurácias de base iguais às publicadas para os pesos do torchvision (ResNet-50 76,1 %, ViT-B/16 81,1 %). |
+| Imagens quase constantes distorcem medidas relativas | Excluídas por critério fixo (desvio < 1/255), definido antes de olhar o efeito nos preditores; 1 imagem em 54 mil. |
+| Uma semente só | CIFAR-10 e Imagenette com 3 sementes (desvio ≤ 0,04 de R² e ≤ 1 p.p. de acurácia); o ImageNet-val usa todas as imagens uma vez. |
+| Pesos do IRE ajustados por modelo | Teste de transferência entre modelos e entre bases (§8.2, §14.3). |
 | Pesos de CIFAR são da comunidade, não "oficiais" | São os mais usados e reprodutíveis (torch.hub); relatar a acurácia de base. |
 | SR aprendida treinada em outro domínio (DIV2K/T91) | É exatamente o cenário de uso prático; relatar. |
 | Recorte/redimensionamento antes da técnica | É fixo e idêntico para todos; o espectro é medido sobre a entrada efetiva da rede. |
@@ -573,19 +623,64 @@ Configuração: `sweep.yaml` com `DATASETS=imagenette`, 2000 imagens, ResNet-50,
 - **H2, H5 e H7 se repetem**: R² LOTO 0,86–0,94 com ΔE + coerência + cor; IRE com R² 0,85–0,92. Mas a fórmula calibrada só no oráculo falha em 224 px (R² negativo).
 - **H4 em 224 px** (E4 refeito com `configs/e4_imagenette.yaml`): o aguçamento continua sendo domain shift (laplaciano forte na ResNet-50: BN recupera 83 %, fine-tuning 98 %). JPEG forte, SR ×4, mediana e blur forte deixam perda real (1,5–2,9 p.p. depois do fine-tuning). Em 224 px, o BN-adapt recupera bem menos que no CIFAR (22–41 % no blur σ = 1, contra ~84 %). A primeira rodada do E4 saturou (99,8 % entre as 10 classes).
 
-### 14.3 O que falta
+### 14.3 Rodada final: ImageNet-val, 12 modelos, 3 sementes
+
+Configuração no [§6](#6-datasets-e-classificadores); resultados completos em [results.md](results.md) §0 e tabelas em
+[docs/resultados/pub/](docs/resultados/pub/).
+
+- **IRE × preditores existentes** (R² LOTO do flip, média dos modelos):
+  - IRE: 0,86 (CIFAR-10), 0,86 (Imagenette), 0,91 (ImageNet-val);
+  - LPIPS: 0,90 / 0,73 / 0,67; SSIM: 0,59 / 0,54 / 0,47; Yin et al.: 0,49 / 0,61 / 0,42; PSNR ≤ 0,14;
+  - distância entre features da rede, que exige rodar o modelo: 0,95–0,99.
+- **Hormese não generaliza para 1000 classes.** No Imagenette o laplaciano leve melhora os 7 modelos (até +2,7 p.p.); no ImageNet-val
+  só o Swin-T melhora, +0,3 p.p. A mesma dose custa −1,4 p.p. à ResNet-50.
+- **Robustez:** ViT-B/16 e ConvNeXt-T perdem menos (3,0 e 4,2 p.p. em média no ImageNet-val); VGG-16-BN e ResNets, mais (5,4–6,3).
+- **Limiar do gaussiano** quase constante em pixels: σ = 0,38–0,69 nos 12 modelos.
+
+**Transferência do IRE entre modelos e bases** ([scripts/ire_transfer.py](scripts/ire_transfer.py)):
+
+| Protocolo | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| Próprio modelo, técnica nova (LOTO) | 0,86 (0,85–0,87) | 0,86 (0,77–0,94) | 0,91 (0,87–0,94) |
+| Outros modelos | 0,89 (0,88–0,90) | 0,66 (−0,10–0,93) | 0,76 (0,42–0,91) |
+| Outros modelos **e** técnica nova | 0,85 (0,84–0,87) | 0,63 (−0,11–0,92) | 0,74 (0,36–0,90) |
+| Mesmo modelo, outra base de 224 px | — | 0,80 (0,64–0,93) | 0,80 (0,69–0,93) |
+
+R² do flip por condição, média dos modelos (mín.–máx.). O Spearman fica entre 0,89 e 0,97 em todos os protocolos.
+
+![Transferência do IRE](docs/figures/ire_transfer.png)
+
+- **Em 32 px o IRE transfere sem perda.** Calibrado nos outros 4 modelos, prevê o quinto tão bem quanto os pesos do próprio
+  modelo, inclusive em técnica nova (0,85).
+- **Em 224 px a ordem transfere, o nível não.** O Spearman continua em 0,89–0,97: o IRE calibrado em outros modelos ordena
+  corretamente as condições, da mais à menos danosa. O que não transfere é a escala.
+  - Nos modelos "medianos" (ResNet-50, EfficientNet-B0, Swin-T) o R² fica em 0,77–0,92.
+  - Nos extremos ele cai. O ViT-B/16, o mais robusto, é superestimado em ~6 p.p. de flip (R² 0,36–0,42 no ImageNet-val, ~0 no
+    Imagenette). A ResNet-18 e a VGG-16-BN, as mais frágeis, são subestimadas em ~5 p.p. (R² 0,68–0,77).
+- **Entre bases, o mesmo modelo transfere razoavelmente** (R² 0,64–0,93), com viés de ~3 p.p.: a mesma perturbação muda mais
+  decisões no ImageNet-val (1000 classes) que no Imagenette (10).
+- **Consequência para a dose segura.** O perfil de vulnerabilidade (quais bandas importam) é parecido entre os modelos, mas a
+  sensibilidade total é própria de cada um. A garantia "IRE ≤ −ln(1 − τ) ⇒ queda ≤ τ" vale com os pesos do próprio modelo. Com
+  pesos emprestados, ela deixa de ser conservadora justamente nos modelos frágeis, onde o IRE subestima o dano.
+- **Próximo passo natural:** manter os pesos de banda compartilhados e recalibrar só um fator de escala por modelo, com poucas
+  condições (por exemplo, só os filtros ideais). Isso testaria se 1 parâmetro por modelo basta.
+
+### 14.4 O que falta
 
 | Prioridade | Item | Como |
 |---|---|---|
 | ~~Alta~~ feito | Segundo dataset em 224 px e ViT (H3) | §14.2 |
 | ~~Alta~~ feito | Refazer o E4 no Imagenette com doses fortes e congelado/BN nas 1000 classes | `configs/e4_imagenette.yaml` (§14.2) |
-| Baixa | E4 sem o teto das 10 classes (as doses moderadas ainda saturam) | ImageNet-val com treino de várias classes |
+| Baixa | E4 sem o teto das 10 classes (as doses moderadas ainda saturam) | fine-tuning com um subconjunto de treino do ImageNet |
 | ~~Alta~~ feito | Doses menores (CLAHE misturado, SR 1,05–1,2, JPEG 99–100 e 4:4:4) | §14.1 |
+| Alta | Recalibrar só a escala do IRE por modelo (pesos de banda compartilhados) e checar se a garantia volta a ser conservadora | [scripts/ire_transfer.py](scripts/ire_transfer.py) (§14.3) |
 | Alta | Melhorar a fórmula nas técnicas de equalização (superestima ~2×). Já testados sem sucesso: separar amplitude × estrutura e tirar a curva tonal global (corrige o HE mas piora o resto). Próximo: curva tonal por bloco | ver [results.md](results.md) §6 |
 | ~~Média~~ feito | BRISQUE como métrica perceptual independente | `quality.brisque: true` (§8.3) |
 | Média | **Aplicar o estudo com pessoas** (kit pronto, falta coletar respostas) | `make human-export`, enviar a pasta e `make human-analyze` (§8.3) |
 | Média | Oráculo com anéis finos na faixa baixa: testar se a banda crítica é fixa em ciclos/imagem | aumentar `oracle.n_bins` ([results.md](results.md) §10.1) |
-| Média | ImageNet-val local, em vez do Imagenette, para os números finais | `paths.imagenet_val` |
+| ~~Média~~ feito | ImageNet-val completo, 12 modelos, 3 sementes, LPIPS e features | rodada final (§14.3) |
+| ~~Alta~~ feito | Transferência do IRE entre modelos e entre bases | [scripts/ire_transfer.py](scripts/ire_transfer.py) (§14.3) |
+| Média | Domínio médico, onde o pré-processamento é rotina | dataset com rótulo clínico + mesma bateria |
 | ~~Média~~ feito | Fine-tuning completo no E4 (CIFAR-10) | `configs/finetune_cifar.yaml` (§14.1) |
 | Baixa | E5: entradas realmente degradadas (CIFAR-10-C), para a QP4. O download existe, mas falta o código que usa os dados | implementar o loader e o experimento |
-| Baixa | Seções de Métodos e Resultados do artigo em `revisao_literatura/main.tex` | a partir de `results/sweep/analysis/summary.md` |
+| Alta | Seções de Métodos e Resultados do artigo em `revisao_literatura/main.tex` | a partir de `results/pub_agregado/summary.md` e [results.md](results.md) §0 |
