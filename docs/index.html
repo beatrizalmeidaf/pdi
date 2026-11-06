@@ -4,9 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>Quando melhorar piora</title>
-<meta name="description" content="Pré-processamento perceptual, energia espectral e acurácia de classificadores de imagem: limiares de dose, janela operacional e uma fórmula que prevê o dano. UFG — Processamento Digital de Imagens.">
+<meta name="description" content="Pré-processamento perceptual, energia espectral e acurácia de classificadores de imagem: limiares de dose, janela operacional e uma fórmula que prevê o dano. 14 técnicas, 12 modelos, ImageNet-val completo. UFG — Processamento Digital de Imagens.">
 <meta property="og:title" content="Quando melhorar piora">
-<meta property="og:description" content="14 técnicas clássicas de pré-processamento, 6 classificadores, 2 resoluções: quando 'melhorar' a imagem piora a rede, e como prever o dano pelo espectro.">
+<meta property="og:description" content="14 técnicas clássicas de pré-processamento, 12 classificadores, 3 bases (incluindo as 50 mil imagens do ImageNet-val): quando 'melhorar' a imagem piora a rede, e como prever o dano pelo espectro.">
 <meta property="og:image" content="figures/amostras.png">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%230b0b0b'/%3E%3Cpath d='M6 22 Q12 6 16 16 T26 10' stroke='%23eb6834' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
 <link rel="stylesheet" href="assets/style.css">
@@ -20,7 +20,7 @@
   <div class="wrap">
     <a class="brand" href="#top">Quando melhorar piora</a>
     <div class="nav-links">
-      <a href="#achados">Achados</a><a href="#inovacao">Inovação</a><a href="#explorador">Explorador</a>
+      <a href="#resumo">Resumo</a><a href="#achados">Achados</a><a href="#final">ImageNet</a><a href="#inovacao">Inovação</a><a href="#explorador">Explorador</a>
       <a href="#limiares">Limiares</a><a href="#espectro">Espectro</a><a href="#formula">Fórmula IRE</a>
       <a href="#adaptacao">Domain shift</a><a href="#amostras">Amostras</a><a href="#metodo">Método</a><a href="#reproduzir">Reproduzir</a>
     </div>
@@ -35,7 +35,7 @@
     <h1>Quando melhorar piora</h1>
     <p class="lede">Técnicas clássicas que deixam a imagem <em>melhor para pessoas</em> — suavizar, aguçar, equalizar, comprimir,
       super-resolver — também deixam melhor para um classificador de imagens? Medimos, dose a dose, quanto cada técnica muda a
-      acurácia de 6 redes pré-treinadas, achamos o <strong>limiar</strong> a partir do qual cada uma começa a prejudicar e
+      acurácia de 12 redes pré-treinadas, em três bases — incluindo as 50 mil imagens do ImageNet-val —, achamos o <strong>limiar</strong> a partir do qual cada uma começa a prejudicar e
       propomos uma <strong>fórmula que prevê esse dano a partir do espectro de Fourier</strong>, sem rodar a rede.</p>
     <div class="authors">Beatriz Almeida Felicio · Júlio Cesar Alves Pereira · Kamilla Jordana R. de Moura</div>
     <div class="cta">
@@ -53,13 +53,42 @@
   </div>
 </section>
 
+<section id="resumo">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Em poucas palavras</h2>
+      <p class="muted">Antes de ir para uma rede neural, é comum "melhorar" a imagem: tirar ruído, realçar bordas, ajustar contraste,
+        comprimir. Isso ajuda a rede a acertar?</p>
+    </div>
+    <div class="grid g3">
+      <article class="card finding"><span class="tag">O que ajuda</span><div class="num">Quase nada</div>
+        <p>Em imagens pequenas (32 px), <strong>nenhuma</strong> técnica fez a rede acertar mais. Em imagens grandes, só
+          <strong>realçar bordas de leve</strong> ajuda: +1 a +3 p.p. num problema de 10 classes, mas só +0,3 p.p. (e em um único
+          modelo) no ImageNet completo, com 1000 classes.</p>
+        <p>Todo o resto piora cedo: um desfoque de σ ≈ 0,4–0,7 pixel já custa 1 p.p. nos 12 modelos, e o JPEG "qualidade 100"
+          padrão já custa até 1,4 p.p. por causa da compressão da cor.</p></article>
+      <article class="card finding"><span class="tag">Quem aguenta mais</span><div class="num">ViT e ConvNeXt</div>
+        <p>Em 224 px, ViT-B/16 e ConvNeXt-T perdem em média 2,4–4,2 p.p.; VGG-16 e as ResNets, 4,6–6,3 p.p. O ViT aguenta bem
+          porque quase só usa as frequências mais baixas, que a maioria das técnicas preserva.</p>
+        <p>Re-treinar a rede recupera quase tudo no realce e no desfoque leve. No JPEG forte e na mediana a informação se perdeu:
+          mesmo re-treinando, ficam até 13 p.p. abaixo.</p></article>
+      <article class="card finding"><span class="tag">O que é novo</span><div class="num">Prever sem rodar a rede</div>
+        <p>Medimos a "dose" pelo que a técnica faz ao espectro de Fourier, não pelo botão do algoritmo. Daí sai uma fórmula, o
+          <strong>Índice de Risco Espectral</strong>, que prevê o dano de técnicas que nunca viu (R² 0,86–0,91), melhor que
+          LPIPS, SSIM, PSNR e Yin et al. em 224 px.</p>
+        <p>Ela olha só a imagem e dá uma <strong>dose segura com garantia</strong>: IRE ≤ −ln(1 − τ) ⇒ queda de acurácia ≤ τ.</p></article>
+    </div>
+  </div>
+</section>
+
 <section id="achados">
   <div class="wrap">
     <div class="section-head">
       <h2>O que encontramos</h2>
-      <p class="muted">Dois datasets em resoluções diferentes — CIFAR-10 (32 px, 3 CNNs) e Imagenette (224 px, 2 CNNs + 1 Vision
-        Transformer) — 14 técnicas em 8 a 12 doses cada (106 condições), 2000 imagens por dataset. Sem fine-tuning: os modelos rodam congelados,
-        como seriam usados na prática.</p>
+      <p class="muted">Três bases: CIFAR-10 (32 px, 5 CNNs), Imagenette (224 px, 7 modelos) e ImageNet-val completo (50 mil
+        imagens, os mesmos 7 modelos), com 3 sementes nas duas menores. 14 técnicas em 8 a 14 doses cada. Sem fine-tuning: os
+        modelos rodam congelados, como seriam usados na prática. Os gráficos interativos abaixo usam a primeira rodada (CIFAR-10 e
+        Imagenette, 6 modelos); a <a href="#final">rodada final</a> confirma as conclusões.</p>
     </div>
     <div class="grid g3">
       <article class="card finding"><span class="tag">Hipótese central</span><div class="num">Quase sempre piora</div>
@@ -68,15 +97,15 @@
       <article class="card finding"><span class="tag">Limiares</span><div class="num">σ ≈ 0,44</div>
         <p>O limiar de dano é estreito e quase igual entre arquiteturas: o desfoque gaussiano custa 1 p.p. em σ = 0,43–0,45 nas 3 CNNs
           de CIFAR e 0,38–0,47 em 224 px. De 1 para 5 p.p. de perda bastam +0,11 de σ.</p></article>
-      <article class="card finding"><span class="tag">Hormese</span><div class="num">+2,8 p.p.</div>
-        <p>Em 224 px, o aguçamento leve <strong>melhora</strong> a rede: laplaciano até +2,8 p.p. (ResNet-50), unsharp até +2,0 p.p.,
-          com IC acima de zero. Doses maiores voltam a piorar — melhora em dose baixa, dano em dose alta.</p></article>
+      <article class="card finding"><span class="tag">Hormese</span><div class="num">+2,7 p.p.</div>
+        <p>No Imagenette, o aguçamento leve <strong>melhora</strong> a rede: laplaciano até +2,7 p.p. (ResNet-50), com IC acima de
+          zero nos 7 modelos. Doses maiores voltam a piorar. No ImageNet completo o efeito quase some: só o Swin-T, +0,3 p.p.</p></article>
       <article class="card finding"><span class="tag">Banda crítica</span><div class="num">32 px ≠ 224 px</div>
         <p>Em 32 px o que pesa é a média-alta frequência; em 224 px, a mais baixa (removê-la custa 68–77 p.p.). O ViT depende quase só
           dela e perde até 2× menos que as CNNs com técnicas que removem frequência.</p></article>
       <article class="card finding"><span class="tag">Previsibilidade</span><div class="num">R² 0,2 → 0,9</div>
         <p>O parâmetro nominal (σ, k, clip…) explica pouco o dano em técnicas nunca vistas (R² ≈ 0,2) e o PSNR quase nada (0,06).
-          Medir o espectro — energia por banda, coerência de fase e cor — chega a R² 0,78–0,94.</p></article>
+          Medir o espectro — energia por banda, coerência de fase e cor — chega a R² 0,74–0,82, e o IRE a 0,86–0,91.</p></article>
       <article class="card finding"><span class="tag">JPEG</span><div class="num">A culpa é da cor</div>
         <p>Mesmo na qualidade 100, o JPEG padrão (subamostragem de croma 4:2:0) já custa até 1,4 p.p.; sem subamostrar a cor
           (4:4:4), ~0. Em alta qualidade, quem muda a decisão é a cor, não a compressão.</p></article>
@@ -84,6 +113,42 @@
     <figure class="static" style="margin-top:20px">
       <img src="figures/amostras.png" alt="Uma imagem do Imagenette processada por 8 técnicas em doses diferentes, com a variação de acurácia média abaixo de cada uma." loading="lazy">
       <figcaption>Mesma imagem, várias técnicas. Abaixo: variação média de acurácia dos 3 modelos no Imagenette (2000 imagens). O aguçamento leve melhora; o resto piora.</figcaption>
+    </figure>
+  </div>
+</section>
+
+<section id="final">
+  <div class="wrap">
+    <div class="section-head">
+      <h2>Rodada final: ImageNet-val completo</h2>
+      <p class="muted">50 mil imagens do ImageNet-val e 7 modelos (ResNet-18/50, VGG-16-BN, EfficientNet-B0, ConvNeXt-T, ViT-B/16,
+        Swin-T), mais CIFAR-10 com 5 CNNs e Imagenette com os 7 modelos, 3 sementes cada. O IRE é comparado com os preditores da
+        literatura em técnicas que não viu.</p>
+    </div>
+    <div class="grid g2">
+      <div class="card"><h3>IRE × preditores existentes</h3>
+        <p class="muted small">R² <em>leave-one-technique-out</em> da probabilidade de a decisão mudar, média dos modelos.</p>
+        <div class="tbl-wrap"><table class="t">
+          <thead><tr><th>Preditor</th><th>CIFAR-10</th><th>Imagenette</th><th>ImageNet-val</th></tr></thead>
+          <tbody>
+            <tr><td>Distância entre features <span class="muted small">(precisa rodar a rede)</span></td><td>0,99</td><td>0,95</td><td>0,98</td></tr>
+            <tr><td><strong>IRE (este trabalho)</strong></td><td><strong>0,86</strong></td><td><strong>0,86</strong></td><td><strong>0,91</strong></td></tr>
+            <tr><td>ΔE + coerência + cor (ridge)</td><td>0,82</td><td>0,74</td><td>0,79</td></tr>
+            <tr><td>LPIPS</td><td><strong>0,90</strong></td><td>0,73</td><td>0,67</td></tr>
+            <tr><td>SSIM</td><td>0,59</td><td>0,54</td><td>0,47</td></tr>
+            <tr><td>Energia por banda (Yin et al.)</td><td>0,49</td><td>0,61</td><td>0,42</td></tr>
+            <tr><td>Parâmetro nominal</td><td>0,23</td><td>0,42</td><td>0,47</td></tr>
+            <tr><td>PSNR</td><td>0,08</td><td>0,14</td><td>0,12</td></tr>
+          </tbody>
+        </table></div>
+        <p class="muted small">Desvio entre sementes ≤ 0,04. A distância entre features é a própria rede respondendo; o IRE olha só a
+          imagem. Uma imagem quase branca do ImageNet-val foi excluída por critério fixo (desvio de luminância &lt; 1/255).</p>
+      </div>
+      <figure class="static card"><img src="figures/preditores_pub.png" alt="Barras de R² por preditor nas três bases: features da rede no topo, IRE em segundo, depois ridge espectral, LPIPS, SSIM, Yin et al., parâmetro nominal e PSNR." loading="lazy"></figure>
+    </div>
+    <figure class="static" style="margin-top:16px">
+      <img src="figures/robustez_pub.png" alt="Queda média de acurácia por modelo nas três bases; ViT-B/16 e ConvNeXt-T perdem menos, VGG-16-BN e ResNets perdem mais." loading="lazy">
+      <figcaption>Queda média de acurácia sobre todas as doses das 11 técnicas clássicas. No ImageNet-val: ViT-B/16 3,0 p.p., ConvNeXt-T 4,2, EfficientNet-B0 4,5, Swin-T 5,0, ResNet-50 5,4, ResNet-18 5,5, VGG-16-BN 6,3.</figcaption>
     </figure>
   </div>
 </section>
@@ -280,13 +345,13 @@
       <div class="tbl-wrap"><table class="t">
         <thead><tr><th>#</th><th>Hipótese</th><th>Resultado</th><th>Evidência</th></tr></thead>
         <tbody>
-          <tr><td>H1</td><td>Técnicas perceptuais degradam classificadores, de forma monotônica com a dose</td><td><span class="pill ok">confirmada</span> <span class="pill part">exceção em 224 px</span></td><td>Todas degradam em dose alta; em 224 px o aguçamento leve melhora (hormese).</td></tr>
-          <tr><td>H2</td><td>ΔE medido prevê o dano melhor que o parâmetro nominal e o PSNR</td><td><span class="pill ok">confirmada</span></td><td>R² LOTO 0,2 (nominal) e 0,06 (PSNR) → 0,78–0,94 (espectro).</td></tr>
+          <tr><td>H1</td><td>Técnicas perceptuais degradam classificadores, de forma monotônica com a dose</td><td><span class="pill ok">confirmada</span> <span class="pill part">exceção em 224 px</span></td><td>Todas degradam em dose alta; o aguçamento leve melhora no Imagenette (até +2,7 p.p.), mas só +0,3 p.p. (Swin) no ImageNet completo.</td></tr>
+          <tr><td>H2</td><td>ΔE medido prevê o dano melhor que o parâmetro nominal e o PSNR</td><td><span class="pill ok">confirmada</span></td><td>R² LOTO 0,2–0,5 (nominal) e 0,1 (PSNR) → 0,74–0,82 (ridge espectral) e 0,86–0,91 (IRE).</td></tr>
           <tr><td>H3</td><td>A banda crítica depende do dataset e da arquitetura</td><td><span class="pill ok">confirmada</span></td><td>32 px: média-alta; 224 px: a mais baixa; ViT quase só ela.</td></tr>
           <tr><td>H4</td><td>Técnicas invertíveis causam domain shift; destrutivas, perda de informação</td><td><span class="pill ok">confirmada nas pontas</span></td><td>Aguçamento e blur leve recuperam 91–99%; JPEG e mediana deixam 7–13 p.p.</td></tr>
           <tr><td>H5</td><td>A coerência de fase acrescenta poder explicativo à energia</td><td><span class="pill ok">confirmada</span></td><td>+0,06 a +0,10 de R² em 32 px e +0,13 a +0,49 em 224 px; AUC por imagem +0,06 a +0,09.</td></tr>
           <tr><td>H6</td><td>Existe janela operacional para técnicas redistributivas</td><td><span class="pill part">parcial</span></td><td>Sim para blur leve, unsharp e CLAHE fraco; não para HE, laplaciano (32 px), bilateral, mediana.</td></tr>
-          <tr><td>H7</td><td>O IRE prevê o dano de técnicas que não viu</td><td><span class="pill ok">confirmada</span> <span class="pill part">calibrar com técnicas reais</span></td><td>R² 0,85–0,92; calibrado só nos filtros ideais funciona em 32 px (0,76–0,81), não em 224 px.</td></tr>
+          <tr><td>H7</td><td>O IRE prevê o dano de técnicas que não viu</td><td><span class="pill ok">confirmada</span> <span class="pill part">calibrar com técnicas reais</span></td><td>R² 0,86–0,91 nas três bases, acima de LPIPS, SSIM e Yin et al. em 224 px; calibrado só nos filtros ideais funciona em 32 px (0,75–0,81), não em 224 px.</td></tr>
         </tbody>
       </table></div>
     </div>

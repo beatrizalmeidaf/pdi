@@ -3,11 +3,14 @@
 Esse arquivo reúne o que foi executado e os resultados obtidos até agora. A modelagem, as hipóteses e os métodos estão no [README.md](README.md). As figuras e tabelas citadas aqui ficam em [docs/resultados/](docs/resultados/), e os dados brutos em `results/` (não versionado).
 
 > **Escopo.** As seções 2 a 9 usam **CIFAR-10** (32×32 px) com **3 CNNs** pré-treinadas, rodando em CPU. A [§10](#10-imagenette-224-px-e-vit-o-que-muda) repete a varredura no **Imagenette** (224 px) com **ResNet-50, EfficientNet-B0 e ViT-B/16** (Colab, A100) e mostra o que muda. Várias conclusões do CIFAR **não valem em 224 px**; quando é o caso, a seção do CIFAR aponta para a §10.
+>
+> **Rodada final.** A [§0](#0-rodada-final-imagenet-val-completo-12-modelos-3-sementes) resume a rodada que responde às limitações de escala: **ImageNet-val completo** (50 mil imagens), **12 modelos** (10 CNNs + ViT-B/16 + Swin-T), **3 sementes** no CIFAR-10 e no Imagenette, e a comparação do IRE com LPIPS, Yin et al. e a distância entre features. Onde ela e as seções antigas discordam, vale a §0.
 
 ---
 
 ## Sumário
 
+0. [Rodada final: ImageNet-val completo, 12 modelos, 3 sementes](#0-rodada-final-imagenet-val-completo-12-modelos-3-sementes)
 1. [O que rodou](#1-o-que-rodou)
 2. [Validação das implementações (E0)](#2-validação-das-implementações-e0)
 3. [Limiares por técnica e janela operacional (H1, H6)](#3-limiares-por-técnica-e-janela-operacional-h1-h6)
@@ -20,6 +23,142 @@ Esse arquivo reúne o que foi executado e os resultados obtidos até agora. A mo
 10. [Imagenette (224 px) e ViT: o que muda](#10-imagenette-224-px-e-vit-o-que-muda)
 11. [O que ainda não foi feito](#11-o-que-ainda-não-foi-feito)
 12. [Como reproduzir](#12-como-reproduzir)
+
+---
+
+## 0. Rodada final: ImageNet-val completo, 12 modelos, 3 sementes
+
+| Base | Imagens | Modelos | Sementes | Config |
+|---|---|---|---|---|
+| CIFAR-10 (32 px) | 2000 por semente | ResNet-20, ResNet-56, VGG-16-BN, MobileNetV2, RepVGG-A0 | 3 | [pub_cifar10.yaml](configs/pub_cifar10.yaml) |
+| Imagenette (224 px) | 2000 por semente (+ 2000 de treino no E4) | ResNet-18, ResNet-50, VGG-16-BN, EfficientNet-B0, ConvNeXt-T, ViT-B/16, Swin-T | 3 | [pub_imagenette.yaml](configs/pub_imagenette.yaml) |
+| ImageNet-val (224 px) | **50 000** (1 excluída, ver abaixo) | os mesmos 7 | — | [pub_imagenet.yaml](configs/pub_imagenet.yaml) |
+
+Cada semente sorteia outro subconjunto de imagens e outro fine-tuning. A rodada levou ~8 h em 2 GPUs: o ImageNet foi dividido em 80
+fatias processadas em paralelo e depois unidas (`pdi merge-shards`). Orquestração em
+[scripts/run_publicacao.sh](scripts/run_publicacao.sh); agregação em [scripts/aggregate_seeds.py](scripts/aggregate_seeds.py).
+Tabelas agregadas (média ± desvio entre sementes) em [docs/resultados/pub/](docs/resultados/pub/).
+
+**Acurácia nas imagens originais.** As do ImageNet-val batem com as publicadas para os pesos do torchvision:
+
+| Modelo | ImageNet-val | Imagenette (1000 classes) |
+|---|---|---|
+| ResNet-18 | 69,8 % | 77,8 ± 0,2 % |
+| ResNet-50 | 76,1 % | 84,4 ± 0,1 % |
+| VGG-16-BN | 73,4 % | 80,2 ± 0,5 % |
+| EfficientNet-B0 | 77,6 % | 85,0 ± 0,2 % |
+| ConvNeXt-T | 82,1 % | 86,7 ± 0,0 % |
+| ViT-B/16 | 81,1 % | 91,2 ± 0,2 % |
+| Swin-T | 81,0 % | 83,9 ± 0,6 % |
+
+No CIFAR-10, as acurácias vão de 92,3 % (ResNet-20) a 94,4 % (ResNet-56, RepVGG-A0).
+
+### 0.1 IRE × preditores existentes
+
+R² *leave-one-technique-out* da probabilidade de *flip* por condição, na média dos modelos (± desvio entre sementes):
+
+| Preditor | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| Distância cosseno entre features (precisa rodar a rede) | 0,99 ± 0,00 | 0,95 ± 0,00 | 0,98 |
+| Distância L2 entre features (precisa rodar a rede) | 0,96 ± 0,00 | 0,92 ± 0,00 | 0,95 |
+| **IRE** | **0,86 ± 0,00** | **0,86 ± 0,01** | **0,91** |
+| ΔE por banda + coerência + cor (ridge) | 0,82 ± 0,01 | 0,74 ± 0,04 | 0,79 |
+| LPIPS (Zhang et al., 2018) | 0,90 ± 0,00 | 0,73 ± 0,01 | 0,67 |
+| SSIM | 0,59 ± 0,00 | 0,54 ± 0,01 | 0,47 |
+| Energia por banda (Yin et al., 2019) | 0,49 ± 0,02 | 0,61 ± 0,01 | 0,42 |
+| Parâmetro nominal | 0,23 ± 0,00 | 0,42 ± 0,00 | 0,47 |
+| PSNR | 0,08 ± 0,00 | 0,14 ± 0,00 | 0,12 |
+
+![IRE × preditores](docs/figures/preditores_pub.png)
+
+- Entre os preditores que olham só a imagem, o IRE é o melhor nas duas bases de 224 px. No CIFAR-10, o LPIPS fica 0,04 à frente.
+- O IRE por modelo vai de R² 0,78 (Swin-T, Imagenette) a 0,95 (ResNet-18, ImageNet-val), com Spearman 0,92–0,98.
+- A distância entre features acerta mais porque é a própria rede respondendo: ela serve de teto, não de concorrente, para um
+  preditor que dispensa rodar o modelo.
+- Calibrado só com filtros ideais, o IRE continua funcionando em 32 px (R² 0,75–0,81) e falhando em 224 px (R² < 0,2), como na §10.6.
+
+**Imagem excluída.** Uma imagem do ImageNet-val é praticamente branca (`n03623198/s0030765.JPEG`, pixels entre 253 e
+255).
+- A energia original dela é quase zero, então a perturbação espectral relativa chegava a ~4,9 × 10⁴, contra ≤ 45 nas outras imagens.
+- Sozinha, ela distorcia a média das condições: Yin et al. caía de 0,42 para 0,10 e o ridge espectral de 0,79 para 0,63. O IRE não
+  mudava.
+- A análise agora exclui imagens com desvio de luminância original < 1/255 (`analysis.min_image_std`), em que a medida relativa não
+  é definida. O critério é fixo e não foi ajustado aos resultados.
+- Só essa imagem foi excluída, e nenhuma no CIFAR-10 ou no Imagenette. A lista sai em `excluded_flat_images.csv`.
+
+### 0.2 O que ajuda: hormese só no Imagenette
+
+Ganhos com IC 90 % acima de zero:
+
+| Base | Onde há ganho significativo | Maior ganho |
+|---|---|---|
+| CIFAR-10 | nenhum (0 de 70 combinações modelo × técnica, nas 3 sementes) | — |
+| Imagenette | laplaciano leve nos 7 modelos e unsharp leve em 3 (ResNet-50, VGG-16-BN, EfficientNet-B0), em ≥ 2 das 3 sementes | +2,7 p.p. (ResNet-50, laplaciano c = 0,2) |
+| ImageNet-val | só o Swin-T: laplaciano, unsharp e, no limite, CLAHE misturado e JPEG 4:4:4 q = 99 | +0,3 p.p. |
+
+No ImageNet-val, a mesma dose que dá +2,7 p.p. à ResNet-50 no Imagenette custa −1,4 p.p. O ganho do aguçamento depende de o problema
+ter poucas classes, bem separadas. **Não é uma recomendação geral.**
+
+### 0.3 Quem aguenta mais
+
+![Robustez por modelo](docs/figures/robustez_pub.png)
+
+Queda média de acurácia sobre todas as doses das 11 técnicas clássicas:
+
+| Base | Do mais robusto para o mais frágil |
+|---|---|
+| CIFAR-10 | VGG-16-BN 11,6 · RepVGG-A0 12,6 · ResNet-56 12,8 · MobileNetV2 13,5 · ResNet-20 13,6 p.p. |
+| Imagenette | ConvNeXt-T 2,4 · ViT-B/16 2,9 · Swin-T 3,3 · EfficientNet-B0 4,3 · ResNet-50 4,6 · ResNet-18 5,9 · VGG-16-BN 5,9 p.p. |
+| ImageNet-val | ViT-B/16 3,0 · ConvNeXt-T 4,2 · EfficientNet-B0 4,5 · Swin-T 5,0 · ResNet-50 5,4 · ResNet-18 5,5 · VGG-16-BN 6,3 p.p. |
+
+- Removendo só a banda mais baixa (filtro ideal), o ViT é o que mais perde no ImageNet-val (−64 p.p.) e o ConvNeXt o que menos perde
+  (−30 p.p.).
+- Ou seja, o ViT aguenta bem a maioria das técnicas porque quase só usa a faixa baixa, que elas preservam.
+
+### 0.4 Limiares
+
+O desfoque gaussiano cruza 1 p.p. em σ = 0,46–0,50 (CIFAR-10), 0,38–0,69 (Imagenette) e 0,51–0,64 (ImageNet-val): quase o mesmo
+valor em pixels nos 12 modelos.
+
+| Técnica | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| Unsharp (amount) | 0,49–0,73 | 1,54–2,72 | 0,68–2,10 |
+| Laplaciano (c) | 0,11–0,14 | 0,50–1,45 | 0,16–0,66 |
+| Equalização global (α) | 0,26–0,38 | 0,30–0,90 | 0,34–0,66 |
+| CLAHE misturado (α) | 0,52–0,79 | 0,42–0,95 | 0,46–0,97 |
+| Bilateral (σ_s) | 1,02–1,24 | 0,83–2,12 | 0,73–1,49 |
+| JPEG 4:2:0 (qualidade) | 97,5–99,7 | 85–100 | 88–97 |
+| JPEG 4:4:4 (qualidade) | 93–95 | 68–86 | 67–92 |
+
+Na qualidade 100, o JPEG 4:2:0 custa 0,3–1,0 p.p. (CIFAR-10) e 0,1–0,6 p.p. (ImageNet-val), e o 4:4:4 custa ~0.
+
+### 0.5 Domain shift × informação perdida, com sementes
+
+| Condição | Original | Congelado | Só BatchNorm | Fine-tuning | Falta para o original |
+|---|---|---|---|---|---|
+| CIFAR-10 · gaussiano σ = 1 | 93,8 % | 39,3 % | 85,1 % | 89,5 % | 4,4 p.p. |
+| CIFAR-10 · unsharp 1,0 | 93,8 % | 91,6 % | 90,3 % | 93,0 % | 0,9 p.p. |
+| CIFAR-10 · laplaciano 0,5 | 93,8 % | 85,4 % | 89,5 % | 92,7 % | 1,2 p.p. |
+| CIFAR-10 · mediana k = 3 | 93,8 % | 80,8 % | 83,4 % | 87,4 % | 6,5 p.p. |
+| CIFAR-10 · Wiener k = 5 | 93,8 % | 73,5 % | 83,1 % | 87,2 % | 6,7 p.p. |
+| CIFAR-10 · JPEG q = 30 | 93,8 % | 68,5 % | 67,8 % | 80,9 % | 12,9 p.p. |
+| Imagenette · gaussiano σ = 3 | 99,6 % | 89,2 % | 89,4 % | 95,8 % | 3,8 p.p. |
+| Imagenette · mediana k = 9 | 99,6 % | 90,4 % | 94,1 % | 96,7 % | 3,0 p.p. |
+| Imagenette · JPEG q = 10 | 99,6 % | 95,7 % | 93,3 % | 97,5 % | 2,2 p.p. |
+| Imagenette · unsharp 3,0 | 99,6 % | 99,2 % | 98,9 % | 99,3 % | 0,4 p.p. |
+
+Médias dos modelos (5 no CIFAR-10, 7 no Imagenette) e das 3 sementes; o desvio entre sementes é ≤ 1,3 p.p. No Imagenette a acurácia
+é medida entre as 10 classes, por isso começa em 99,6 %.
+
+A rodada anterior do E4 no Imagenette tinha um problema: 5 das 10 classes estavam vazias no conjunto de treino, por uma extração
+incompleta. Ela foi refeita com o treino completo (9469 imagens), e os números acima já são posteriores à correção.
+
+### 0.6 Bugs encontrados nesta rodada
+
+- **Classe *parachute* fora do Imagenette:** o wnid estava errado (`n03888605` → `n03888257`). As rodadas antigas de
+  `sweep_imagenette` têm só 9 classes.
+- **BRISQUE em imagens degeneradas:** o piq falha com `AssertionError`; agora a imagem recebe NaN e sai da média.
+- **Imagem quase constante no ImageNet-val** distorcendo métricas relativas (§0.1).
 
 ---
 
@@ -525,11 +664,12 @@ O que se conclui:
 
 | Item | Por quê | Como fazer |
 |---|---|---|
-| E4 no Imagenette sem o teto das 10 classes | as doses moderadas ainda saturam (§10.7) | ImageNet-val com treino de várias classes (`paths.imagenet_val`), ou estimar o BN com imagens de mais classes |
+| E4 no ImageNet com 1000 classes | no Imagenette as doses moderadas ainda saturam perto de 99 % (§0.5) | fine-tuning com um subconjunto de treino do ImageNet |
 | Coleta do estudo com pessoas | depende de participantes | `make human-export` → enviar → `make human-analyze` |
 | Oráculo com anéis finos na faixa baixa | testar se a banda crítica é fixa em ciclos/imagem (§10.1) | aumentar `oracle.n_bins` ou usar bandas em escala log |
 | Fórmula IRE nas técnicas de equalização (superestima ~2×; a correção global testada não serviu) | ver §6 | curva tonal por bloco; resíduo tonal junto às features atuais |
-| ImageNet-val e os 5 modelos ImageNet | números finais com mais classes e arquiteturas | `paths.imagenet_val` + `default.yaml` (GPU) |
+| Sementes no ImageNet-val | a rodada final usa as 50 mil imagens uma vez | dividir em subconjuntos e repetir o E4 |
+| Domínio médico | o pré-processamento é rotina em imagens médicas | dataset com rótulo clínico + mesma bateria |
 | E5: entradas realmente degradadas (CIFAR-10-C) | QP4; o download existe, mas falta o código que usa os dados | implementar o loader e o experimento |
 | Métodos e Resultados no artigo LaTeX | — | a partir deste arquivo |
 
@@ -551,5 +691,7 @@ CONFIG=configs/sweep.yaml DATASETS=imagenette \
   EXTRA="--set run_name=sweep_imagenette --set device=cuda --set batch_size=128" \
   bash scripts/run_experiments.sh oracle main adapt analyze examples
 ```
+
+Rodada final: `setsid nohup bash scripts/run_publicacao.sh &` (retomável; progresso com `bash scripts/status_publicacao.sh`), depois `python scripts/figuras_publicacao.py`.
 
 Relatórios automáticos completos, com todas as tabelas: `results/sweep/analysis/summary.md` (CIFAR-10) e `results/sweep_imagenette/analysis/summary.md` (Imagenette).

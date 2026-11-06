@@ -38,6 +38,28 @@ def load_kind(run_dir: Path, kind: str):
     return pd.concat(preds, ignore_index=True), pd.concat(specs, ignore_index=True)
 
 
+def flat_images(spec: pd.DataFrame, min_std: float) -> pd.DataFrame:
+    """Imagens cuja luminância ORIGINAL é praticamente constante (desvio < ``min_std``, escala [0, 1]).
+
+    Nelas a energia espectral original é ~0 e as medidas relativas (dErel, D) explodem: no ImageNet-val,
+    uma única imagem quase branca (pixels 253–255) leva a perturbação relativa a ~5·10^4 e domina a média
+    da condição. O desvio original vem de q_contrast / (1 + dq_contrast), mediana entre condições.
+    """
+    if not {"q_contrast", "dq_contrast"} <= set(spec.columns):
+        return spec.iloc[:0][["dataset", "image_id"]]
+    s = spec[["dataset", "image_id", "q_contrast", "dq_contrast"]]
+    s = s[(1 + s.dq_contrast).abs() > 1e-6]
+    orig = (s.q_contrast / (1 + s.dq_contrast)).groupby([s.dataset, s.image_id]).median()
+    return orig[orig < min_std].reset_index()[["dataset", "image_id"]]
+
+
+def drop_images(df, bad: pd.DataFrame):
+    if df is None or bad.empty:
+        return df
+    key = pd.MultiIndex.from_frame(bad[["dataset", "image_id"]])
+    return df[~pd.MultiIndex.from_frame(df[["dataset", "image_id"]]).isin(key)]
+
+
 # ---------------------------------------------------------------------------
 # Tabela por condição
 # ---------------------------------------------------------------------------
@@ -268,6 +290,14 @@ def run_analysis(cfg: dict) -> Path:
         if origs:
             spec_m = attach(spec_m, pd.concat(origs, ignore_index=True))
     pred_o, spec_o = load_kind(run_dir, "oracle")
+    min_std = float(acfg.get("min_image_std", 1 / 255))  # imagens planas: medidas espectrais relativas indefinidas
+    bad = flat_images(spec_m, min_std) if spec_m is not None else pd.DataFrame(columns=["dataset", "image_id"])
+    bad.to_csv(out / "excluded_flat_images.csv", index=False)
+    if len(bad):
+        pred_m, spec_m = drop_images(pred_m, bad), drop_images(spec_m, bad)
+        pred_o, spec_o = drop_images(pred_o, bad), drop_images(spec_o, bad)
+    report += [f"Imagens excluídas por luminância original quase constante (desvio < {255 * min_std:.1f}/255): "
+               f"**{len(bad)}** (lista em `excluded_flat_images.csv`).\n"]
     ct_m = ct_o = None
     if pred_m is not None:
         ct_m = condition_table(pred_m, spec_m)
