@@ -60,9 +60,9 @@ pergunta deste trabalho é simples: **isso ajuda a rede a acertar?**
      subestimar essa fração.
    - Para uma técnica nova, essa fração é subestimada com frequência: sem margem, a técnica fica segura em todos os modelos em
      só 36–57 % dos casos.
-   - Uma **margem conformal** resolve: aceitar só doses com flip previsto ≤ c · τ, com c calibrado sobre as técnicas. Testado em
-     técnicas que ficaram fora da calibração, cobre **93 %** delas em todos os modelos, nas três bases. O preço: a dose
-     recomendada fica em 29–54 % da dose realmente segura.
+   - Uma **margem conformal** resolve: aceitar só doses com flip previsto ≤ c · τ, com c calibrado sobre as técnicas. Testada em
+     técnicas que ficaram fora da calibração, cobre 93 % delas em todos os modelos, nas três bases, e **100 %** de 6 técnicas
+     novas escolhidas depois. Calibrada com as 20 técnicas, a dose recomendada fica em 37–48 % da dose realmente segura.
 4. Limiares com intervalo de confiança (**BMD**, vocabulário da toxicologia) para 14 técnicas × 12 modelos. Inclui equalização,
    realce e super-resolução, que a literatura quase não testava.
 
@@ -214,7 +214,9 @@ calibração:
 | … dose recomendada / dose realmente segura (mediana) | 29 % | 43 % | 54 % |
 | Margem conformal, α = 0,2 | 86 % | 86 % | 86 % |
 
-O fator c já está nas configs (`ire.safe_margin`) e pode ser trocado com `make safe-dose MARGIN=<c>`. Ele serve entre bases de
+A recomendação final usa as 20 técnicas (14 + 6 de validação externa): c = 0,23 / 0,57 / 0,65 com α = 0,1, cobertura de 90 %
+deixando cada técnica de fora e 37–48 % da dose segura aproveitada (ver [Para o artigo](#para-o-artigo-críticas-esperadas-e-como-responder),
+item 3). Esse fator já está nas configs (`ire.safe_margin`) e pode ser trocado com `make safe-dose MARGIN=<c>`. Ele serve entre bases de
 mesma resolução: calibrado no Imagenette, cobre 100 % das técnicas no ImageNet-val. Entre resoluções não serve: o do ImageNet-val
 cobre só 57 % no CIFAR-10. Detalhes em [results.md](results.md) §0.6.
 

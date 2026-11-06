@@ -78,7 +78,7 @@
           LPIPS, SSIM, PSNR e Yin et al. em 224 px.</p>
         <p>Ela olha só a imagem e estima uma <strong>dose segura</strong>: a queda de acurácia nunca passa da fração de flips, então
           IRE ≤ −ln(1 − τ) limita a queda a τ. Para técnica nova, uma margem conformal no orçamento cobre 93 % das técnicas em todos
-          os modelos, nas três bases.</p></article>
+          os modelos, nas três bases, e 100 % de 6 técnicas novas.</p></article>
     </div>
   </div>
 </section>
@@ -289,9 +289,10 @@
         <p class="small muted">Só uma decisão que muda pode virar erro, então, se o IRE não subestimar o flip, mantê-lo abaixo desse
           orçamento limita a queda de acurácia a τ. Para τ = 1%, o orçamento é 0,01005. <code>make safe-dose</code> usa isso para
           estimar a dose segura sem rodar a rede. Para uma técnica que a fórmula não viu, a previsão erra para os dois lados; por isso a
-          dose só é aceita se o flip previsto for ≤ c·τ, com c calibrado por predição conformal sobre as técnicas (0,55 no
-          ImageNet-val, 0,37 no Imagenette, 0,18 no CIFAR-10). Testado em técnicas fora da calibração, cobre 93 % delas em todos
-          os modelos, ao custo de recomendar 29–54 % da dose realmente segura.</p>
+          dose só é aceita se o flip previsto for ≤ c·τ, com c calibrado por predição conformal sobre 20 técnicas (0,65 no
+          ImageNet-val, 0,57 no Imagenette, 0,23 no CIFAR-10). Testado em técnicas fora da calibração, cobre 90–93 % delas em
+          todos os modelos, e 100 % de 6 técnicas novas escolhidas depois, ao custo de recomendar 37–48 % da dose realmente
+          segura.</p>
         <table class="mtable" id="ire-table"></table>
       </div>
       <div class="card"><h3>Previsto × observado</h3>
