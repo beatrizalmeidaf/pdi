@@ -29,23 +29,27 @@ FEATS_KIND = "D_fine+chroma+coh"
 L2 = 1e-4
 
 
-def _load(run: str):
+def _load(run: str, kind: str = "main"):
     import pyarrow.parquet as pq
 
     from pdi_spectral.analysis import drop_images, flat_images
     from pdi_spectral.thresholds import ire_features
 
-    base = R / run / "main"
+    base = R / run / kind
     ds = next(p.name for p in base.iterdir() if p.is_dir() and not p.name.startswith("_"))
     d = base / ds
     names = pq.ParquetFile(d / "spectral.parquet").schema.names
     feats = ire_features(pd.DataFrame(columns=names), FEATS_KIND)
     raw = sorted({("coh_" + f[6:]) if f.startswith("incoh_") else f for f in feats})
-    spec = pd.read_parquet(d / "spectral.parquet", columns=["image_id", "cond_id", "q_contrast", "dq_contrast"] + raw)
+    qcols = [c for c in ("q_contrast", "dq_contrast") if c in names]
+    spec = pd.read_parquet(d / "spectral.parquet", columns=["image_id", "cond_id"] + qcols + raw)
     pred = pd.read_parquet(d / "predictions.parquet",
                            columns=["image_id", "model", "cond_id", "technique", "dose", "flip"])
     spec["dataset"], pred["dataset"] = ds, ds
-    bad = flat_images(spec, 1 / 255)
+    bad = flat_images(spec, 1 / 255) if qcols else pd.DataFrame(columns=["dataset", "image_id"])
+    if kind != "main":  # o oráculo não guarda contraste: usa a lista do main
+        f = R / run / "analysis" / "excluded_flat_images.csv"
+        bad = pd.read_csv(f) if f.exists() else bad
     spec, pred = drop_images(spec, bad), drop_images(pred, bad)
     pred = pred[pred.cond_id != "original"]
     df = pred.merge(spec[["dataset", "image_id", "cond_id"] + raw], on=["dataset", "image_id", "cond_id"])

@@ -302,7 +302,7 @@
     if (window.katex) {
       katex.render(String.raw`\mathrm{IRE}=\sum_b w_b\,D_b^{\gamma}+\sum_b c_b\,\big(D^{\mathrm{cor}}_b\big)^{\gamma}+\sum_{B} u_B\,(1-\rho_B)^{\gamma}`, $("#f1"), { displayMode: true, throwOnError: false });
       katex.render(String.raw`\widehat{P}(\text{decisão mudar}) = 1 - e^{-\mathrm{IRE}}`, $("#f2"), { displayMode: true, throwOnError: false });
-      katex.render(String.raw`\mathrm{IRE}\le -\ln(1-\tau)\;\Longrightarrow\;\text{queda de acurácia}\le\tau`, $("#f3"), { displayMode: true, throwOnError: false });
+      katex.render(String.raw`\mathrm{IRE}\le -\ln(1-\tau)\;\Longrightarrow\;\text{queda de acurácia}\le\tau\quad(\text{se o IRE não subestimar o flip})`, $("#f3"), { displayMode: true, throwOnError: false });
     }
     const DC = DS_COLOR();
     const traces = Object.entries(D.datasets).map(([k, ds]) => ({

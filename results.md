@@ -153,7 +153,7 @@ Médias dos modelos (5 no CIFAR-10, 7 no Imagenette) e das 3 sementes; o desvio 
 A rodada anterior do E4 no Imagenette tinha um problema: 5 das 10 classes estavam vazias no conjunto de treino, por uma extração
 incompleta. Ela foi refeita com o treino completo (9469 imagens), e os números acima já são posteriores à correção.
 
-### 0.6 O IRE calibrado num modelo serve para outro?
+### 0.6 O IRE calibrado num modelo serve para outro? E a dose segura é segura?
 
 Os pesos do IRE são ajustados por modelo; o LOTO testa técnicas novas, não modelos novos. [scripts/ire_transfer.py](scripts/ire_transfer.py) ajusta os pesos em outros modelos (com o mesmo número de linhas por modelo) e prevê o modelo que ficou de fora:
 
@@ -177,13 +177,45 @@ R² do flip por condição, média dos modelos (mín.–máx.). O Spearman fica 
     Imagenette). A ResNet-18 e a VGG-16-BN, as mais frágeis, são subestimadas em ~5 p.p. (R² 0,68–0,77).
 - **Entre bases, o mesmo modelo transfere razoavelmente** (R² 0,64–0,93), com viés de ~3 p.p.: a mesma perturbação muda mais
   decisões no ImageNet-val (1000 classes) que no Imagenette (10).
-- **Consequência para a dose segura.** O perfil de vulnerabilidade (quais bandas importam) é parecido entre os modelos, mas a
-  sensibilidade total é própria de cada um. A garantia "IRE ≤ −ln(1 − τ) ⇒ queda ≤ τ" vale com os pesos do próprio modelo. Com
-  pesos emprestados, ela deixa de ser conservadora justamente nos modelos frágeis, onde o IRE subestima o dano.
-- **Próximo passo natural:** manter os pesos de banda compartilhados e recalibrar só um fator de escala por modelo, com poucas
-  condições (por exemplo, só os filtros ideais). Isso testaria se 1 parâmetro por modelo basta.
+- **Consequência.** O perfil de vulnerabilidade (quais bandas importam) é parecido entre os modelos, mas a sensibilidade total é
+  própria de cada um. Com pesos emprestados, o IRE subestima o dano justamente nos modelos frágeis.
 
-Tabelas: `ire_transfer.csv` (por modelo e protocolo), `ire_transfer_pares.csv` (matriz calibra em A → aplica em B) e `ire_transfer_resumo.csv`, em [docs/resultados/pub/](docs/resultados/pub/).
+**Pesos compartilhados + 1 fator de escala por modelo** ([scripts/ire_escala.py](scripts/ire_escala.py)). Os pesos de banda vêm
+dos outros modelos, sem a técnica prevista; o modelo-alvo ajusta só k em P = 1 − exp(−k · IRE). Duas fontes para k, nenhuma
+com a técnica prevista:
+
+| Protocolo (técnica e modelo novos) | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| Pesos do próprio modelo (referência) | 0,86 | 0,86 | 0,91 |
+| Pesos de outros modelos, sem escala | 0,85 | 0,63 (−0,15–0,91) | 0,74 (0,35–0,90) |
+| … + escala medida só no gaussiano | 0,38 | 0,70 (0,44–0,85) | **0,84 (0,72–0,91)** |
+| … + escala medida só nos filtros ideais | 0,85 | < 0 | < 0 |
+
+- **Em 224 px, uma técnica real basta para a escala.** Com k medido só no desfoque gaussiano, o ViT vai de R² 0,35 para 0,91 no
+  ImageNet-val, a ResNet-18 de 0,77 para 0,88 e a VGG de 0,75 para 0,85. A pior subestimação do flip cai de 30 para 15 p.p., o
+  mesmo nível dos pesos do próprio modelo (12–19 p.p.). O preço: nos modelos medianos (EfficientNet-B0, Swin-T) o R² cai um pouco
+  (até 0,72), e o viés fica levemente positivo (+2 a +5 p.p.), do lado seguro.
+- **Os filtros ideais não servem para calibrar a escala em 224 px**: k sai 2–3× maior e o IRE superestima o flip em ~15 p.p.
+  (R² < 0). Nunca subestima, mas fica inútil. É o mesmo motivo de o IRE calibrado só no oráculo não transferir (§10.6).
+- **Em 32 px não é preciso escala.** Os pesos de outros modelos já funcionam; medir a escala no gaussiano piora (R² 0,38), porque
+  no CIFAR-10 o gaussiano satura em ~80 % de flip e puxa k para cima.
+
+**A dose segura para técnica nova** (`ire_dose_segura.csv`). Com os pesos do próprio modelo e a técnica fora do ajuste, o limiar
+de flip 1 % previsto pelo IRE, comparado com o observado:
+
+| | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| razão previsto / observado (mediana) | 1,17 | 1,02 | 1,00 |
+| previsto ≤ observado | 35 % | 38 % | 40 % |
+| 80 % da dose prevista ≤ observado | 60 % | 78 % | 92 % |
+| 70 % da dose prevista ≤ observado | 64 % | 86 % | 98 % |
+| 50 % da dose prevista ≤ observado | 73 % | 92 % | 100 % |
+
+A desigualdade Δacc ≥ −flip é exata, mas a dose segura depende de o IRE não subestimar o flip. Para técnica nova, a previsão
+não tem viés em 224 px, porém erra para os dois lados. Na prática: usar ~70 % da dose prevista em 224 px. Em 32 px a previsão é
+otimista (razão 1,17) e nem 50 % da dose garante segurança.
+
+Tabelas: `ire_transfer.csv` (por modelo e protocolo), `ire_transfer_pares.csv` (matriz calibra em A → aplica em B), `ire_transfer_resumo.csv`, `ire_escala.csv`, `ire_escala_resumo.csv` e `ire_dose_segura.csv`, em [docs/resultados/pub/](docs/resultados/pub/).
 
 ### 0.7 Bugs encontrados nesta rodada
 
@@ -344,7 +376,7 @@ Uma regressão *ridge* prevê Δacc de cada condição usando só as outras téc
 **IRE = Σ w_b D_b^γ + Σ c_b D^cor_b^γ + Σ u_B (1 − ρ_B)^γ** e **P(decisão mudar) = 1 − e^(−IRE)**.
 
 - D_b = energia da perturbação de luminância no anel b; D^cor_b = idem na cor; 1 − ρ_B = perda de coerência (estrutura); pesos ≥ 0 por modelo.
-- Como só uma predição que muda pode virar erro, **IRE ≤ −ln(1 − τ) garante queda de acurácia ≤ τ**.
+- Como só uma predição que muda pode virar erro, **IRE ≤ −ln(1 − τ) limita a queda de acurácia a τ**, desde que o IRE não subestime o flip. Para técnica nova ele subestima em ~60 % dos casos perto do limiar; ver a margem recomendada na §0.6.
 
 **Desempenho prevendo cada técnica sem tê-la visto** ([ire_summary.csv](docs/resultados/ire_summary.csv)):
 

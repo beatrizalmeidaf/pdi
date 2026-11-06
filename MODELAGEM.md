@@ -288,7 +288,7 @@ O que entra na fórmula:
 
 Leitura: é um modelo de risco/Poisson. Cada unidade de perturbação numa banda é uma "chance" independente de mudar a decisão, com taxa dada pelo peso daquela banda.
 
-**Garantia de acurácia.** Só uma predição que muda pode virar erro, então Δacc ≥ −P(flip) sempre. Daí sai o **orçamento espectral**:
+**Limite de acurácia.** Só uma predição que muda pode virar erro, então Δacc ≥ −flip sempre. Se o IRE não subestimar o flip, daí sai o **orçamento espectral**:
 
 $$
 \mathrm{IRE} \;\le\; -\ln(1-\tau)\quad\Longrightarrow\quad \text{queda de acurácia}\;\le\;\tau
@@ -296,7 +296,9 @@ $$
 
 Para τ = 1 %, o orçamento é 0,01005.
 
-**Uso sem rede.** Com os pesos calibrados, `make safe-dose T=<técnica> M=<modelo>` aplica a técnica numa grade de doses, mede só o espectro e devolve as doses dentro do orçamento, **sem rodar o classificador**. Isso vale para qualquer técnica nova.
+**Uso sem rede.** Com os pesos calibrados, `make safe-dose T=<técnica> M=<modelo>` aplica a técnica numa grade de doses, mede só o espectro e devolve as doses dentro do orçamento, **sem rodar o classificador**.
+
+**Cuidado com técnica nova.** O limite é exato, mas a previsão do flip não é conservadora: numa técnica fora do ajuste, o limiar de 1 % previsto fica abaixo do observado em só ~40 % dos casos (razão mediana 1,00 no ImageNet-val). Usar ~70 % da dose prevista cobre 98 % dos casos no ImageNet-val e 86 % no Imagenette; no CIFAR-10, 64 % ([§14.3](#143-rodada-final-imagenet-val-12-modelos-3-sementes)).
 
 **Validação (H7).** Por *leave-one-technique-out*: cada técnica é prevista com pesos ajustados só nas outras. Comparam-se o flip por condição (R²) e o limiar previsto contra o observado.
 
@@ -310,7 +312,7 @@ LOTO sozinho não mostra se a fórmula serve para um modelo que não foi calibra
 | `outros_modelos_loto` | os outros modelos, sem a técnica prevista | **modelo e técnica novos** |
 | `outra_base` | o mesmo modelo, na outra base de 224 px (Imagenette ↔ ImageNet-val) | outra distribuição de imagens |
 
-Nos ajustes com vários modelos, cada modelo contribui com o mesmo número de linhas. A matriz `par` (calibra em A, aplica em B) sai
+Nos ajustes com vários modelos, cada modelo contribui com o mesmo número de linhas. [scripts/ire_escala.py](scripts/ire_escala.py) acrescenta a variante com pesos de banda compartilhados e **1 fator de escala por modelo**, medido só nos filtros ideais ou só no gaussiano do modelo-alvo, e a cobertura da dose segura. A matriz `par` (calibra em A, aplica em B) sai
 em `ire_transfer_pares.csv`. Resultados em [§14.3](#143-rodada-final-imagenet-val-12-modelos-3-sementes).
 
 Como a fórmula chegou à forma atual (CIFAR-10, ResNet-20, 2000 imagens, flip por condição, LOTO):
@@ -541,7 +543,8 @@ Use `backend: scratch` para as figuras do relatório da disciplina e para a vali
 | ImageNet-val de um espelho público | 50 000 imagens, 1000 classes × 50, rótulos oficiais; acurácias de base iguais às publicadas para os pesos do torchvision (ResNet-50 76,1 %, ViT-B/16 81,1 %). |
 | Imagens quase constantes distorcem medidas relativas | Excluídas por critério fixo (desvio < 1/255), definido antes de olhar o efeito nos preditores; 1 imagem em 54 mil. |
 | Uma semente só | CIFAR-10 e Imagenette com 3 sementes (desvio ≤ 0,04 de R² e ≤ 1 p.p. de acurácia); o ImageNet-val usa todas as imagens uma vez. |
-| Pesos do IRE ajustados por modelo | Teste de transferência entre modelos e entre bases (§8.2, §14.3). |
+| Pesos do IRE ajustados por modelo | Teste de transferência entre modelos e entre bases e recalibração de 1 fator de escala (§8.2, §14.3). |
+| Dose segura otimista para técnica nova | Medida a cobertura (`ire_dose_segura.csv`); recomendada margem de ~30 % em 224 px (§8.2, §14.3). |
 | Pesos de CIFAR são da comunidade, não "oficiais" | São os mais usados e reprodutíveis (torch.hub); relatar a acurácia de base. |
 | SR aprendida treinada em outro domínio (DIV2K/T91) | É exatamente o cenário de uso prático; relatar. |
 | Recorte/redimensionamento antes da técnica | É fixo e idêntico para todos; o espectro é medido sobre a entrada efetiva da rede. |
@@ -659,11 +662,43 @@ R² do flip por condição, média dos modelos (mín.–máx.). O Spearman fica 
     Imagenette). A ResNet-18 e a VGG-16-BN, as mais frágeis, são subestimadas em ~5 p.p. (R² 0,68–0,77).
 - **Entre bases, o mesmo modelo transfere razoavelmente** (R² 0,64–0,93), com viés de ~3 p.p.: a mesma perturbação muda mais
   decisões no ImageNet-val (1000 classes) que no Imagenette (10).
-- **Consequência para a dose segura.** O perfil de vulnerabilidade (quais bandas importam) é parecido entre os modelos, mas a
-  sensibilidade total é própria de cada um. A garantia "IRE ≤ −ln(1 − τ) ⇒ queda ≤ τ" vale com os pesos do próprio modelo. Com
-  pesos emprestados, ela deixa de ser conservadora justamente nos modelos frágeis, onde o IRE subestima o dano.
-- **Próximo passo natural:** manter os pesos de banda compartilhados e recalibrar só um fator de escala por modelo, com poucas
-  condições (por exemplo, só os filtros ideais). Isso testaria se 1 parâmetro por modelo basta.
+- **Consequência.** O perfil de vulnerabilidade (quais bandas importam) é parecido entre os modelos, mas a sensibilidade total é
+  própria de cada um. Com pesos emprestados, o IRE subestima o dano justamente nos modelos frágeis.
+
+**Pesos compartilhados + 1 fator de escala por modelo** ([scripts/ire_escala.py](scripts/ire_escala.py)). Os pesos de banda vêm
+dos outros modelos, sem a técnica prevista; o modelo-alvo ajusta só k em P = 1 − exp(−k · IRE). Duas fontes para k, nenhuma
+com a técnica prevista:
+
+| Protocolo (técnica e modelo novos) | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| Pesos do próprio modelo (referência) | 0,86 | 0,86 | 0,91 |
+| Pesos de outros modelos, sem escala | 0,85 | 0,63 (−0,15–0,91) | 0,74 (0,35–0,90) |
+| … + escala medida só no gaussiano | 0,38 | 0,70 (0,44–0,85) | **0,84 (0,72–0,91)** |
+| … + escala medida só nos filtros ideais | 0,85 | < 0 | < 0 |
+
+- **Em 224 px, uma técnica real basta para a escala.** Com k medido só no desfoque gaussiano, o ViT vai de R² 0,35 para 0,91 no
+  ImageNet-val, a ResNet-18 de 0,77 para 0,88 e a VGG de 0,75 para 0,85. A pior subestimação do flip cai de 30 para 15 p.p., o
+  mesmo nível dos pesos do próprio modelo (12–19 p.p.). O preço: nos modelos medianos (EfficientNet-B0, Swin-T) o R² cai um pouco
+  (até 0,72), e o viés fica levemente positivo (+2 a +5 p.p.), do lado seguro.
+- **Os filtros ideais não servem para calibrar a escala em 224 px**: k sai 2–3× maior e o IRE superestima o flip em ~15 p.p.
+  (R² < 0). Nunca subestima, mas fica inútil. É o mesmo motivo de o IRE calibrado só no oráculo não transferir (§10.6).
+- **Em 32 px não é preciso escala.** Os pesos de outros modelos já funcionam; medir a escala no gaussiano piora (R² 0,38), porque
+  no CIFAR-10 o gaussiano satura em ~80 % de flip e puxa k para cima.
+
+**A dose segura para técnica nova** (`ire_dose_segura.csv`). Com os pesos do próprio modelo e a técnica fora do ajuste, o limiar
+de flip 1 % previsto pelo IRE, comparado com o observado:
+
+| | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| razão previsto / observado (mediana) | 1,17 | 1,02 | 1,00 |
+| previsto ≤ observado | 35 % | 38 % | 40 % |
+| 80 % da dose prevista ≤ observado | 60 % | 78 % | 92 % |
+| 70 % da dose prevista ≤ observado | 64 % | 86 % | 98 % |
+| 50 % da dose prevista ≤ observado | 73 % | 92 % | 100 % |
+
+A desigualdade Δacc ≥ −flip é exata, mas a dose segura depende de o IRE não subestimar o flip. Para técnica nova, a previsão
+não tem viés em 224 px, porém erra para os dois lados. Na prática: usar ~70 % da dose prevista em 224 px. Em 32 px a previsão é
+otimista (razão 1,17) e nem 50 % da dose garante segurança.
 
 ### 14.4 O que falta
 
@@ -673,7 +708,8 @@ R² do flip por condição, média dos modelos (mín.–máx.). O Spearman fica 
 | ~~Alta~~ feito | Refazer o E4 no Imagenette com doses fortes e congelado/BN nas 1000 classes | `configs/e4_imagenette.yaml` (§14.2) |
 | Baixa | E4 sem o teto das 10 classes (as doses moderadas ainda saturam) | fine-tuning com um subconjunto de treino do ImageNet |
 | ~~Alta~~ feito | Doses menores (CLAHE misturado, SR 1,05–1,2, JPEG 99–100 e 4:4:4) | §14.1 |
-| Alta | Recalibrar só a escala do IRE por modelo (pesos de banda compartilhados) e checar se a garantia volta a ser conservadora | [scripts/ire_transfer.py](scripts/ire_transfer.py) (§14.3) |
+| ~~Alta~~ feito | Recalibrar só a escala do IRE por modelo (pesos de banda compartilhados) | [scripts/ire_escala.py](scripts/ire_escala.py) (§14.3) |
+| Alta | Dose segura com cobertura garantida para técnica nova: margem calibrada por predição conformal (deixando técnicas de fora) em vez da margem fixa de 30 % | sobre `ire_threshold_predictions.csv` |
 | Alta | Melhorar a fórmula nas técnicas de equalização (superestima ~2×). Já testados sem sucesso: separar amplitude × estrutura e tirar a curva tonal global (corrige o HE mas piora o resto). Próximo: curva tonal por bloco | ver [results.md](results.md) §6 |
 | ~~Média~~ feito | BRISQUE como métrica perceptual independente | `quality.brisque: true` (§8.3) |
 | Média | **Aplicar o estudo com pessoas** (kit pronto, falta coletar respostas) | `make human-export`, enviar a pasta e `make human-analyze` (§8.3) |

@@ -76,7 +76,9 @@
         <p>Medimos a "dose" pelo que a técnica faz ao espectro de Fourier, não pelo botão do algoritmo. Daí sai uma fórmula, o
           <strong>Índice de Risco Espectral</strong>, que prevê o dano de técnicas que nunca viu (R² 0,86–0,91), melhor que
           LPIPS, SSIM, PSNR e Yin et al. em 224 px.</p>
-        <p>Ela olha só a imagem e dá uma <strong>dose segura com garantia</strong>: IRE ≤ −ln(1 − τ) ⇒ queda de acurácia ≤ τ.</p></article>
+        <p>Ela olha só a imagem e estima uma <strong>dose segura</strong>: a queda de acurácia nunca passa da fração de flips, então
+          IRE ≤ −ln(1 − τ) limita a queda a τ. Para técnica nova a previsão não é conservadora: usando 70 % da dose prevista, fica
+          segura em 98 % dos casos no ImageNet-val.</p></article>
     </div>
   </div>
 </section>
@@ -154,7 +156,8 @@
       <p class="small muted">Os pesos do IRE são ajustados por modelo. Aqui eles são ajustados nos <em>outros</em> modelos e usados para
         prever o que ficou de fora. Em 32 px a transferência é completa (R² 0,85–0,89). Em 224 px a <strong>ordem</strong> do dano
         transfere (Spearman 0,89–0,97), mas a <strong>escala</strong> não: o ViT, mais robusto, é superestimado e a ResNet-18 e a
-        VGG, mais frágeis, subestimadas. A dose segura com garantia exige calibrar no próprio modelo.</p>
+        VGG, mais frágeis, subestimadas. Medindo uma única técnica (o gaussiano) no modelo-alvo para ajustar um fator de escala, o R²
+        sobe de 0,74 para 0,84 no ImageNet-val (ViT: 0,35 → 0,91). Calibrar a escala só com filtros ideais não funciona em 224 px.</p>
       <figure class="static"><img src="figures/ire_transfer.png" alt="R² do IRE em quatro protocolos de transferência e matriz de modelo calibrado para modelo aplicado no ImageNet-val." loading="lazy"></figure>
     </div>
   </div>
@@ -175,8 +178,9 @@
         aplicado a pré-processamento, com bootstrap pareado sobre as imagens.</span></li>
       <li><b>Janela operacional</b><span>Cruza a dose em que a técnica cumpre seu objetivo visual com a dose segura do classificador:
         diz se existe uma intensidade que melhora a imagem sem custar acurácia.</span></li>
-      <li><b>Índice de Risco Espectral (IRE)</b><span>Fórmula própria, P(flip) = 1 − e<sup>−IRE</sup>, com garantia formal
-        (queda de acurácia ≤ P(flip)) e orçamento espectral: dá a dose segura de uma técnica nova sem rodar a rede.</span></li>
+      <li><b>Índice de Risco Espectral (IRE)</b><span>Fórmula própria, P(flip) = 1 − e<sup>−IRE</sup>, com limite exato
+        (queda de acurácia ≤ flip) e orçamento espectral: estima a dose segura sem rodar a rede. Para técnica nova, recomenda-se
+        margem de ~30 %.</span></li>
       <li><b>Domain shift × informação perdida</b><span>Na mesma bateria: modelo congelado, só re-estimar o BatchNorm, sonda linear e
         fine-tuning — separa o que o modelo poderia recuperar do que a imagem perdeu de fato.</span></li>
       <li><b>Achados de implementação que importam</b><span>A subamostragem de cor domina o JPEG de alta qualidade; o clip do CLAHE é
@@ -282,8 +286,11 @@
           <li><b>w, c, u ≥ 0</b> e o expoente <b>γ</b>: ajustados uma vez por modelo, por máxima verossimilhança.</li>
         </ul>
         <div class="formula" id="f3"></div>
-        <p class="small muted">Só uma decisão que muda pode virar erro, então manter o IRE abaixo desse orçamento garante queda de acurácia
-          ≤ τ. Para τ = 1%, o orçamento é 0,01005. <code>make safe-dose</code> usa isso para achar a dose segura sem rodar a rede.</p>
+        <p class="small muted">Só uma decisão que muda pode virar erro, então, se o IRE não subestimar o flip, mantê-lo abaixo desse
+          orçamento limita a queda de acurácia a τ. Para τ = 1%, o orçamento é 0,01005. <code>make safe-dose</code> usa isso para
+          estimar a dose segura sem rodar a rede. Para uma técnica que a fórmula não viu, o limiar previsto acerta na mediana mas
+          erra para os dois lados: usando 70 % da dose prevista, fica seguro em 98 % dos casos no ImageNet-val, 86 % no Imagenette
+          e 64 % no CIFAR-10.</p>
         <table class="mtable" id="ire-table"></table>
       </div>
       <div class="card"><h3>Previsto × observado</h3>

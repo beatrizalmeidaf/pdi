@@ -54,7 +54,13 @@ pergunta deste trabalho é simples: **isso ajuda a rede a acertar?**
    - É melhor que LPIPS, SSIM, PSNR e a métrica espectral de Yin et al. em dois dos três datasets; só perde para o LPIPS no
      CIFAR-10.
    - Só é superada por medidas que precisam rodar a própria rede.
-3. A fórmula traz uma **dose segura** com garantia: se IRE ≤ −ln(1 − τ), a acurácia cai no máximo τ.
+3. A fórmula dá uma **dose segura** estimada sem rodar a rede.
+   - Como a acurácia nunca cai mais que a fração de decisões que mudam, IRE ≤ −ln(1 − τ) limita a queda a τ, *se* o IRE não
+     subestimar essa fração.
+   - Para uma técnica nova, o limiar previsto acerta na mediana (ImageNet-val: razão previsto/observado 1,00), mas não é
+     conservador: fica abaixo do observado em só ~40 % dos casos.
+   - Com uma margem (usar 70 % da dose prevista), fica seguro em 98 % dos casos no ImageNet-val e 86 % no Imagenette. No CIFAR-10,
+     só em 64 %.
 4. Limiares com intervalo de confiança (**BMD**, vocabulário da toxicologia) para 14 técnicas × 12 modelos. Inclui equalização,
    realce e super-resolução, que a literatura quase não testava.
 
@@ -181,8 +187,21 @@ $$
 - **1 − ρ_B** é a perda de coerência espectral, isto é, de estrutura e fase.
 - Os pesos **w, c, u ≥ 0** e o expoente **γ** são ajustados uma vez por modelo.
 
-Como só uma decisão que muda pode virar erro, **IRE ≤ −ln(1 − τ) garante queda de acurácia ≤ τ**. Daí sai a dose segura de uma
-técnica nova **sem rodar a rede** (`make safe-dose`).
+Como só uma decisão que muda pode virar erro, a queda de acurácia nunca passa da fração de flips. Então, **se o IRE não
+subestimar o flip, IRE ≤ −ln(1 − τ) limita a queda de acurácia a τ**. Daí sai uma dose segura estimada **sem rodar a rede**
+(`make safe-dose`).
+
+O "se" importa. Para uma técnica que a fórmula não viu, o limiar de 1 % de flip previsto:
+
+| | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| razão previsto / observado (mediana) | 1,17 | 1,02 | 1,00 |
+| previsto ≤ observado (dose segura de fato) | 35 % | 38 % | 40 % |
+| … usando 80 % da dose prevista | 60 % | 78 % | 92 % |
+| … usando 70 % da dose prevista | 64 % | 86 % | 98 % |
+
+Ou seja, a previsão não tem viés em 224 px, mas erra para os dois lados. Na prática, a dose segura precisa de uma margem de ~30 %;
+em 32 px, nem isso basta.
 
 Desempenho prevendo técnicas que a fórmula não viu:
 - R² **0,78–0,95** por modelo (média 0,86 / 0,86 / 0,91) e Spearman 0,92–0,98;
@@ -194,8 +213,14 @@ A coerência de fase foi o que fez a fórmula funcionar: com ela o R² sobe de 0
 - Em 32 px, sim: calibrado nos outros 4 modelos, prevê o quinto tão bem quanto os próprios pesos (R² 0,85–0,89).
 - Em 224 px a **ordem** das condições transfere (Spearman 0,89–0,97), mas a **escala** não. Os modelos medianos ficam em R² 0,8–0,9.
   O ViT, o mais robusto, é superestimado (~6 p.p. de flip), e a ResNet-18 e a VGG, as mais frágeis, subestimadas (~5 p.p.).
-- Ou seja, as bandas que importam são parecidas entre modelos, mas a sensibilidade total é de cada um. A dose segura com garantia
-  exige calibrar no próprio modelo. Detalhes em [results.md](results.md) §0.6.
+- Ou seja, as bandas que importam são parecidas entre modelos, mas a sensibilidade total é de cada um.
+- **Corrigir só a escala resolve boa parte.** Os pesos de banda vêm dos outros modelos, e o modelo-alvo ajusta só um número,
+  medindo uma única técnica barata (o desfoque gaussiano). Com isso:
+  - o R² médio sobe de 0,74 para 0,84 no ImageNet-val e de 0,63 para 0,70 no Imagenette;
+  - o ViT passa de 0,35 para 0,91, e a pior subestimação cai de 30 para 15 p.p., o mesmo nível dos pesos do próprio modelo.
+- Calibrar essa escala só com os filtros ideais **não** funciona em 224 px: o IRE passa a superestimar o dano em ~15 p.p. Em 32 px
+  não é preciso escala nenhuma.
+- Detalhes em [results.md](results.md) §0.6.
 
 ![Transferência do IRE entre modelos](docs/figures/ire_transfer.png)
 
@@ -241,7 +266,7 @@ Cruzando uma métrica perceptual independente (BRISQUE) com a acurácia:
 | "Dose" medida pelo parâmetro do algoritmo | **Dose medida no sinal:** ΔE por banda, coerência de fase e perturbação de cor, imagem a imagem. É isso que permite comparar e prever técnicas diferentes num mesmo eixo |
 | Sem limiares, só tabelas de pontos | **Modelagem dose-resposta** com vocabulário da toxicologia (BMD, BMDL, NOAEL, LOAEL, hormese), IC por bootstrap pareado e **janela operacional** (objetivo visual × limite seguro) |
 | Perda de informação confundida com *domain shift* | Mesma bateria com modelo congelado, BatchNorm re-estimado, sonda linear e fine-tuning |
-| Hipótese espectral frágil e qualitativa | **Índice de Risco Espectral:** fórmula de risco com garantia formal de acurácia, validada em técnicas que não viu e comparada com PSNR, SSIM, LPIPS e Yin et al. Dá a dose segura sem rodar a rede |
+| Hipótese espectral frágil e qualitativa | **Índice de Risco Espectral:** fórmula de risco que limita a queda de acurácia pela taxa de flip, validada em técnicas e modelos que não viu e comparada com PSNR, SSIM, LPIPS e Yin et al. Estima a dose segura sem rodar a rede |
 | Resultados em subconjuntos pequenos | ImageNet-val completo (50 mil imagens), 12 modelos (10 CNNs + ViT + Swin), 3 sementes nas bases menores |
 
 Também saíram do trabalho quatro achados de implementação que afetam qualquer estudo do tipo:
@@ -265,7 +290,7 @@ cinza, PSNR ≥ 37 dB.
 | H4 | Técnicas invertíveis causam *domain shift*; destrutivas, perda de informação | ✅ Aguçamento/blur leve voltam a ~1 p.p.; JPEG forte, mediana e Wiener ficam 6–13 p.p. abaixo (CIFAR-10) |
 | H5 | A coerência de fase acrescenta poder explicativo à energia | ✅ +0,09 a +0,32 de R² nos três datasets |
 | H6 | Existe janela operacional para técnicas redistributivas | 🟡 Parcial: blur leve, unsharp, laplaciano e equalização global sim em 224 px; CLAHE misturado só em 2/7 modelos; mediana quase nunca |
-| H7 | O IRE prevê o dano de técnicas que não viu | ✅ R² 0,86–0,91 e melhor que LPIPS, SSIM e Yin et al. em 224 px. Entre modelos, transfere em 32 px; em 224 px só a ordem. Calibrado só em filtros ideais, só funciona em 32 px |
+| H7 | O IRE prevê o dano de técnicas que não viu | ✅ R² 0,86–0,91 e melhor que LPIPS, SSIM e Yin et al. em 224 px. Entre modelos, transfere em 32 px; em 224 px, com 1 fator de escala por modelo. A dose segura prevista precisa de margem de ~30 % |
 
 ## Como funciona
 
@@ -300,6 +325,7 @@ make human-export                  # kit do estudo com pessoas (index.html local
 setsid nohup bash scripts/run_publicacao.sh &   # retomável; progresso: bash scripts/status_publicacao.sh
 python scripts/figuras_publicacao.py            # figuras *_pub.png e tabelas em docs/resultados/pub/
 python scripts/ire_transfer.py                  # IRE entre modelos e bases (~25 min em CPU)
+PYTHONPATH=scripts python scripts/ire_escala.py  # pesos compartilhados + 1 escala por modelo; cobertura da dose segura
 make report                                     # figuras do README e dados do site a partir da rodada final
 ```
 
@@ -326,8 +352,10 @@ direto.
 
 - **Sem sementes no ImageNet-val.** Ele usa todas as 50 mil imagens; as sementes (3) ficaram para CIFAR-10 e Imagenette, onde o
   desvio entre elas é pequeno: ≤ 0,04 de R² e ≤ 1 p.p. de acurácia.
-- **Os pesos do IRE são por modelo.** Em 224 px, pesos emprestados de outros modelos acertam a ordem do dano, mas não o nível, e
-  subestimam o dano nos modelos frágeis. Recalibrar só um fator de escala por modelo é o próximo passo.
+- **A dose segura não é conservadora para técnica nova.** O limiar previsto acerta na mediana, mas fica abaixo do observado em só
+  ~40 % dos casos. Com 70 % da dose prevista, fica seguro em 98 % no ImageNet-val, 86 % no Imagenette e 64 % no CIFAR-10.
+- **Os pesos do IRE são por modelo.** Em 224 px, pesos de outros modelos acertam a ordem do dano, mas não o nível. Medir uma técnica
+  (o gaussiano) no modelo-alvo para ajustar um fator de escala recupera quase todo o desempenho.
 - **A fórmula superestima o dano da equalização** (~2×), ou seja, erra para o lado seguro. Calibrada só em filtros ideais, ela não
   transfere para 224 px.
 - **O "objetivo visual" usa métricas sem referência** (nitidez, ruído, contraste, BRISQUE). O estudo com pessoas está pronto, mas
