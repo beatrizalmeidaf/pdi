@@ -46,3 +46,18 @@ def test_stretch_satura_os_percentis(img):
 def test_webp_qualidade_menor_erra_mais(img):
     e = [np.abs(T.apply("webp", img, {"quality": q}, "scratch").astype(float) - img).mean() for q in (95, 30)]
     assert e[1] > e[0]
+
+
+def test_filtro_de_banda_suave():
+    from pdi_spectral.techniques import oracle
+
+    rng = np.random.default_rng(2)
+    img = (rng.random((48, 48, 3)) * 255).astype(np.uint8)
+    # soft = 0 reproduz o filtro ideal
+    assert np.array_equal(oracle.band_gain(img, 0.1, 0.2, 0.0), oracle.band_gain(img, 0.1, 0.2, 0.0, soft=0.0))
+    m = oracle.band_mask(48, 48, 0.1, 0.2, 0.0, soft=0.05)
+    r = oracle._radius(48, 48)
+    assert m[r == 0].item() == 1.0                       # DC preservado
+    assert np.all(m[r > 0.3] == 1.0) and np.all((m >= 0) & (m <= 1))
+    assert np.isclose(m[np.isclose(r, 0.15, atol=0.01)].mean(), 0.0, atol=1e-6)   # centro do anel removido
+    assert 0 < m[np.isclose(r, 0.1, atol=0.01)].mean() < 1                         # transição na borda

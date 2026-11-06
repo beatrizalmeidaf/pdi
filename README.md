@@ -351,6 +351,9 @@ python scripts/ire_decomposicao.py --run <run>  # de onde vem o risco previsto (
 setsid nohup bash scripts/run_validacao_externa.sh &   # 6 técnicas novas nas mesmas imagens e modelos (~1h30 em 1 GPU)
 PYTHONPATH=scripts python scripts/ire_validacao_externa.py   # IRE e margem testados nas técnicas novas
 python scripts/ire_oraculo_diagnostico.py      # por que os filtros ideais não calibram o IRE em 224 px
+setsid nohup bash scripts/run_oraculo_suave.sh &     # filtros de borda suave; depois python scripts/ire_oraculo_suave.py
+setsid nohup bash scripts/run_oraculo_parcial.sh &   # atenuação parcial; depois python scripts/ire_oraculo_suave.py --parcial
+python scripts/ire_oraculo_aditividade.py && python scripts/ire_oraculo_reverso.py
 make report                                     # figuras do README e dados do site a partir da rodada final
 ```
 
@@ -440,8 +443,11 @@ e rodar um classificador em 200 imagens custa segundos.
 - **Como escrever.** Mostrar a **curva de compromisso** α × cobertura × dose aproveitada (α = 0,1: 93 % e 29–54 %; α = 0,2: 86 %
   e 44–80 %), em vez de um único número. Dizer explicitamente que a suposição é trocabilidade entre técnicas, e que sem margem
   a regra "segura" falha em 43–64 % das técnicas novas.
-- **Falta.** Medir quanto da dose segura a margem de 20 técnicas aproveita (deve subir junto com c) e ampliar para outras
-  famílias (denoising aprendido, filtros de cor).
+- **Dose aproveitada com 20 técnicas: medida.** Nas mesmas 20 técnicas (previsões deixando cada uma de fora), com α = 0,1, a
+  margem calibrada com 20 aproveita **42 / 48 / 37 %** da dose realmente segura (CIFAR-10 / Imagenette / ImageNet-val), contra
+  32 / 30 / 31 % com a margem das 14. Com α = 0,05, 39 / 39 / 36 %; com α = 0,2, 53 / 53 / 49 %. Mais técnicas deixam a margem
+  menos conservadora sem perder cobertura.
+- **Falta.** Ampliar para outras famílias (denoising aprendido, filtros de cor).
 
 ### 4. "Em 224 px o IRE precisa de técnicas reais para calibrar"
 
@@ -449,22 +455,30 @@ e rodar um classificador em 200 imagens custa segundos.
   (R² < 0,2), e os filtros ideais também não servem para calibrar o fator de escala (superestimam o flip em ~15 p.p.).
 - **Como escrever.** Assumir como achado: filtros ideais não representam técnicas reais em 224 px. A receita prática é
   barata: **uma** técnica real (o gaussiano) por modelo basta para a escala.
-- **Por quê: investigado** ([scripts/ire_oraculo_diagnostico.py](scripts/ire_oraculo_diagnostico.py)). Três hipóteses testadas:
-  - *"Os filtros ideais não produzem a perda de coerência das técnicas reais"* — **refutada**. Os filtros cobrem toda a faixa de
-    perda de coerência das técnicas reais (até ~1), e a perda de estrutura por unidade de energia é parecida nos dois. Só a
-    energia de alta frequência do aguçamento sai da faixa (15 % das condições).
-  - *"O problema é o regime: filtros são perturbações grandes, técnicas reais são finas"* — **refutada**. O expoente γ ajustado
-    nos filtros é maior (0,56–1,19 contra 0,48–0,63 em 224 px), mas fixar o γ das técnicas reais não melhora; piora.
-  - *"O que atrapalha são os filtros que **removem** frequência"* — **confirmada**. Calibrado nos filtros ideais, o IRE
-    superestima o flip das técnicas reais em 4–13 p.p. (média de 8–9): por unidade de perturbação medida, o filtro ideal prejudica mais. Tirar o
-    anel mais baixo não resolve (piora). O que separa é o tipo de filtro: só os que **dobram** um anel transferem razoavelmente
-    para as técnicas reais em 224 px (R² 0,12–0,46); os que removem (anel, passa-baixa, passa-alta) ficam em R² −0,9 a −5.
-- **Como escrever.** Os filtros ideais de remoção têm corte abrupto, e as técnicas reais atenuam suavemente. Em 224 px, o corte
-  abrupto prejudica a rede mais do que a energia e a coerência globais indicam. A explicação provável é a ondulação espacial
-  do corte (efeito de Gibbs), que uma medida espectral global não capta. Para o artigo: apresentar como limitação do oráculo
-  ideal, não do IRE.
-- **Falta.** Confirmar com filtros de banda **suaves** (borda gaussiana em vez de corte abrupto): se a hipótese do corte
-  estiver certa, eles devem calibrar o IRE em 224 px.
+- **Por quê: investigado.** Sete hipóteses testadas, seis refutadas
+  ([ire_oraculo_diagnostico.py](scripts/ire_oraculo_diagnostico.py), [ire_oraculo_suave.py](scripts/ire_oraculo_suave.py),
+  [ire_oraculo_aditividade.py](scripts/ire_oraculo_aditividade.py), [ire_oraculo_reverso.py](scripts/ire_oraculo_reverso.py)):
+
+  | Hipótese | Teste | Resultado em 224 px |
+  |---|---|---|
+  | Os filtros não produzem a perda de coerência das técnicas reais | faixa de cada componente | refutada: cobrem toda a faixa de coerência |
+  | Regime: filtros são perturbações grandes, técnicas reais são finas | fixar o γ das técnicas reais | refutada: piora |
+  | O anel mais baixo (−30 a −64 p.p.) distorce o ajuste | ajustar sem ele | refutada: piora |
+  | O corte abrupto (ondulação de Gibbs) | filtros com borda em cosseno | refutada: mesmo dano por unidade de energia (7,0 × 7,2) e R² ainda negativo |
+  | O IRE soma o dano anel por anel | expoente sobre a soma, (Σ w·x)^γ | refutada: R² −1,45 / −0,41 contra −1,01 / −0,33 |
+  | Falta dose dentro do anel (os filtros só zeram ou dobram) | filtros que mantêm 25, 50 e 75 % do anel | refutada: R² −0,93 / −0,02, e dano por energia ainda maior (18–21) |
+  | **A descrição espectral não distingue filtros de técnicas reais** | IRE ajustado nas técnicas reais prevendo os filtros | **confirmada**: em 32 px prevê (R² 0,90–0,93); em 224 px não (R² ~0), e os filtros prejudicam 1,2–2× mais do que o previsto |
+
+  Em 224 px, com as mesmas medidas espectrais, um filtro de banda prejudica a rede 1,6–1,8× mais por unidade de energia que uma
+  técnica real (7,2–9,3 contra 4,5–5,2 p.p. de flip por unidade de D). Isso vale até comparando um passa-baixa suave com o
+  gaussiano, que também é um passa-baixa suave (5,9–7,0 contra 4,0–5,0).
+- **Como escrever.** O oráculo de filtros de banda é ótimo para medir **quais** bandas importam (§4), mas não para **calibrar** o
+  IRE em 224 px: lá, filtros e técnicas reais têm as mesmas medidas e danos diferentes. A calibração tem de usar técnicas reais;
+  uma só basta para a escala (§6). Apresentar como limite do oráculo e da resolução da medida, não como falha do IRE em técnicas
+  reais (que ele prevê fora da amostra com R² 0,81–0,97).
+- **Falta.** A hipótese mais concreta que sobrou é a **resolução da coerência**: a energia é medida em 17 anéis, mas a coerência
+  só em 3 bandas largas. Um filtro destrói a estrutura num anel estreito, o que se dilui na medida grossa; em 32 px os anéis já
+  são poucos e largos. Teste: medir a coerência por anel (`spectral.py`) e recalcular o espectro das rodadas.
 
 ### 5. "Blur leve já prejudica não é novidade"
 

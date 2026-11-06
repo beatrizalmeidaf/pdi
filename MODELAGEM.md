@@ -748,6 +748,7 @@ modelos da rodada final, escolhidas depois dela.
 | 20 técnicas, LOTO: R² do IRE | 0,90 | 0,85 | 0,88 |
 | 20 técnicas, margem conformal α = 0,05 / 0,1 / 0,2: cobertura por técnica | 95 / 90 / 80 % | 95 / 90 / 80 % | 95 / 90 / 80 % |
 | … fator c com α = 0,1 (com 14 técnicas) | 0,23 (0,18) | 0,57 (0,37) | 0,65 (0,55) |
+| … dose aproveitada com α = 0,1, margem das 20 (das 14), nas mesmas 20 técnicas | 42 % (32 %) | 48 % (30 %) | 37 % (31 %) |
 
 Por técnica nova (razão previsto/observado do flip, condições com flip > 2 %): reamostragem e WebP acertam (1,0–1,2); o
 filtro da média fica perto (1,0–1,25); gama e alongamento de contraste são superestimados (1,3–1,8×, como a equalização);
@@ -756,16 +757,22 @@ exagera mudanças globais de tom e subestima a suavização que preserva bordas.
 
 **Por que os filtros ideais não calibram o IRE em 224 px** ([scripts/ire_oraculo_diagnostico.py](scripts/ire_oraculo_diagnostico.py)):
 
-| Hipótese | Teste | Resultado |
+| Hipótese | Teste | Resultado em 224 px |
 |---|---|---|
 | Os filtros não produzem a perda de coerência das técnicas reais | faixa de cada componente nos filtros × nas técnicas | refutada: cobrem toda a faixa de coerência; só a energia de alta frequência do aguçamento sai dela |
-| Regime: filtros são perturbações grandes, técnicas reais são finas | fixar nos filtros o γ das técnicas reais | refutada: γ dos filtros é maior (0,56–1,19 × 0,48–0,63), mas fixá-lo não melhora |
+| Regime: filtros são perturbações grandes, técnicas reais são finas | fixar nos filtros o γ das técnicas reais | refutada: γ dos filtros é maior (0,56–1,19 × 0,48–0,63), mas fixá-lo piora |
 | O anel mais baixo (que derruba 30–64 p.p.) distorce o ajuste | ajustar sem ele | refutada: piora |
-| Os filtros que **removem** frequência são o problema | ajustar só com cada tipo de filtro | confirmada: só "dobrar um anel" transfere em 224 px (R² 0,12–0,46); remover anel, passa-baixa e passa-alta: R² −0,9 a −5 |
+| O corte abrupto (ondulação de Gibbs) | filtros com borda em cosseno (`oracle.soft`) | refutada: mesmo dano por unidade de energia (7,0 × 7,2 no ImageNet-val) e R² ainda negativo |
+| O IRE soma o dano anel por anel | expoente sobre a soma, (Σ w·x)^γ | refutada: R² −1,45 / −0,41 contra −1,01 / −0,33 |
+| Falta dose dentro do anel | filtros que mantêm 25, 50 e 75 % de cada anel | refutada: R² −0,93 / −0,02; dano por energia ainda maior (18–21) |
+| **A descrição espectral não distingue filtros de técnicas reais** | IRE ajustado nas técnicas reais prevendo os filtros | **confirmada**: em 32 px prevê (R² 0,90–0,93); em 224 px não (R² ~0; os filtros prejudicam 1,2–2× mais que o previsto) |
 
-Calibrado nos filtros ideais, o IRE superestima o flip das técnicas reais: por unidade de perturbação medida, o corte abrupto
-de um filtro ideal prejudica mais a rede em 224 px. Explicação provável, ainda não testada: a ondulação espacial do corte
-(efeito de Gibbs), que uma medida espectral global não capta. Teste pendente: filtros de banda com borda suave.
+Em 224 px, com as mesmas medidas, um filtro de banda prejudica 1,6–1,8× mais por unidade de energia que uma técnica real
+(7,2–9,3 contra 4,5–5,2 p.p. de flip por unidade de D), mesmo comparando um passa-baixa suave com o gaussiano (5,9–7,0 contra
+4,0–5,0). O oráculo serve para medir quais bandas importam, não para calibrar o IRE em 224 px. Hipótese que sobrou: a
+coerência é medida em só 3 bandas largas (a energia, em 17 anéis), e a perda de estrutura num anel estreito se dilui nelas.
+Teste pendente: coerência por anel ([scripts/ire_oraculo_suave.py](scripts/ire_oraculo_suave.py),
+[ire_oraculo_aditividade.py](scripts/ire_oraculo_aditividade.py), [ire_oraculo_reverso.py](scripts/ire_oraculo_reverso.py)).
 
 ### 14.4 O que falta
 
@@ -778,7 +785,8 @@ de um filtro ideal prejudica mais a rede em 224 px. Explicação provável, aind
 | ~~Alta~~ feito | Recalibrar só a escala do IRE por modelo (pesos de banda compartilhados) | [scripts/ire_escala.py](scripts/ire_escala.py) (§14.3) |
 | ~~Alta~~ feito | Dose segura com cobertura garantida para técnica nova: fator conformal no orçamento de flip | [scripts/ire_conformal.py](scripts/ire_conformal.py) (§8.2, §14.3) |
 | ~~Média~~ feito | Calibrar o fator conformal com mais técnicas: 6 técnicas de validação externa (20 no total, α até 0,048) | [scripts/ire_validacao_externa.py](scripts/ire_validacao_externa.py) |
-| Média | Filtros de banda com borda suave, para testar se o corte abrupto é o que impede o oráculo de calibrar em 224 px | `techniques/oracle.py` |
+| ~~Média~~ feito | Filtros de banda com borda suave e com atenuação parcial (hipóteses do corte abrupto e da dose no anel: refutadas) | `oracle.soft`, `oracle.gains`; [scripts/ire_oraculo_suave.py](scripts/ire_oraculo_suave.py) |
+| Média | Coerência por anel em vez de 3 bandas: última hipótese para o oráculo não calibrar em 224 px | `spectral.py` + recalcular o espectro |
 | Baixa | Entradas já degradadas (CIFAR-10-C) e mais famílias de técnicas (denoising aprendido, filtros de cor) | — |
 | Alta | Melhorar a fórmula nas técnicas de equalização (superestima 1,3–2,3×). Já testados sem sucesso: separar amplitude × estrutura e tirar a curva tonal global (corrige o HE mas piora o resto). Próximo: curva tonal por bloco | ver [results.md](results.md) §6 |
 | ~~Média~~ feito | BRISQUE como métrica perceptual independente | `quality.brisque: true` (§8.3) |

@@ -1,0 +1,13 @@
+# Filtros de banda com borda SUAVE (transição em cosseno da largura de um anel, 0,0625 ciclo/pixel) em vez do corte abrupto.
+# Testa se o corte abrupto (ondulação de Gibbs) é o que impede o oráculo de calibrar o IRE em 224 px.
+# Rodado só no E1 (oracle); analisado por scripts/ire_oraculo_suave.py.
+extends: pub_cifar10.yaml
+run_name: pub_cifar10_s0_oraculo_suave
+
+oracle:
+  soft: 0.0625
+
+quality:
+  brisque: false
+  lpips: false
+  feature_distance: false

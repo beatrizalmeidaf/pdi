@@ -67,17 +67,18 @@ def build_conditions(cfg: dict, kind: str) -> list[Condition]:
     elif kind == "oracle":
         oc = cfg["oracle"]
         n = int(oc.get("n_bins", 8))
+        soft = {"soft": float(oc["soft"])} if oc.get("soft") else {}  # filtros de borda suave (ver oracle.py)
         edges = list(np.linspace(0, 0.5, n + 1)) + [R_MAX + 1e-9]
         for g in oc.get("gains", [0.0, 2.0]):
             for i in range(len(edges) - 1):
-                p = dict(r_lo=float(edges[i]), r_hi=float(edges[i + 1]), gain=float(g))
+                p = dict(r_lo=float(edges[i]), r_hi=float(edges[i + 1]), gain=float(g), **soft)
                 center = 0.5 * (edges[i] + min(edges[i + 1], R_MAX))
                 conds.append(Condition(f"oracle_band_g{g:g}@{i}", "oracle_band", i, len(edges) - 1, p,
                                        "oracle", "oraculo", center))
         for kind_, key in (("oracle_lowpass", "lowpass"), ("oracle_highpass", "highpass")):
             cuts = oc.get(key, [])
             for i, c in enumerate(cuts):
-                conds.append(Condition(f"{kind_}@{i}", kind_, i, len(cuts), {"cutoff": float(c)},
+                conds.append(Condition(f"{kind_}@{i}", kind_, i, len(cuts), {"cutoff": float(c), **soft},
                                        "oracle", "oraculo", float(c)))
     else:
         raise ValueError(kind)

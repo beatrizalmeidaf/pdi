@@ -164,6 +164,7 @@ oracle:
   gains: [0.0, 2.0]         # remove a banda / dobra a amplitude da banda
   lowpass:  [0.05, 0.10, 0.15, 0.25, 0.35]
   highpass: [0.02, 0.05, 0.10, 0.15]
+  soft: 0                   # > 0: borda em cosseno dessa largura (ciclos/pixel) em vez do corte abrupto (ver oracle.py)
 
 # ---------------------------------------------------------------------------
 # E4 — adaptação (domain shift x perda de informação)

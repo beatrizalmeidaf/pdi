@@ -22,6 +22,7 @@ from pathlib import Path
 import numpy as np
 import pandas as pd
 
+from ire_conformal import dose_cost_cp
 from ire_transfer import _load
 from pdi_spectral.config import load_config
 from pdi_spectral.thresholds import _r2, conformal_margin, fit_ire, ire_matrix, ire_prob, margin_scores
@@ -136,7 +137,19 @@ def main():
                              cobertura_par=float(np.mean(okp)) if okp else np.nan,
                              r2_loto_20=_r2(r["cp_loto"].flip.to_numpy(), r["cp_loto"].p_loto.to_numpy())))
     loto = pd.DataFrame(loto)
+    # quanto da dose realmente segura a margem aproveita, com 14 técnicas (análise original) e com 20 (LOTO)
+    m14 = pd.read_csv(OUT / "ire_conformal_margens.csv")
+    for i, row in loto.iterrows():
+        cp20 = res[row.run]["cp_loto"]
+        c14 = m14[(m14.run == row.run) & (m14.alpha == row.alpha)].margem
+        for nome, c in [("aproveita_20", row.margem_todas), ("aproveita_14", float(c14.iloc[0]) if len(c14) else np.nan)]:
+            cost = dose_cost_cp(cp20, CFG, c) if np.isfinite(c) else pd.DataFrame(columns=["aproveita"])
+            loto.loc[i, nome] = float(cost.aproveita.median()) if len(cost) else np.nan
     loto.to_csv(OUT / "ire_validacao_externa_20tecnicas.csv", index=False)
+    pd.concat([r["cp_loto"].assign(run=k) for k, r in res.items()]).to_csv(OUT / "ire_validacao_externa_cp_loto.csv",
+                                                                           index=False)
+    pd.concat([r["cp_ext"].assign(run=k) for k, r in res.items()]).to_csv(OUT / "ire_validacao_externa_cp_externo.csv",
+                                                                          index=False)
 
     for f in ("ire_validacao_externa.csv", "ire_validacao_externa_margem.csv", "ire_validacao_externa_20tecnicas.csv"):
         (DOCS / f).write_bytes((OUT / f).read_bytes())
@@ -149,7 +162,8 @@ def main():
                                                                              "cobertura_par"]].mean().round(2).to_string())
     print("3. 20 técnicas (LOTO)\n", loto.groupby(["dataset", "alpha"])[["margem_todas", "cobertura_tecnica",
                                                                           "cobertura_tecnica_novas", "cobertura_par",
-                                                                          "r2_loto_20"]].mean().round(3).to_string())
+                                                                          "r2_loto_20", "aproveita_14",
+                                                                          "aproveita_20"]].mean().round(3).to_string())
 
 
 if __name__ == "__main__":

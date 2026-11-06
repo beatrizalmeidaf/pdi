@@ -51,14 +51,19 @@ def scores(run: str) -> pd.DataFrame:
 
 
 def dose_cost(run: str, c: float, tau: float = 0.01) -> pd.DataFrame:
-    """Quanto da dose realmente segura a regra com fator c aproveita: (d_rec − id) / (d_obs − id), por curva.
+    """Quanto da dose realmente segura a regra com fator c aproveita (ver dose_cost_cp), na análise de ``run``."""
+    cp = pd.read_csv(R / run / "analysis" / "ire_condition_predictions.csv")
+    return dose_cost_cp(cp, load_config(RUNS[run]), c, tau)
 
-    Só curvas em que existe dose segura testada (o limiar observado cai depois da 1ª dose).
+
+def dose_cost_cp(cp: pd.DataFrame, cfg: dict, c: float, tau: float = 0.01) -> pd.DataFrame:
+    """(d_rec − id) / (d_obs − id) por curva: d_rec = 1ª dose com flip previsto >= c·τ, d_obs = limiar real.
+
+    ``cp`` tem flip e p_loto por condição. Só curvas em que existe dose segura testada (o limiar observado cai depois da
+    1ª dose).
     """
     from pdi_spectral.thresholds import crossing, intensity, technique_meta
 
-    cfg = load_config(RUNS[run])
-    cp = pd.read_csv(R / run / "analysis" / "ire_condition_predictions.csv")
     rows = []
     for (model, t), g in cp.groupby(["model", "technique"]):
         meta = technique_meta(cfg, t)

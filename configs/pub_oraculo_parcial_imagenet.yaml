@@ -1,0 +1,19 @@
+# Filtros ideais com ATENUAÇÃO PARCIAL de cada anel (mantém 25 %, 50 % ou 75 % da amplitude), sem passa-baixa/alta.
+# Os filtros originais só zeram (ganho 0) ou dobram (ganho 2) um anel: não há dose dentro do anel, e as técnicas reais
+# quase sempre atenuam um pouco de cada anel. Testa se é isso que impede o oráculo de calibrar o IRE em 224 px.
+# Rodado só no E1 (oracle); analisado por scripts/ire_oraculo_suave.py --parcial.
+extends: pub_imagenet.yaml
+run_name: pub_imagenet_oraculo_parcial
+
+datasets:
+  imagenet_val:
+    n_images: 10000
+oracle:
+  gains: [0.25, 0.5, 0.75]
+  lowpass: []
+  highpass: []
+
+quality:
+  brisque: false
+  lpips: false
+  feature_distance: false
