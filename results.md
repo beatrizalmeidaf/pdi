@@ -200,22 +200,40 @@ com a técnica prevista:
 - **Em 32 px não é preciso escala.** Os pesos de outros modelos já funcionam; medir a escala no gaussiano piora (R² 0,38), porque
   no CIFAR-10 o gaussiano satura em ~80 % de flip e puxa k para cima.
 
-**A dose segura para técnica nova** (`ire_dose_segura.csv`). Com os pesos do próprio modelo e a técnica fora do ajuste, o limiar
-de flip 1 % previsto pelo IRE, comparado com o observado:
+**A dose segura para técnica nova: margem conformal** (`ire_conformal*.csv`).
+
+A margem fica no **orçamento de flip**, não na dose: a regra passa a ser "aceitar a dose só se o IRE prevê flip ≤ c · τ" (orçamento
+−ln(1 − c · τ)). Assim ela vale para qualquer técnica, inclusive o JPEG, cujo limiar pode cair já na qualidade 100. O fator c é
+calibrado por **predição conformal** sobre as técnicas: para cada técnica, o escore é o pior modelo de τ / p̂, onde p̂ é o flip
+que o IRE (sem aquela técnica) previa na dose em que o flip observado cruza τ; c = 1 / quantil conformal desses escores. Se as
+técnicas forem trocáveis, uma técnica nova fica segura em **todos** os modelos com probabilidade ≥ 1 − α
+([scripts/ire_conformal.py](scripts/ire_conformal.py), `thresholds.margin_scores` / `conformal_margin`).
 
 | | CIFAR-10 | Imagenette | ImageNet-val |
 |---|---|---|---|
-| razão previsto / observado (mediana) | 1,17 | 1,02 | 1,00 |
-| previsto ≤ observado | 35 % | 38 % | 40 % |
-| 80 % da dose prevista ≤ observado | 60 % | 78 % | 92 % |
-| 70 % da dose prevista ≤ observado | 64 % | 86 % | 98 % |
-| 50 % da dose prevista ≤ observado | 73 % | 92 % | 100 % |
+| Sem margem (c = 1): técnicas novas seguras em todos os modelos | 38 % | 36 % | 57 % |
+| **Fator conformal, α = 0,1**: técnicas novas seguras em todos os modelos | **93 %** | **93 %** | **93 %** |
+| … pares modelo × técnica seguros | 98 % | 97 % | 96 % |
+| … fator c (orçamento para τ = 1 %) | 0,18 (0,2 %) | 0,37 (0,4 %) | 0,55 (0,55 %) |
+| … dose recomendada / dose realmente segura (mediana) | 29 % | 43 % | 54 % |
+| Fator conformal, α = 0,2: técnicas seguras em todos os modelos | 86 % | 86 % | 86 % |
+| … fator c / dose aproveitada | 0,24 / 44 % | 0,54 / 66 % | 0,82 / 80 % |
 
-A desigualdade Δacc ≥ −flip é exata, mas a dose segura depende de o IRE não subestimar o flip. Para técnica nova, a previsão
-não tem viés em 224 px, porém erra para os dois lados. Na prática: usar ~70 % da dose prevista em 224 px. Em 32 px a previsão é
-otimista (razão 1,17) e nem 50 % da dose garante segurança.
+- A cobertura foi medida de forma honesta: o fator usado para cada técnica foi calibrado **sem** ela (LOTO) e testado nela. A
+  meta era ≥ 90 % (α = 0,1) e ≥ 80 % (α = 0,2); as três bases cumprem as duas.
+- A unidade da calibração é a **técnica**, não o par modelo × técnica: os modelos erram juntos numa mesma técnica. Calibrando
+  sobre os pares, como se fossem independentes, a cobertura por técnica cai para 71–79 % com α = 0,1.
+- O fator pode ser reaproveitado entre bases de mesma resolução, com ressalvas: calibrado no Imagenette (c = 0,40), cobre 100 %
+  das técnicas no ImageNet-val; calibrado no ImageNet-val, cobre 86 % no Imagenette. Entre resoluções não: o fator do
+  ImageNet-val cobre só 57 % no CIFAR-10.
+- O preço é dose. Com α = 0,1, a dose recomendada fica na metade (ImageNet-val) ou em menos de um terço (CIFAR-10) da dose
+  realmente segura. Sem margem, ela passa do limite real na mediana em 32 px (razão 1,20).
+- A garantia supõe que as técnicas sejam trocáveis entre si e que o flip previsto cresça com a dose (7 de 602 curvas não
+  crescem). Com 14 técnicas, o menor α possível é 1/15 ≈ 0,07.
 
-Tabelas: `ire_transfer.csv` (por modelo e protocolo), `ire_transfer_pares.csv` (matriz calibra em A → aplica em B), `ire_transfer_resumo.csv`, `ire_escala.csv`, `ire_escala_resumo.csv` e `ire_dose_segura.csv`, em [docs/resultados/pub/](docs/resultados/pub/).
+No `make safe-dose`, o fator vem de `ire.safe_margin` (0,18 / 0,37 / 0,55 nas configs `pub_*`) ou de `MARGIN=`.
+
+Tabelas: `ire_transfer.csv` (por modelo e protocolo), `ire_transfer_pares.csv` (matriz calibra em A → aplica em B), `ire_transfer_resumo.csv`, `ire_escala.csv`, `ire_escala_resumo.csv`, `ire_conformal*.csv` e `ire_dose_segura.csv`, em [docs/resultados/pub/](docs/resultados/pub/).
 
 ### 0.7 Bugs encontrados nesta rodada
 
@@ -376,7 +394,7 @@ Uma regressão *ridge* prevê Δacc de cada condição usando só as outras téc
 **IRE = Σ w_b D_b^γ + Σ c_b D^cor_b^γ + Σ u_B (1 − ρ_B)^γ** e **P(decisão mudar) = 1 − e^(−IRE)**.
 
 - D_b = energia da perturbação de luminância no anel b; D^cor_b = idem na cor; 1 − ρ_B = perda de coerência (estrutura); pesos ≥ 0 por modelo.
-- Como só uma predição que muda pode virar erro, **IRE ≤ −ln(1 − τ) limita a queda de acurácia a τ**, desde que o IRE não subestime o flip. Para técnica nova ele subestima em ~60 % dos casos perto do limiar; ver a margem recomendada na §0.6.
+- Como só uma predição que muda pode virar erro, **IRE ≤ −ln(1 − τ) limita a queda de acurácia a τ**, desde que o IRE não subestime o flip. Para técnica nova ele subestima em ~40–60 % dos casos perto do limiar; a margem conformal da §0.6 corrige isso.
 
 **Desempenho prevendo cada técnica sem tê-la visto** ([ire_summary.csv](docs/resultados/ire_summary.csv)):
 

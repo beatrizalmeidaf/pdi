@@ -19,9 +19,8 @@ Protocolos (flip por condição do modelo-alvo, R² como em ire_summary.csv):
 
 Além de R², Spearman e viés médio, mede o lado da garantia: `subestima` = fração das condições com flip > 1 % em que a
 previsão fica abaixo do observado, e `pior_sub` = maior subestimação (p.p. de flip).
-Também mede a cobertura da dose segura para técnica nova (ire_dose_segura.csv): com que frequência o limiar de flip 1 %
-previsto pelo IRE fica abaixo do observado, com e sem margem.
-Saída: results/pub_agregado/ire_escala*.csv, ire_dose_segura.csv, docs/resultados/pub/ e docs/figures/ire_transfer.png.
+A cobertura da dose segura para técnica nova fica em scripts/ire_conformal.py.
+Saída: results/pub_agregado/ire_escala*.csv, docs/resultados/pub/ e docs/figures/ire_transfer.png.
 """
 from __future__ import annotations
 
@@ -152,32 +151,6 @@ def cross_dataset(seed: int = 0) -> pd.DataFrame:
     return pd.DataFrame(rows)
 
 
-def safe_dose_coverage(runs=RUNS, margins=(1.0, 0.8, 0.7, 0.5)) -> pd.DataFrame:
-    """Dose segura para técnica NOVA: o limiar de flip 1 % previsto pelo IRE (LOTO) fica abaixo do observado?
-
-    Lê ire_threshold_predictions.csv de cada análise. `cobertura_m` = fração das (modelo, técnica) em que
-    m × dose prevista <= dose observada (intensidade crescente; JPEG = 100 − qualidade).
-    """
-    rows = []
-    for run in runs:
-        f = R / run / "analysis" / "ire_threshold_predictions.csv"
-        if not f.exists():
-            continue
-        t = pd.read_csv(f)
-        t = t[(t.pred_status == "ok") & np.isfinite(t.dose_obs) & np.isfinite(t.dose_pred)]
-        t = t[~t.technique.isin(["sr_espcn", "sr_fsrcnn"])]  # uma dose só (×2): sem limiar interpolável
-        r = t.dose_pred / t.dose_obs
-        row = dict(run=run, dataset=t.dataset.iloc[0], n=len(t), razao_mediana=float(r.median()),
-                   razao_p25=float(r.quantile(0.25)), razao_p75=float(r.quantile(0.75)), dentro_ic=float(t.within_ci.mean()))
-        for m in margins:
-            row[f"cobertura_{m:g}"] = float((m * t.dose_pred <= t.dose_obs).mean())
-        rows.append(row)
-    out = pd.DataFrame(rows)
-    out.to_csv(OUT / "ire_dose_segura.csv", index=False)
-    (Path("docs/resultados/pub") / "ire_dose_segura.csv").write_bytes((OUT / "ire_dose_segura.csv").read_bytes())
-    return out
-
-
 ORDER = ["proprio_loto", "outros_modelos_loto", "outros_modelos_loto+escala_oraculo",
          "outros_modelos_loto+escala_gaussiano", "outra_base", "outra_base+escala_oraculo"]
 LABEL = {"proprio_loto": "próprio modelo\n(técnica nova)", "outros_modelos_loto": "outros modelos\n+ técnica nova",
@@ -254,7 +227,6 @@ def main():
         (Path("docs/resultados/pub") / f).write_bytes((OUT / f).read_bytes())
     pd.set_option("display.width", 200)
     print(s.round(3).to_string())
-    print(safe_dose_coverage().round(2).to_string())
     figure(res, None)
 
 

@@ -15,7 +15,7 @@ Fourier.
 [Revisão sistemática](revisao_literatura/main.tex)
 
 ![Python](https://img.shields.io/badge/python-3.10%2B-2a78d6)
-![Testes](https://img.shields.io/badge/testes-63%20passando-0ca30c)
+![Testes](https://img.shields.io/badge/testes-68%20passando-0ca30c)
 ![Datasets](https://img.shields.io/badge/datasets-CIFAR--10%20%C2%B7%20Imagenette%20%C2%B7%20ImageNet--val-52514e)
 ![Modelos](https://img.shields.io/badge/modelos-10%20CNNs%20%2B%202%20transformers-52514e)
 
@@ -57,10 +57,11 @@ pergunta deste trabalho é simples: **isso ajuda a rede a acertar?**
 3. A fórmula dá uma **dose segura** estimada sem rodar a rede.
    - Como a acurácia nunca cai mais que a fração de decisões que mudam, IRE ≤ −ln(1 − τ) limita a queda a τ, *se* o IRE não
      subestimar essa fração.
-   - Para uma técnica nova, o limiar previsto acerta na mediana (ImageNet-val: razão previsto/observado 1,00), mas não é
-     conservador: fica abaixo do observado em só ~40 % dos casos.
-   - Com uma margem (usar 70 % da dose prevista), fica seguro em 98 % dos casos no ImageNet-val e 86 % no Imagenette. No CIFAR-10,
-     só em 64 %.
+   - Para uma técnica nova, essa fração é subestimada com frequência: sem margem, a técnica fica segura em todos os modelos em
+     só 36–57 % dos casos.
+   - Uma **margem conformal** resolve: aceitar só doses com flip previsto ≤ c · τ, com c calibrado sobre as técnicas. Testado em
+     técnicas que ficaram fora da calibração, cobre **93 %** delas em todos os modelos, nas três bases. O preço: a dose
+     recomendada fica em 29–54 % da dose realmente segura.
 4. Limiares com intervalo de confiança (**BMD**, vocabulário da toxicologia) para 14 técnicas × 12 modelos. Inclui equalização,
    realce e super-resolução, que a literatura quase não testava.
 
@@ -191,17 +192,25 @@ Como só uma decisão que muda pode virar erro, a queda de acurácia nunca passa
 subestimar o flip, IRE ≤ −ln(1 − τ) limita a queda de acurácia a τ**. Daí sai uma dose segura estimada **sem rodar a rede**
 (`make safe-dose`).
 
-O "se" importa. Para uma técnica que a fórmula não viu, o limiar de 1 % de flip previsto:
+O "se" importa. Para uma técnica que a fórmula não viu, a previsão do flip acerta na mediana em 224 px, mas erra para os dois
+lados. Sem margem, a dose "segura" passa do limite real em boa parte das técnicas.
+
+**Margem conformal.** A regra passa a ser: aceitar a dose só se o IRE prevê flip ≤ c · τ. O fator c é calibrado por predição
+conformal, tomando a técnica como unidade (o escore de cada técnica é o do seu pior modelo). Se as técnicas forem trocáveis, uma
+técnica nova fica segura em **todos** os modelos com probabilidade ≥ 1 − α. Cobertura medida em técnicas que ficaram fora da
+calibração:
 
 | | CIFAR-10 | Imagenette | ImageNet-val |
 |---|---|---|---|
-| razão previsto / observado (mediana) | 1,17 | 1,02 | 1,00 |
-| previsto ≤ observado (dose segura de fato) | 35 % | 38 % | 40 % |
-| … usando 80 % da dose prevista | 60 % | 78 % | 92 % |
-| … usando 70 % da dose prevista | 64 % | 86 % | 98 % |
+| Sem margem (c = 1) | 38 % | 36 % | 57 % |
+| **Margem conformal, α = 0,1** | **93 %** | **93 %** | **93 %** |
+| … fator c | 0,18 | 0,37 | 0,55 |
+| … dose recomendada / dose realmente segura (mediana) | 29 % | 43 % | 54 % |
+| Margem conformal, α = 0,2 | 86 % | 86 % | 86 % |
 
-Ou seja, a previsão não tem viés em 224 px, mas erra para os dois lados. Na prática, a dose segura precisa de uma margem de ~30 %;
-em 32 px, nem isso basta.
+O fator c já está nas configs (`ire.safe_margin`) e pode ser trocado com `make safe-dose MARGIN=<c>`. Ele serve entre bases de
+mesma resolução: calibrado no Imagenette, cobre 100 % das técnicas no ImageNet-val. Entre resoluções não serve: o do ImageNet-val
+cobre só 57 % no CIFAR-10. Detalhes em [results.md](results.md) §0.6.
 
 Desempenho prevendo técnicas que a fórmula não viu:
 - R² **0,78–0,95** por modelo (média 0,86 / 0,86 / 0,91) e Spearman 0,92–0,98;
@@ -290,7 +299,7 @@ cinza, PSNR ≥ 37 dB.
 | H4 | Técnicas invertíveis causam *domain shift*; destrutivas, perda de informação | ✅ Aguçamento/blur leve voltam a ~1 p.p.; JPEG forte, mediana e Wiener ficam 6–13 p.p. abaixo (CIFAR-10) |
 | H5 | A coerência de fase acrescenta poder explicativo à energia | ✅ +0,09 a +0,32 de R² nos três datasets |
 | H6 | Existe janela operacional para técnicas redistributivas | 🟡 Parcial: blur leve, unsharp, laplaciano e equalização global sim em 224 px; CLAHE misturado só em 2/7 modelos; mediana quase nunca |
-| H7 | O IRE prevê o dano de técnicas que não viu | ✅ R² 0,86–0,91 e melhor que LPIPS, SSIM e Yin et al. em 224 px. Entre modelos, transfere em 32 px; em 224 px, com 1 fator de escala por modelo. A dose segura prevista precisa de margem de ~30 % |
+| H7 | O IRE prevê o dano de técnicas que não viu | ✅ R² 0,86–0,91 e melhor que LPIPS, SSIM e Yin et al. em 224 px. Entre modelos, transfere em 32 px; em 224 px, com 1 fator de escala por modelo. Dose segura com margem conformal: 93 % das técnicas novas cobertas |
 
 ## Como funciona
 
@@ -325,7 +334,8 @@ make human-export                  # kit do estudo com pessoas (index.html local
 setsid nohup bash scripts/run_publicacao.sh &   # retomável; progresso: bash scripts/status_publicacao.sh
 python scripts/figuras_publicacao.py            # figuras *_pub.png e tabelas em docs/resultados/pub/
 python scripts/ire_transfer.py                  # IRE entre modelos e bases (~25 min em CPU)
-PYTHONPATH=scripts python scripts/ire_escala.py  # pesos compartilhados + 1 escala por modelo; cobertura da dose segura
+PYTHONPATH=scripts python scripts/ire_escala.py  # pesos compartilhados + 1 escala por modelo
+python scripts/ire_conformal.py                 # margem conformal da dose segura para técnica nova
 make report                                     # figuras do README e dados do site a partir da rodada final
 ```
 
@@ -352,8 +362,9 @@ direto.
 
 - **Sem sementes no ImageNet-val.** Ele usa todas as 50 mil imagens; as sementes (3) ficaram para CIFAR-10 e Imagenette, onde o
   desvio entre elas é pequeno: ≤ 0,04 de R² e ≤ 1 p.p. de acurácia.
-- **A dose segura não é conservadora para técnica nova.** O limiar previsto acerta na mediana, mas fica abaixo do observado em só
-  ~40 % dos casos. Com 70 % da dose prevista, fica seguro em 98 % no ImageNet-val, 86 % no Imagenette e 64 % no CIFAR-10.
+- **A dose segura para técnica nova custa dose.** A margem conformal cobre 93 % das técnicas novas, mas recomenda 29–54 % da dose
+  realmente segura. A garantia supõe que a técnica nova seja "trocável" com as 14 testadas; com 14 técnicas, o menor α possível é
+  0,07.
 - **Os pesos do IRE são por modelo.** Em 224 px, pesos de outros modelos acertam a ordem do dano, mas não o nível. Medir uma técnica
   (o gaussiano) no modelo-alvo para ajustar um fator de escala recupera quase todo o desempenho.
 - **A fórmula superestima o dano da equalização** (~2×), ou seja, erra para o lado seguro. Calibrada só em filtros ideais, ela não

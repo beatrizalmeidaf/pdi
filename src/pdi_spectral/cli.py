@@ -39,6 +39,8 @@ def main(argv=None):
     ap.add_argument("--dataset", help="safe-dose: dataset")
     ap.add_argument("--grid", type=float, nargs="+", help="safe-dose: doses a testar")
     ap.add_argument("--tau", type=float, default=0.01, help="safe-dose: flip/queda máxima tolerada")
+    ap.add_argument("--margin", type=float, help="safe-dose: fator conformal c (aceita flip previsto <= c·tau); "
+                    "padrão: ire.safe_margin da config")
     ap.add_argument("--no-samples", action="store_true", help="report: reaproveita as amostras já geradas")
     a = ap.parse_args(argv)
     cfg = load_config(a.config, a.overrides)
@@ -67,9 +69,9 @@ def main(argv=None):
         model = a.model or cfg["datasets"][ds]["models"][0]
         tc = cfg["techniques"][a.technique]
         grid = a.grid or [lv[tc.get("dose") or next(iter(lv))] for lv in tc["levels"]]
-        df = safe_dose(cfg, a.technique, model, ds, grid, a.tau, n_images=a.n if a.n != 6 else 200)
+        df = safe_dose(cfg, a.technique, model, ds, grid, a.tau, n_images=a.n if a.n != 6 else 200, margin=a.margin)
         print(df.to_string(index=False))
-        print(f"orçamento IRE para tau={a.tau}: {df.attrs['budget']:.4f}  (sem rodar a rede)")
+        print(f"orçamento IRE para tau={a.tau} com margem c={df.attrs['margin']:g}: {df.attrs['budget']:.4f}  (sem rodar a rede)")
     elif a.command == "human-export":
         from .human import export_study
 

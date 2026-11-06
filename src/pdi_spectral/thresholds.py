@@ -379,6 +379,57 @@ def _r2(y, yhat):
     return float(1 - ((y - yhat) ** 2).sum() / sst) if sst > 0 else np.nan
 
 
+# ---------------------------------------------------------------------------
+# Margem conformal para a dose segura de uma técnica NOVA
+# ---------------------------------------------------------------------------
+def margin_scores(cp: pd.DataFrame, cfg: dict, tau: float = 0.01) -> pd.DataFrame:
+    """Escore de erro da dose segura, por (modelo, técnica), na escala do flip.
+
+    Para cada curva (técnica × modelo), acha a dose em que o flip OBSERVADO cruza τ e lê o flip que o IRE (LOTO: técnica
+    fora do ajuste) previa ali: p̂. score = τ / p̂. A regra "aceitar a dose se o IRE prevê flip <= c·τ" deixa a técnica
+    segura nesse modelo se c·score <= 1 (com p̂ crescente na dose). score > 1 = a fórmula subestimou o dano.
+    Curvas cujo flip observado nunca cruza τ recebem score 0 (qualquer dose testada é segura).
+    ``cp`` é ire_condition_predictions.csv. Funciona também para o JPEG, cujo limiar pode cair na 1ª dose (qualidade 100).
+    """
+    rows = []
+    for (ds, model, t), g in cp.groupby(["dataset", "model", "technique"]):
+        meta = technique_meta(cfg, t)
+        x = intensity(g.dose.to_numpy(), meta)
+        o = np.argsort(x)
+        x, obs, pred = x[o], g.flip.to_numpy()[o], g.p_loto.to_numpy()[o]
+        if meta.get("identity") is not None:
+            x = np.r_[float(intensity(meta["identity"], meta)), x]
+            obs, pred = np.r_[0.0, obs], np.r_[0.0, pred]
+        d_obs, st = crossing(x, obs[None], tau, "above")
+        if st[0] == 2:
+            sc, p_at = 0.0, np.nan
+        else:
+            p_at = float(np.interp(d_obs[0], x, pred))
+            sc = tau / p_at if p_at > 0 else np.inf
+        rows.append(dict(dataset=ds, model=model, technique=t, dose_obs=float(d_obs[0]), p_prev=p_at, score=sc,
+                         monotona=bool(np.all(np.diff(pred) >= -1e-9))))
+    return pd.DataFrame(rows)
+
+
+def conformal_margin(scores: pd.DataFrame, alpha: float, unit: str = "technique") -> float:
+    """Fator c tal que, para uma técnica nova trocável com as de ``scores``, P(todos os modelos seguros) >= 1 − α.
+
+    Uso: aceitar uma dose só se o IRE prevê flip <= c·τ (orçamento −ln(1 − c·τ)).
+
+    unit="technique": um escore por técnica (o pior modelo), quantil conformal sobre as técnicas (cobertura
+    garantida por técnica, sob troca entre técnicas). unit="pair": quantil sobre os pares modelo × técnica
+    (cobertura média por par; não garantida, porque os pares de uma técnica são correlacionados).
+    Devolve nan se houver poucas unidades para o α pedido (precisa de n >= 1/α − 1).
+    """
+    v = (scores.groupby("technique").score.max() if unit == "technique" else scores.score).to_numpy()
+    n = len(v)
+    k = int(np.ceil((n + 1) * (1 - alpha)))
+    if n == 0 or k > n:
+        return float("nan")
+    q = np.sort(v)[k - 1]
+    return float(1 / q) if q > 0 else 1.0
+
+
 def budget(tau: float) -> float:
     """Orçamento de IRE para que a queda de acurácia (e o flip) fique <= tau."""
     return float(-np.log1p(-tau))
@@ -388,9 +439,18 @@ def budget(tau: float) -> float:
 # Dose segura sem rede: aplica a técnica numa grade e mede só o espectro
 # ---------------------------------------------------------------------------
 def safe_dose(cfg: dict, technique: str, model: str, dataset: str, grid: list[float], tau: float,
-              n_images: int = 200, weights_csv: Path | None = None) -> pd.DataFrame:
+              n_images: int = 200, weights_csv: Path | None = None, margin: float | None = None) -> pd.DataFrame:
+    """Doses de ``grid`` em que o IRE prevê flip <= margin·τ (sem rodar a rede).
+
+    ``margin`` (fator conformal c, ver scripts/ire_conformal.py) protege técnicas que o IRE não viu: com c calibrado
+    deixando técnicas de fora, uma técnica nova fica segura em todos os modelos com probabilidade >= 1 − α.
+    Padrão: ``ire.safe_margin`` da config (1 = sem margem).
+    """
     from . import techniques as T
     from .datasets import load_dataset
+
+    if margin is None:
+        margin = float(cfg.get("ire", {}).get("safe_margin", 1.0))
     from .spectral import SpectralAnalyzer, SpectralConfig
 
     run_dir = Path(cfg["paths"]["results"]) / cfg["run_name"]
@@ -415,7 +475,8 @@ def safe_dose(cfg: dict, technique: str, model: str, dataset: str, grid: list[fl
         X = ire_matrix(m, feats)
         p = ire_prob(X, theta)
         rows.append(dict(technique=technique, model=model, dose=d, ire_mean=float(ire_score(X, theta).mean()),
-                         p_flip_pred=float(p.mean()), safe=bool(p.mean() <= tau)))
+                         p_flip_pred=float(p.mean()), safe=bool(p.mean() <= margin * tau)))
     out = pd.DataFrame(rows)
-    out.attrs["budget"] = budget(tau)
+    out.attrs["budget"] = budget(margin * tau)
+    out.attrs["margin"] = margin
     return out

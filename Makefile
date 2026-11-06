@@ -52,7 +52,7 @@ sweep:  ## varredura densa de dose -> limiares (BMD), janela operacional e IRE (
 	CONFIG=configs/sweep.yaml DATASETS="$(or $(DATASETS),cifar10)" bash scripts/run_experiments.sh oracle main adapt analyze
 
 safe-dose:  ## dose segura pela fórmula IRE, sem rodar a rede. Ex.: make safe-dose T=gaussian M=cifar10_resnet20
-	bash -c 'source scripts/_common.sh && pdi safe-dose --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG)) --technique $(T) $(if $(M),--model $(M)) $(if $(TAU),--tau $(TAU))'
+	bash -c 'source scripts/_common.sh && pdi safe-dose --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG)) --technique $(T) $(if $(M),--model $(M)) $(if $(TAU),--tau $(TAU)) $(if $(MARGIN),--margin $(MARGIN))'
 
 human-export:  ## estudo com pessoas: gera results/<run>/human_study/index.html (config do sweep)
 	bash -c 'source scripts/_common.sh && pdi human-export --config $(if $(filter configs/default.yaml,$(CONFIG)),configs/sweep.yaml,$(CONFIG))'

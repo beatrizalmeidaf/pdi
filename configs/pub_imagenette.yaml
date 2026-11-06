@@ -19,3 +19,8 @@ quality:
   brisque: true
   lpips: true
   feature_distance: true
+
+ire:
+  # fator conformal da dose segura (scripts/ire_conformal.py, α = 0,1): aceitar só doses com flip previsto <= c·τ.
+  # Calibrado deixando técnicas de fora: técnica nova segura em todos os modelos em 93 % dos casos (Imagenette).
+  safe_margin: 0.37

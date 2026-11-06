@@ -172,6 +172,7 @@ ire:
   l2: 0.0001
   max_rows: 300000
   use_fit: all              # pesos usados no safe-dose: all | oracle
+  safe_margin: 1.0          # fator c da dose segura: aceita flip previsto <= c·tau (ver scripts/ire_conformal.py)
 
 quality:
   brisque: false            # true requer `pip install piq` (roda em CPU; imagens < 128 px são ampliadas)

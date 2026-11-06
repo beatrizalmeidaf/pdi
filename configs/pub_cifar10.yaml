@@ -23,3 +23,8 @@ quality:
 
 adaptation:
   finetune_epochs: 3
+
+ire:
+  # fator conformal da dose segura (scripts/ire_conformal.py, α = 0,1): aceitar só doses com flip previsto <= c·τ.
+  # Calibrado deixando técnicas de fora: técnica nova segura em todos os modelos em 93 % dos casos (CIFAR-10).
+  safe_margin: 0.18
