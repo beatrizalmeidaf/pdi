@@ -124,6 +124,15 @@ class SpectralAnalyzer:
         return out
 
     # -- comparação -------------------------------------------------------
+    def coherence_fine(self, Fx: np.ndarray, Fy: np.ndarray) -> np.ndarray:
+        """Coerência espectral por anel fino (n, n_anéis): Re<F_x, F_y>_anel / sqrt(E_anel(x) E_anel(y)).
+
+        Mesma medida de coh_<banda>, mas nos 17 anéis em vez das 3 bandas largas (correlação pura, sem peso da energia).
+        """
+        ex, ey = self._energy(np.abs(Fx) ** 2, self.M_fine), self._energy(np.abs(Fy) ** 2, self.M_fine)
+        cxy = self._energy(np.real(Fx * np.conj(Fy)), self.M_fine)
+        return cxy / np.sqrt(ex * ey + EPS)
+
     def compare(self, x_imgs, y_imgs, Fx=None, dcx=None, with_quality: bool = True) -> dict:
         if Fx is None:
             Fx, dcx = self.transform(x_imgs)

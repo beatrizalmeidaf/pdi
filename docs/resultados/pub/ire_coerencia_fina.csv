@@ -1,0 +1,457 @@
+run,model,features,teste,r2,vies,spearman
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,LOTO nas técnicas reais,0.8678923553645105,0.00016148883061919357,0.9448715753641248
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,calibrado em filtros ideais,0.7630666140904953,0.027111239036927838,0.933749493099868
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,técnicas reais → filtros ideais,0.9171750016830614,0.0256699222077747,0.8739883410235537
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,calibrado em filtros suaves,0.7769171476996627,0.03044276970027868,0.9378103249661323
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,técnicas reais → filtros suaves,0.9415666843729644,0.015632051423855483,0.8412214132612986
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,calibrado em filtros parciais,0.46039429915276264,-0.08588809693919236,0.933966137976108
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,técnicas reais → filtros parciais,-4.441397310198438,0.020389765022749345,0.7650476785374655
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,D_fine+chroma+coh,calibrado em filtros todos os filtros,0.7822083265308163,0.026985228415591703,0.9391253089823791
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,LOTO nas técnicas reais,0.3369395159172154,0.002160359454745017,0.7276176178015972
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,calibrado em filtros ideais,0.05653235455855554,0.0934530831150913,0.7026498691871177
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,técnicas reais → filtros ideais,0.21309366701116805,-0.006240318393150943,0.5318468024194362
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,calibrado em filtros suaves,0.11214395846073433,0.0682342755431019,0.7157694798319715
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,técnicas reais → filtros suaves,0.311144932402206,-0.004310624770967384,0.5560305602718058
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,calibrado em filtros parciais,0.06433479865156166,-0.1057791869630352,0.74552036341794
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,técnicas reais → filtros parciais,-24.633762285242256,0.04571502749761714,0.5661475033266468
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma,calibrado em filtros todos os filtros,0.12480117882628006,0.07432677387480938,0.7302998012988526
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8734969637154348,0.0005108474531575233,0.9504589837947466
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,calibrado em filtros ideais,0.7023639226750082,0.035731759740150415,0.9220909758063995
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.9229690902709108,0.02558576798306483,0.8877350992710406
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,calibrado em filtros suaves,0.7321805809563905,0.03588275378179328,0.9277590103591878
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.9450547537667273,0.01605783946916223,0.8357252297989743
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,calibrado em filtros parciais,0.3478871634745003,-0.1015136705323029,0.9061751347821702
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,técnicas reais → filtros parciais,-3.9536124018859304,0.019747247535026165,0.766575329652756
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.7243769907327346,0.03489123577950404,0.9261366929138564
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,LOTO nas técnicas reais,0.8594365346887178,-0.0014774106345395465,0.9486672430769554
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,calibrado em filtros ideais,0.8233277871921244,0.010930299117301387,0.9434952819160735
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,técnicas reais → filtros ideais,0.8906203840329197,0.03718503380297516,0.8790472012787824
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,calibrado em filtros suaves,0.8386040939563179,0.014758641738724734,0.9470271417109254
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,técnicas reais → filtros suaves,0.9283291577573721,0.025159923160224352,0.8031161651698436
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,calibrado em filtros parciais,0.3178124702086731,-0.08729421097021181,0.9125801724992233
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,técnicas reais → filtros parciais,-10.46802856236589,0.023238848601854475,0.7057748152641954
+pub_cifar10_s0,cifar10_repvgg_a0,D_fine+chroma+coh,calibrado em filtros todos os filtros,0.8297318190041844,0.01450601875308163,0.9463016241496435
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,LOTO nas técnicas reais,0.3785286160630975,-0.00026654496655534896,0.7541433752980484
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,calibrado em filtros ideais,0.1704525840481147,0.07832151558442717,0.7295784442986315
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,técnicas reais → filtros ideais,0.1858077218142249,0.006858812269940324,0.6444717146275993
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,calibrado em filtros suaves,0.21534075049043055,0.05577480127906722,0.7403150965423257
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,técnicas reais → filtros suaves,0.2980936325736234,0.008909659964248673,0.7026120882048841
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,calibrado em filtros parciais,0.10666980413804383,-0.0937528257125885,0.7899122831621876
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,técnicas reais → filtros parciais,-46.16658640644116,0.04882077191283343,0.5722581077878086
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma,calibrado em filtros todos os filtros,0.2157152372892377,0.06161533571336971,0.7499080509637212
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,LOTO nas técnicas reais,0.867313500225517,-0.0007812132878703755,0.9518514510190483
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,calibrado em filtros ideais,0.7879848325404519,0.022270630185426334,0.9367741678414192
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.8857049796425125,0.043714900924805296,0.9242518523521875
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,calibrado em filtros suaves,0.8212683948366468,0.02390397481883136,0.944714554484339
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.9238315727038607,0.03198984969822912,0.8822363959720458
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,calibrado em filtros parciais,0.3008255972832077,-0.08857828276986073,0.8922656807833269
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,técnicas reais → filtros parciais,-9.851460920186154,0.024433585223593512,0.8331809182794203
+pub_cifar10_s0,cifar10_repvgg_a0,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.796716053963705,0.025388862039557012,0.9402102996247133
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,LOTO nas técnicas reais,0.8720172077512277,0.001681060320843093,0.9503778721274361
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,calibrado em filtros ideais,0.7843195350290064,0.02554140581616339,0.9406613783689791
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,técnicas reais → filtros ideais,0.9088897956117453,0.023167410371087185,0.8046398046398047
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,calibrado em filtros suaves,0.7724977670379611,0.032417506929130514,0.9402683906799731
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,técnicas reais → filtros suaves,0.9309806290253552,0.015397050545705386,0.7578626307493805
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,calibrado em filtros parciais,0.44642637076313785,-0.07815760244985409,0.9164019460284223
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,técnicas reais → filtros parciais,-4.030874973937015,0.019099224779167902,0.7203053770901646
+pub_cifar10_s0,cifar10_resnet20,D_fine+chroma+coh,calibrado em filtros todos os filtros,0.7793741317552649,0.029566146914678626,0.9406412251541583
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,LOTO nas técnicas reais,0.33143855494838736,0.0044263664874558345,0.7069276503653836
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,calibrado em filtros ideais,0.049826599842970776,0.10239221344025089,0.6821460152549669
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,técnicas reais → filtros ideais,0.240618778413225,-0.024045887636434532,0.5018315018315018
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,calibrado em filtros suaves,0.11249319382235357,0.07375404935535575,0.6939104544066179
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,técnicas reais → filtros suaves,0.33519422806308785,-0.01912767215697964,0.5059542220595179
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,calibrado em filtros parciais,0.12554720107073214,-0.09280999726186936,0.752717535253758
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,técnicas reais → filtros parciais,-20.408359370317793,0.03907406653897673,0.447328265128059
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma,calibrado em filtros todos os filtros,0.12088517275021948,0.08266372837593332,0.7067278990326566
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8761833416547008,0.0014509335314430527,0.9534562679365548
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,calibrado em filtros ideais,0.7089378202869848,0.03985847578094518,0.916492635495116
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.9186841822832267,0.02101641290071184,0.8107448107448108
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,calibrado em filtros suaves,0.7260194683476319,0.040298624151873845,0.9259898379794254
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.9372034297528289,0.013900776180796482,0.7661069059428669
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,calibrado em filtros parciais,0.3830331666769027,-0.09023111504045928,0.9002793741717698
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,técnicas reais → filtros parciais,-3.470991179146928,0.017650891248052573,0.7343511792716599
+pub_cifar10_s0,cifar10_resnet20,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.7220029806712875,0.03956405275860921,0.920840691592707
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,LOTO nas técnicas reais,0.8659313333111442,0.00024366574806782606,0.9558799080946178
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,calibrado em filtros ideais,0.7311656143698566,0.021979228963660297,0.9372054183102202
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,técnicas reais → filtros ideais,0.8908444906271575,0.04057821859553101,0.8330535497977039
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,calibrado em filtros suaves,0.755834241826223,0.027444864874888703,0.9438156394664747
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,técnicas reais → filtros suaves,0.9297697390820509,0.026194567285514992,0.7822107354037704
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,calibrado em filtros parciais,0.3005075761385231,-0.09175859709845598,0.9270079429899006
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,técnicas reais → filtros parciais,-9.24006494925173,0.022244878675164427,0.7081807081807082
+pub_cifar10_s0,cifar10_resnet56,D_fine+chroma+coh,calibrado em filtros todos os filtros,0.7511994270543467,0.025590752621445348,0.9431556250065134
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,LOTO nas técnicas reais,0.29305163611719487,0.0010211696032004455,0.720819625198651
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,calibrado em filtros ideais,0.03305542241657766,0.08938027134488827,0.7013384187446269
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,técnicas reais → filtros ideais,0.14744138986874156,0.009775633732847597,0.45425398920028814
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,calibrado em filtros suaves,0.07985015606942225,0.07093771598342512,0.7268321070454259
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,técnicas reais → filtros suaves,0.24834811586844996,0.008744317859240746,0.5272815625523658
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,calibrado em filtros parciais,-0.001516774378310437,-0.10793764393620928,0.7598529831567769
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,técnicas reais → filtros parciais,-45.48251407720888,0.05012669663877093,0.2948717948717949
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma,calibrado em filtros todos os filtros,0.0830057637157453,0.07624950672017594,0.7286559637973803
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8664764235584971,0.0009804328609697875,0.9574669617675837
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,calibrado em filtros ideais,0.6887825000523728,0.03492715137579878,0.9304037425777936
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.897882696421073,0.03985932101675319,0.8422180552960284
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,calibrado em filtros suaves,0.7212665145721875,0.039471349753456605,0.9391602702985028
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.9342289820363053,0.02603651975572692,0.7861844515273535
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,calibrado em filtros parciais,0.28522461575722347,-0.09640659317459431,0.9289224887516206
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,técnicas reais → filtros parciais,-8.409715208481948,0.021144385257900914,0.7362637362637363
+pub_cifar10_s0,cifar10_resnet56,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.7177513825888617,0.037900031716204846,0.9375480212360017
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,LOTO nas técnicas reais,0.8680764342266097,0.0005449199766128303,0.9531086258566379
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,calibrado em filtros ideais,0.7815749878652533,0.013833663883448383,0.9493524522604558
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros ideais,0.886898058108025,0.03729825562918442,0.8261334243709348
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,calibrado em filtros suaves,0.7876566003440671,0.021156758195134653,0.9523905493946938
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros suaves,0.9261350444546229,0.024189796965680313,0.8462361553630208
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,calibrado em filtros parciais,0.22893885191300367,-0.1090015396981981,0.9407772593541988
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros parciais,-10.585667791043516,0.024880194638749617,0.7148091936278403
+pub_cifar10_s0,cifar10_vgg16_bn,D_fine+chroma+coh,calibrado em filtros todos os filtros,0.7983894944891086,0.015673267233863322,0.953383095224619
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,LOTO nas técnicas reais,0.297348900917895,0.002449163026855264,0.7268742444869889
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,calibrado em filtros ideais,0.061673454428548435,0.08397639839968873,0.7312543614695892
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,técnicas reais → filtros ideais,0.22102796345265108,-0.005364806816772379,0.5632727893438192
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,calibrado em filtros suaves,0.08566214696580376,0.061016547299659864,0.7281910728168253
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,técnicas reais → filtros suaves,0.3217359083948751,-0.004756012886278666,0.5790197584151163
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,calibrado em filtros parciais,-0.05769339131211337,-0.11669379052447192,0.7699838020514916
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,técnicas reais → filtros parciais,-40.53013271427665,0.04549629276075758,0.6253435406022285
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma,calibrado em filtros todos os filtros,0.10263280249596551,0.06605580806070106,0.7522187431869427
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8710514482209746,0.0017206002871878801,0.956615276401886
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,calibrado em filtros ideais,0.727379655186919,0.024577228112998596,0.9402583140725628
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.8918814087710192,0.036394242479928514,0.8377347067530839
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,calibrado em filtros suaves,0.7516201500844881,0.0272862705040027,0.9458004481482871
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.9288509681056056,0.023753853899450193,0.8398229618362711
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,calibrado em filtros parciais,0.20577936990917367,-0.11118812452271895,0.9167092825544397
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros parciais,-9.999323059757389,0.024279127322425934,0.7148091936278403
+pub_cifar10_s0,cifar10_vgg16_bn,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.7506863617685744,0.02481802427347108,0.9428631170881532
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,LOTO nas técnicas reais,0.8206942288125774,2.7238126256689642e-05,0.9356933781863442
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,calibrado em filtros ideais,-1.652560732219126,0.08171129937352149,0.8590848533884733
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,técnicas reais → filtros ideais,0.08330945625713826,-0.13503762394548954,0.6526251526251526
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,calibrado em filtros suaves,-1.5823092824092408,0.08303152284110231,0.845974592639297
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,técnicas reais → filtros suaves,0.2174073642216534,-0.10136414490192959,0.7385132126952296
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,calibrado em filtros parciais,-1.4578459709464124,0.09551643503050149,0.8516983652031188
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.09216422825223791,-0.016816759780179182,0.7108397277939394
+pub_imagenette_s0,convnext_tiny,D_fine+chroma+coh,calibrado em filtros todos os filtros,-1.6893540090761752,0.0913329501119793,0.8595534368818143
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,LOTO nas técnicas reais,0.35158646202550314,-0.0006925736948792077,0.7962422741517121
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,calibrado em filtros ideais,-5.240024536418459,0.1367679969195476,0.5648899975530947
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,técnicas reais → filtros ideais,-0.1641730785773392,-0.1671926898525751,0.873015873015873
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,calibrado em filtros suaves,-3.0772298903163176,0.09212895797596254,0.5715962838932767
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,técnicas reais → filtros suaves,-0.06322120775406126,-0.12833835871007915,0.8975729000925899
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,calibrado em filtros parciais,-5.357217238805447,0.15078482691994594,0.6806099662795866
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,técnicas reais → filtros parciais,0.24512585140262422,-0.02316065247635502,0.8546565283914247
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma,calibrado em filtros todos os filtros,-3.519617399077557,0.10477258512860865,0.6331419545509203
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8169617889670654,-0.0009374596611681485,0.9242257078180665
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros ideais,-1.6852065717870701,0.0822458061268206,0.8520208312630524
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.04362800917085208,-0.1384767424437029,0.6367521367521367
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros suaves,-1.527215659738117,0.07351227194154157,0.7994588634938721
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.1717787168842293,-0.10579978473827706,0.6692108153071283
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros parciais,-4.802537698928301,0.13178645419599022,0.6971816986408629
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,técnicas reais → filtros parciais,-0.2454457972275803,-0.018682561945029232,0.5877862869430127
+pub_imagenette_s0,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-1.5704162597538844,0.08470563787236467,0.8456924348368551
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,LOTO nas técnicas reais,0.8402198289468619,0.0033124101884004936,0.9472623497585976
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros ideais,-2.028775801560778,0.12558126460884728,0.8696217374685739
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,técnicas reais → filtros ideais,-0.16003494613658775,-0.1937217238291548,0.575091575091575
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros suaves,-2.0044052439670317,0.12460518502430733,0.8525412854881197
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,técnicas reais → filtros suaves,0.007962482332572796,-0.15345265926636562,0.6385836385836385
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros parciais,-3.1036458969237506,0.16195933770849041,0.8818602088138608
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.060914444391242606,-0.04895609523310568,0.6697191697191697
+pub_imagenette_s0,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros todos os filtros,-2.124078685186745,0.1331169717030102,0.8632077506334357
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,LOTO nas técnicas reais,0.2891760457301321,0.0013961597433133244,0.764305473677865
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,calibrado em filtros ideais,-5.573399240026173,0.19199097018004277,0.6400181396074246
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,técnicas reais → filtros ideais,-0.52543376369162,-0.24629190683873084,0.7472527472527473
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,calibrado em filtros suaves,-4.116332686278524,0.15315948413400982,0.6304399864467038
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,técnicas reais → filtros suaves,-0.34640543474325325,-0.19660128849509573,0.7942612942612942
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,calibrado em filtros parciais,-12.909516782668682,0.29483411040235596,0.6215772976462264
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,técnicas reais → filtros parciais,-0.24829861916938922,-0.06194162462942931,0.811965811965812
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma,calibrado em filtros todos os filtros,-3.7163101427417544,0.1635516946632629,0.7519328886899755
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8209261254802888,0.000656168701644919,0.9425060352889949
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros ideais,-2.1067014509224133,0.12549061878311,0.8541132916880907
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,técnicas reais → filtros ideais,-0.18796533446284514,-0.19746368997568456,0.5738705738705738
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros suaves,-2.3610572088213253,0.12394020141375785,0.8114121617369553
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,técnicas reais → filtros suaves,-0.02277466681977036,-0.15758794094494732,0.5921855921855922
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros parciais,-12.463783638260304,0.2759272661192631,0.6222978004878797
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,técnicas reais → filtros parciais,-0.10722403641967926,-0.050381334661245024,0.5836385836385837
+pub_imagenette_s0,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-2.0246589054225623,0.1286405279119066,0.8568945334265009
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,LOTO nas técnicas reais,0.94120335564289,0.0006238417970221783,0.980773978564856
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,calibrado em filtros ideais,0.03302819878356622,0.08678955675112261,0.9384347582203773
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,técnicas reais → filtros ideais,-0.04633109506872479,-0.16974058761006128,0.6123321123321124
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,calibrado em filtros suaves,-0.01946068437184878,0.08419023381454338,0.9165283240836434
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,técnicas reais → filtros suaves,0.10425933360993933,-0.1359723858466523,0.6066249498244817
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,calibrado em filtros parciais,-0.05046232352076063,0.09950844963771097,0.9415786438922544
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.10697951121752225,-0.04228075560564389,0.5079365079365079
+pub_imagenette_s0,resnet18,D_fine+chroma+coh,calibrado em filtros todos os filtros,-0.0011213701925700814,0.08934581448963341,0.925914636594392
+pub_imagenette_s0,resnet18,AP_fine+chroma,LOTO nas técnicas reais,0.6076448142156639,-0.001221171558627279,0.8840745463577553
+pub_imagenette_s0,resnet18,AP_fine+chroma,calibrado em filtros ideais,-2.209432526785545,0.16887107150769273,0.732701701288594
+pub_imagenette_s0,resnet18,AP_fine+chroma,técnicas reais → filtros ideais,-0.018421322185622202,-0.20337604425797193,0.9072039072039072
+pub_imagenette_s0,resnet18,AP_fine+chroma,calibrado em filtros suaves,-1.5918267900285281,0.13611400638607649,0.7132690618071352
+pub_imagenette_s0,resnet18,AP_fine+chroma,técnicas reais → filtros suaves,0.08054029020813469,-0.16202329758354536,0.9284078874767232
+pub_imagenette_s0,resnet18,AP_fine+chroma,calibrado em filtros parciais,-4.709329711662566,0.23314248485368633,0.7222573503305789
+pub_imagenette_s0,resnet18,AP_fine+chroma,técnicas reais → filtros parciais,0.3069025309771909,-0.050232660207180875,0.9133089133089133
+pub_imagenette_s0,resnet18,AP_fine+chroma,calibrado em filtros todos os filtros,-1.0629832084969384,0.13393475861914356,0.8256377831851428
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,LOTO nas técnicas reais,0.9303609411727692,2.5772683299400978e-05,0.9771565038436193
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,calibrado em filtros ideais,-0.0073656040429379566,0.08627081234084077,0.9305045081441999
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,técnicas reais → filtros ideais,-0.06924081035734608,-0.17025715139529898,0.5811965811965812
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,calibrado em filtros suaves,-0.3821569679930805,0.08703949142792254,0.8717128384244326
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.08223120304941212,-0.1367349960752554,0.5767058531547288
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,calibrado em filtros parciais,-3.628760284512097,0.19187374853314682,0.7646998069009209
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,técnicas reais → filtros parciais,-0.11429935402198099,-0.043613693088754395,0.539072039072039
+pub_imagenette_s0,resnet18,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.08066399274217628,0.08286715405898303,0.928050866602206
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,LOTO nas técnicas reais,0.8975472805216939,0.0009130230570804106,0.9645432951170014
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,calibrado em filtros ideais,-0.6474554698453254,0.08263771044609021,0.9182541402996702
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,técnicas reais → filtros ideais,-0.06136246813457347,-0.16986365292835237,0.6379731379731379
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,calibrado em filtros suaves,-0.698724530257006,0.08383685310338451,0.8996125574760113
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,técnicas reais → filtros suaves,0.09790345812048828,-0.12817467441789346,0.5476190476190477
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,calibrado em filtros parciais,-0.9241407413978844,0.1062440917495962,0.9114222521080806
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.15030728621419254,-0.031085990053040895,0.4987789987789988
+pub_imagenette_s0,resnet50,D_fine+chroma+coh,calibrado em filtros todos os filtros,-0.7614147395755027,0.09189432845445407,0.9082531830280586
+pub_imagenette_s0,resnet50,AP_fine+chroma,LOTO nas técnicas reais,0.5229858523532007,0.0003805603545200317,0.8634205204346226
+pub_imagenette_s0,resnet50,AP_fine+chroma,calibrado em filtros ideais,-3.432747762625188,0.14550931156339733,0.7041278511089935
+pub_imagenette_s0,resnet50,AP_fine+chroma,técnicas reais → filtros ideais,-0.14816964543197253,-0.20202973495626786,0.8797313797313797
+pub_imagenette_s0,resnet50,AP_fine+chroma,calibrado em filtros suaves,-2.6451536295990943,0.11225631767450685,0.6820955155176798
+pub_imagenette_s0,resnet50,AP_fine+chroma,técnicas reais → filtros suaves,-0.05051398921789363,-0.15508734732701657,0.8980463980463981
+pub_imagenette_s0,resnet50,AP_fine+chroma,calibrado em filtros parciais,-3.9482737470221023,0.16596758782957935,0.7787848711849334
+pub_imagenette_s0,resnet50,AP_fine+chroma,técnicas reais → filtros parciais,0.25143519768213907,-0.037613853689867416,0.9053724053724054
+pub_imagenette_s0,resnet50,AP_fine+chroma,calibrado em filtros todos os filtros,-1.9744488772948432,0.10557861925155097,0.7657962223959084
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8912008326454772,-0.00011311998106625376,0.9591624409811447
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,calibrado em filtros ideais,-0.6373296742024075,0.07555617948270019,0.9057894711359589
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,técnicas reais → filtros ideais,-0.0632828999270536,-0.1687215725233816,0.6336996336996337
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,calibrado em filtros suaves,-1.6210312477407727,0.08642068954367749,0.8270061115106738
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.09722706613282484,-0.12747415068690143,0.5915750915750916
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,calibrado em filtros parciais,-3.7481135131567402,0.14673383504176135,0.7813795779833617
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,técnicas reais → filtros parciais,-0.16734794247999463,-0.030925794671106857,0.5024420024420024
+pub_imagenette_s0,resnet50,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-0.5851068781872568,0.07803798051167204,0.9038094327441486
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,LOTO nas técnicas reais,0.789009715046738,0.0012373458523000705,0.9236683537983386
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,calibrado em filtros ideais,-0.9792618213892432,0.07556127457925292,0.795438228621566
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,técnicas reais → filtros ideais,0.15787624387228993,-0.13673726792613639,0.8345038556962356
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,calibrado em filtros suaves,-1.08652373030082,0.0801784709465138,0.7741509664462619
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,técnicas reais → filtros suaves,0.29051173439404465,-0.1039483321984175,0.8994046815213503
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,calibrado em filtros parciais,-0.1440511901099788,0.06490967640499082,0.7873062425503374
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,técnicas reais → filtros parciais,0.38200991319914546,-0.021655831559568826,0.9590964590964591
+pub_imagenette_s0,swin_t,D_fine+chroma+coh,calibrado em filtros todos os filtros,-1.049822135959603,0.08556643234298858,0.7852253811826686
+pub_imagenette_s0,swin_t,AP_fine+chroma,LOTO nas técnicas reais,0.31397034404857205,-0.0007379090225679204,0.7437322404308945
+pub_imagenette_s0,swin_t,AP_fine+chroma,calibrado em filtros ideais,-4.25967844273658,0.14126950875548255,0.4448559146139916
+pub_imagenette_s0,swin_t,AP_fine+chroma,técnicas reais → filtros ideais,0.0100294593497543,-0.16467625022998408,0.8729771399325056
+pub_imagenette_s0,swin_t,AP_fine+chroma,calibrado em filtros suaves,-3.1085264102681673,0.10257097515168291,0.43864356094247686
+pub_imagenette_s0,swin_t,AP_fine+chroma,técnicas reais → filtros suaves,0.07522514994696816,-0.13046372204018672,0.8783391950906059
+pub_imagenette_s0,swin_t,AP_fine+chroma,calibrado em filtros parciais,-5.975967768395137,0.1751564937744941,0.5287856692450481
+pub_imagenette_s0,swin_t,AP_fine+chroma,técnicas reais → filtros parciais,0.5352698545197123,-0.024475593687052127,0.8864468864468864
+pub_imagenette_s0,swin_t,AP_fine+chroma,calibrado em filtros todos os filtros,-2.7132654581857425,0.1099938985386715,0.5602102027805205
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,LOTO nas técnicas reais,0.7613220627753625,-0.0007805981281109433,0.9068753914077892
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,calibrado em filtros ideais,-1.0391565538865914,0.07318084076780113,0.768014188853476
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.06349900512685935,-0.1448912659674702,0.8225954581945331
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,calibrado em filtros suaves,-1.8358875219436745,0.08003597011049857,0.674158775882692
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.17152020866429252,-0.11513448169239338,0.8365135191339104
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,calibrado em filtros parciais,-5.679586089548961,0.1619195873557974,0.5742270461821053
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,técnicas reais → filtros parciais,0.11239315463953636,-0.026068421331459916,0.9029304029304029
+pub_imagenette_s0,swin_t,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-0.9785348149034412,0.07811349565860881,0.7671274295297238
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,LOTO nas técnicas reais,0.9076121376342675,0.0017034392353048912,0.9733825749236733
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,calibrado em filtros ideais,-0.5300435898975882,0.12824509183414956,0.9168297829229198
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros ideais,0.06730574584024474,-0.16971760172953715,0.6923076923076923
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,calibrado em filtros suaves,-0.2641564274704924,0.10753830888434708,0.9017147956514934
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros suaves,0.23637298580565558,-0.13050610642522398,0.7203907203907204
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,calibrado em filtros parciais,-0.2654182070728528,0.11787804293804112,0.9284632847928278
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.013197745116686255,-0.04419694720830366,0.74034499412399
+pub_imagenette_s0,vgg16_bn,D_fine+chroma+coh,calibrado em filtros todos os filtros,-0.32057988815207183,0.11707521738609397,0.9112523526197635
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,LOTO nas técnicas reais,0.49600431275554724,0.00034473958769118407,0.8410965395647841
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,calibrado em filtros ideais,-3.525094418357755,0.22007477407733544,0.645510723071723
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,técnicas reais → filtros ideais,-0.06159965101409459,-0.2083043973066665,0.9242979242979243
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,calibrado em filtros suaves,-2.1154879491419356,0.15624524775340895,0.6306073456220963
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,técnicas reais → filtros suaves,0.0959160381085643,-0.16215265979855223,0.9212454212454212
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,calibrado em filtros parciais,-5.367612624483712,0.26264728808055215,0.6510125784385222
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,técnicas reais → filtros parciais,0.3481449046901052,-0.052441852329022515,0.9116165577130863
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma,calibrado em filtros todos os filtros,-1.9620947207617885,0.1682198266093934,0.7188889479454084
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8880267518607193,0.0002961324323501721,0.96284745533442
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros ideais,-0.6076545530210626,0.11918778149502114,0.8730265498103258
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.1809251330036411,-0.1601344278408379,0.8449328449328449
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros suaves,-0.7378749627259558,0.10972657791070044,0.8306542021594266
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.289631104855407,-0.1253414917278941,0.8650793650793651
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros parciais,-5.222176586892761,0.24070794638519113,0.6539952692600837
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros parciais,0.1732241009005081,-0.04262361781814058,0.8942146341398626
+pub_imagenette_s0,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-0.2286071004469079,0.10293442485457872,0.8940263054594277
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,LOTO nas técnicas reais,0.841663318755566,0.0013420518463266404,0.9367500624018513
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,calibrado em filtros ideais,-1.2749277327678898,0.042510896460225205,0.8941019993815015
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,técnicas reais → filtros ideais,-0.07327776451628587,-0.157753215517716,0.6843711843711844
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,calibrado em filtros suaves,-2.0079214763937583,0.054588812292721604,0.8681792084540726
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,técnicas reais → filtros suaves,0.05341299581167769,-0.11001640116043564,0.7397344003144032
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,calibrado em filtros parciais,-0.5988715625613041,0.049817524209410956,0.8766689854633472
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.04779308711911212,-0.014258071559724179,0.7700763717767678
+pub_imagenette_s0,vit_b_16,D_fine+chroma+coh,calibrado em filtros todos os filtros,-1.8317378315977697,0.05838122871786013,0.8788707851980967
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,LOTO nas técnicas reais,0.33859588262833895,-0.00031626159247289564,0.7982032967544737
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,calibrado em filtros ideais,-4.929808121379992,0.08681942501653205,0.7039108406004351
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,técnicas reais → filtros ideais,-0.2363271337739481,-0.18802095422121304,0.8253968253968254
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,calibrado em filtros suaves,-3.956564421297947,0.06975230369108178,0.6688785441342712
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,técnicas reais → filtros suaves,-0.1537834929285835,-0.13508183832035034,0.8557472241358944
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,calibrado em filtros parciais,-7.757432505599274,0.11718269978351574,0.7192932080837082
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,técnicas reais → filtros parciais,0.08285948205528382,-0.02062878853315078,0.8454962226208842
+pub_imagenette_s0,vit_b_16,AP_fine+chroma,calibrado em filtros todos os filtros,-3.3117385106063546,0.0679245895488358,0.7992734574874024
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8102327157865984,0.0008061616535583121,0.9262147039405572
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,calibrado em filtros ideais,-1.2481733074961991,0.04460848310581839,0.8990598276171846
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,técnicas reais → filtros ideais,-0.11320528511032202,-0.16062457425915547,0.5103785103785103
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,calibrado em filtros suaves,-3.380601746155145,0.06272272082285546,0.8276550087593572
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.009921321580809939,-0.11318164076056464,0.5348801771980332
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,calibrado em filtros parciais,-5.313560178821966,0.08521717845732904,0.7100627799050786
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,técnicas reais → filtros parciais,-0.16486660800702602,-0.015989989981283106,0.49343513750644596
+pub_imagenette_s0,vit_b_16,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-1.430945541543235,0.048982833585020764,0.8768402925365313
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,LOTO nas técnicas reais,0.8796361419865624,0.00018383260730599413,0.955651448856721
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,calibrado em filtros ideais,-0.5068310288358546,0.07229950228964915,0.8167812015074263
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,técnicas reais → filtros ideais,0.014362897312890088,-0.13178867900426014,0.5402930402930403
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,calibrado em filtros suaves,-0.6075084244570543,0.07624238056093409,0.7770601156768304
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,técnicas reais → filtros suaves,0.1266163009477551,-0.10153850796726893,0.6208791208791209
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,calibrado em filtros parciais,0.02819201903449986,0.06090167391999874,0.8288627798714254
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.0806548936897189,-0.018590064416264276,0.5886124324416713
+pub_imagenet,convnext_tiny,D_fine+chroma+coh,calibrado em filtros todos os filtros,-0.4540732824153124,0.07367121976315569,0.809495979524798
+pub_imagenet,convnext_tiny,AP_fine+chroma,LOTO nas técnicas reais,0.511599347649176,0.0023331678635883277,0.7934725381604091
+pub_imagenet,convnext_tiny,AP_fine+chroma,calibrado em filtros ideais,-5.571487389726088,0.17235119518575204,0.3616210878458717
+pub_imagenet,convnext_tiny,AP_fine+chroma,técnicas reais → filtros ideais,-0.2845344036989972,-0.16415636481338894,0.7222222222222222
+pub_imagenet,convnext_tiny,AP_fine+chroma,calibrado em filtros suaves,-4.021252855409465,0.131535445969662,0.35651236371697465
+pub_imagenet,convnext_tiny,AP_fine+chroma,técnicas reais → filtros suaves,-0.17460197836579217,-0.1295736698001291,0.7393162393162394
+pub_imagenet,convnext_tiny,AP_fine+chroma,calibrado em filtros parciais,-3.371535567178692,0.13296666370188528,0.47844662542068883
+pub_imagenet,convnext_tiny,AP_fine+chroma,técnicas reais → filtros parciais,0.041092976180764684,-0.01949023646517534,0.7226377736459729
+pub_imagenet,convnext_tiny,AP_fine+chroma,calibrado em filtros todos os filtros,-3.739980981152053,0.13073162222403098,0.40321638016162514
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8536596187474569,0.0004756319426614004,0.9445422690466755
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros ideais,-0.7893292670485701,0.07486731111323233,0.7595876745732654
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,técnicas reais → filtros ideais,-0.03364531034825924,-0.13358402741193112,0.46764346764346765
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros suaves,-1.2872131304356995,0.08238896014465937,0.6954817516777171
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.07918676681749437,-0.10342433829419552,0.5769230769230769
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros parciais,-3.563079637784142,0.11928751697088893,0.5817093569254953
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,técnicas reais → filtros parciais,-0.10960843364618311,-0.019342473626685334,0.5901389169656382
+pub_imagenet,convnext_tiny,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-0.5527331110537523,0.07359621054851836,0.7896656657463574
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,LOTO nas técnicas reais,0.9030061788109122,0.0026240917813046003,0.9638733894180881
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros ideais,-0.8535577057568298,0.10982870835246572,0.8459406898788006
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,técnicas reais → filtros ideais,-0.179834988839636,-0.1825388592043008,0.4658119658119658
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros suaves,-1.0513684901972993,0.11633185396928607,0.8196964964493488
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,técnicas reais → filtros suaves,-0.025308913143859302,-0.1473433659940636,0.5805860805860806
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros parciais,-1.1127154498263332,0.12756248911280832,0.8720438125814287
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.11432398905482977,-0.04648678846104464,0.5586080586080586
+pub_imagenet,efficientnet_b0,D_fine+chroma+coh,calibrado em filtros todos os filtros,-0.7915682635271593,0.1098844236305189,0.8427313308435614
+pub_imagenet,efficientnet_b0,AP_fine+chroma,LOTO nas técnicas reais,0.39768989984991765,0.0025713254149997795,0.7393296638829134
+pub_imagenet,efficientnet_b0,AP_fine+chroma,calibrado em filtros ideais,-5.368785176269338,0.2201444861173353,0.47886458220304745
+pub_imagenet,efficientnet_b0,AP_fine+chroma,técnicas reais → filtros ideais,-0.46952799148052526,-0.23095401235617935,0.7594627594627594
+pub_imagenet,efficientnet_b0,AP_fine+chroma,calibrado em filtros suaves,-4.1766591653748,0.17635727327440817,0.4631906168048857
+pub_imagenet,efficientnet_b0,AP_fine+chroma,técnicas reais → filtros suaves,-0.31146709729982347,-0.18742430336445096,0.8266178266178266
+pub_imagenet,efficientnet_b0,AP_fine+chroma,calibrado em filtros parciais,-6.128510098496457,0.23216807092534256,0.5313932749839007
+pub_imagenet,efficientnet_b0,AP_fine+chroma,técnicas reais → filtros parciais,-0.1192182684337526,-0.05367311840091024,0.8199023199023199
+pub_imagenet,efficientnet_b0,AP_fine+chroma,calibrado em filtros todos os filtros,-3.4575297832315686,0.1728321706014679,0.5536975645427763
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,LOTO nas técnicas reais,0.892048680400553,0.0006127680911443349,0.9628556674525949
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros ideais,-1.0501470823193215,0.11081431398705366,0.8047228464450619
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,técnicas reais → filtros ideais,-0.20386562875918113,-0.18208140268191422,0.409035409035409
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros suaves,-2.243210556147789,0.13177330260588715,0.7228262512836607
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,técnicas reais → filtros suaves,-0.04613959308900717,-0.1472065356564888,0.5586080586080586
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros parciais,-6.221925316303043,0.21804959978845656,0.6193962173206705
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,técnicas reais → filtros parciais,-0.12983144615086428,-0.04652341488244804,0.5506715506715507
+pub_imagenet,efficientnet_b0,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-0.9063446460777513,0.10839894629240637,0.8143156558690734
+pub_imagenet,resnet18,D_fine+chroma+coh,LOTO nas técnicas reais,0.9419752124623798,-0.0007365690556297344,0.9794389416783684
+pub_imagenet,resnet18,D_fine+chroma+coh,calibrado em filtros ideais,0.08669842788617621,0.08141694585593486,0.9068301076638257
+pub_imagenet,resnet18,D_fine+chroma+coh,técnicas reais → filtros ideais,0.03135057204192793,-0.16057562862279864,0.6135531135531136
+pub_imagenet,resnet18,D_fine+chroma+coh,calibrado em filtros suaves,0.00012571300022379273,0.08357637038249129,0.886344571226815
+pub_imagenet,resnet18,D_fine+chroma+coh,técnicas reais → filtros suaves,0.17487187147008076,-0.13031596169452195,0.6636141636141636
+pub_imagenet,resnet18,D_fine+chroma+coh,calibrado em filtros parciais,0.14920239252705947,0.08613189605566735,0.9126392132988167
+pub_imagenet,resnet18,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.02817480862853361,-0.03762885033035125,0.6245421245421245
+pub_imagenet,resnet18,D_fine+chroma+coh,calibrado em filtros todos os filtros,0.0916785195910389,0.08071557196923027,0.8987487499547836
+pub_imagenet,resnet18,AP_fine+chroma,LOTO nas técnicas reais,0.6718594235530102,-0.00018020991588247557,0.8770064792771313
+pub_imagenet,resnet18,AP_fine+chroma,calibrado em filtros ideais,-2.4658468166418355,0.17904651913073594,0.6432488670738968
+pub_imagenet,resnet18,AP_fine+chroma,técnicas reais → filtros ideais,0.1351011832471437,-0.18263652066013522,0.9230769230769231
+pub_imagenet,resnet18,AP_fine+chroma,calibrado em filtros suaves,-1.98692351343835,0.14760919738198308,0.6283054088662791
+pub_imagenet,resnet18,AP_fine+chroma,técnicas reais → filtros suaves,0.17432725042648234,-0.15085990723187567,0.9194139194139194
+pub_imagenet,resnet18,AP_fine+chroma,calibrado em filtros parciais,-3.3734155216282105,0.20598334131320292,0.6855198092053576
+pub_imagenet,resnet18,AP_fine+chroma,técnicas reais → filtros parciais,0.5421980095861095,-0.03915864349258539,0.909035409035409
+pub_imagenet,resnet18,AP_fine+chroma,calibrado em filtros todos os filtros,-1.3741905327766433,0.13945991011957956,0.7030932354454691
+pub_imagenet,resnet18,AP_fine+chroma+coh,LOTO nas técnicas reais,0.9243912744824846,-0.0017083592097052029,0.9740581010977516
+pub_imagenet,resnet18,AP_fine+chroma+coh,calibrado em filtros ideais,-0.02701397891071644,0.08168354579599472,0.8823391601428446
+pub_imagenet,resnet18,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.29350928973536317,-0.13562577628275171,0.8388278388278388
+pub_imagenet,resnet18,AP_fine+chroma+coh,calibrado em filtros suaves,-0.7352146858116959,0.09615245196011944,0.8096925910613746
+pub_imagenet,resnet18,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.35886688124265953,-0.11176763542429397,0.8748473748473748
+pub_imagenet,resnet18,AP_fine+chroma+coh,calibrado em filtros parciais,-3.3246412637941773,0.1816418888726719,0.6799626162171573
+pub_imagenet,resnet18,AP_fine+chroma+coh,técnicas reais → filtros parciais,0.3486544556587624,-0.029215035099561498,0.9047619047619048
+pub_imagenet,resnet18,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.10667628593732292,0.07659663845885013,0.8921083325853837
+pub_imagenet,resnet50,D_fine+chroma+coh,LOTO nas técnicas reais,0.9347119350421871,0.001233188440472994,0.9761290582740118
+pub_imagenet,resnet50,D_fine+chroma+coh,calibrado em filtros ideais,-0.09396202607325121,0.07750509792692158,0.8920943050710101
+pub_imagenet,resnet50,D_fine+chroma+coh,técnicas reais → filtros ideais,-0.011672333581250749,-0.15822351294081644,0.5457875457875457
+pub_imagenet,resnet50,D_fine+chroma+coh,calibrado em filtros suaves,-0.1303992871787114,0.07505435899368625,0.8659057302019831
+pub_imagenet,resnet50,D_fine+chroma+coh,técnicas reais → filtros suaves,0.15809359252280408,-0.12132766231399553,0.6202686202686203
+pub_imagenet,resnet50,D_fine+chroma+coh,calibrado em filtros parciais,0.178870700367175,0.07007927074563869,0.8986288532828469
+pub_imagenet,resnet50,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.09722574065616785,-0.03014111570348694,0.568986568986569
+pub_imagenet,resnet50,D_fine+chroma+coh,calibrado em filtros todos os filtros,-0.036190187560002585,0.0750633625074514,0.8876455725567063
+pub_imagenet,resnet50,AP_fine+chroma,LOTO nas técnicas reais,0.6177709488549121,0.0020842849799152852,0.8580490115181147
+pub_imagenet,resnet50,AP_fine+chroma,calibrado em filtros ideais,-3.3532573132601,0.18053250628391307,0.5971579501589607
+pub_imagenet,resnet50,AP_fine+chroma,técnicas reais → filtros ideais,0.020321160390811888,-0.18156833909198905,0.8943833943833944
+pub_imagenet,resnet50,AP_fine+chroma,calibrado em filtros suaves,-2.4567792549904257,0.1386991381890916,0.5873787997509613
+pub_imagenet,resnet50,AP_fine+chroma,técnicas reais → filtros suaves,0.09444851197200221,-0.1423572178838534,0.9120879120879121
+pub_imagenet,resnet50,AP_fine+chroma,calibrado em filtros parciais,-3.532983832675714,0.18210060795494615,0.6730080837975139
+pub_imagenet,resnet50,AP_fine+chroma,técnicas reais → filtros parciais,0.510219316801592,-0.029485193060932578,0.894993894993895
+pub_imagenet,resnet50,AP_fine+chroma,calibrado em filtros todos os filtros,-1.8180704045172988,0.13132565527294787,0.65774736943078
+pub_imagenet,resnet50,AP_fine+chroma+coh,LOTO nas técnicas reais,0.9173311957392256,-0.0009550240926468103,0.9725469055563669
+pub_imagenet,resnet50,AP_fine+chroma+coh,calibrado em filtros ideais,-0.16790278345936271,0.07592865849620078,0.87310532109999
+pub_imagenet,resnet50,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.14514276104251322,-0.1441219562470612,0.8174603174603174
+pub_imagenet,resnet50,AP_fine+chroma+coh,calibrado em filtros suaves,-1.1134417855730847,0.09271828305537524,0.7903981943108509
+pub_imagenet,resnet50,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.2584166523313257,-0.11112424767967845,0.8266178266178266
+pub_imagenet,resnet50,AP_fine+chroma+coh,calibrado em filtros parciais,-3.356243816890143,0.15558864765551172,0.6883292565902631
+pub_imagenet,resnet50,AP_fine+chroma+coh,técnicas reais → filtros parciais,0.218525183553543,-0.024855202111108216,0.8876678876678876
+pub_imagenet,resnet50,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-0.008512858950546098,0.06950048003011787,0.8782442873113034
+pub_imagenet,swin_t,D_fine+chroma+coh,LOTO nas técnicas reais,0.858074227306503,0.0006111080460893714,0.9494439057093119
+pub_imagenet,swin_t,D_fine+chroma+coh,calibrado em filtros ideais,-0.4488946773206721,0.07447747955335456,0.7675759011282356
+pub_imagenet,swin_t,D_fine+chroma+coh,técnicas reais → filtros ideais,0.03452221091224017,-0.13808658053198736,0.5913601045848118
+pub_imagenet,swin_t,D_fine+chroma+coh,calibrado em filtros suaves,-0.5509923946269784,0.0790883910692767,0.7411654457707416
+pub_imagenet,swin_t,D_fine+chroma+coh,técnicas reais → filtros suaves,0.1770959324341137,-0.10840618775561574,0.6829491760228312
+pub_imagenet,swin_t,D_fine+chroma+coh,calibrado em filtros parciais,0.23161938446009822,0.054957508894983,0.7975181628965657
+pub_imagenet,swin_t,D_fine+chroma+coh,técnicas reais → filtros parciais,0.018328031806071454,-0.021829442844265197,0.6886446886446886
+pub_imagenet,swin_t,D_fine+chroma+coh,calibrado em filtros todos os filtros,-0.33081472352483576,0.07316459562899531,0.7679285779452949
+pub_imagenet,swin_t,AP_fine+chroma,LOTO nas técnicas reais,0.49502634788860056,0.0016585058833738643,0.7816507753192683
+pub_imagenet,swin_t,AP_fine+chroma,calibrado em filtros ideais,-4.561847699815331,0.1732175846637229,0.3133180842754363
+pub_imagenet,swin_t,AP_fine+chroma,técnicas reais → filtros ideais,-0.021154503779502454,-0.15493044298551945,0.8688749910420106
+pub_imagenet,swin_t,AP_fine+chroma,calibrado em filtros suaves,-3.494602677176413,0.1341864336048836,0.30614866840864613
+pub_imagenet,swin_t,AP_fine+chroma,técnicas reais → filtros suaves,0.045457164707149555,-0.12507452227384763,0.8835292424720936
+pub_imagenet,swin_t,AP_fine+chroma,calibrado em filtros parciais,-2.5961893752316616,0.135116965906701,0.48024002178957853
+pub_imagenet,swin_t,AP_fine+chroma,técnicas reais → filtros parciais,0.6622570429225407,-0.015833819522618586,0.8736263736263736
+pub_imagenet,swin_t,AP_fine+chroma,calibrado em filtros todos os filtros,-3.068579858644055,0.13396068409057602,0.37927368730575944
+pub_imagenet,swin_t,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8156874713748057,0.0004904498979684415,0.9352058746475096
+pub_imagenet,swin_t,AP_fine+chroma+coh,calibrado em filtros ideais,-0.6425765860529089,0.07252801250015375,0.7115960137804455
+pub_imagenet,swin_t,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.18365416128688872,-0.12254685092779637,0.9174171989041608
+pub_imagenet,swin_t,AP_fine+chroma+coh,calibrado em filtros suaves,-1.4489472426746013,0.09068641702655354,0.6287572676934717
+pub_imagenet,swin_t,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.2507872528990237,-0.09899015047750284,0.8911616650919286
+pub_imagenet,swin_t,AP_fine+chroma+coh,calibrado em filtros parciais,-2.620615840031992,0.11280147423700963,0.5425429006432166
+pub_imagenet,swin_t,AP_fine+chroma+coh,técnicas reais → filtros parciais,0.5224209531411997,-0.018905376265677582,0.9829059829059829
+pub_imagenet,swin_t,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-0.509393096986966,0.07449601077614511,0.7320563074101256
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,LOTO nas técnicas reais,0.9150404651589992,0.002942943973725592,0.9636819367711141
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,calibrado em filtros ideais,0.16844399104945196,0.09212928778077337,0.8794097198177233
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros ideais,0.10102807112332668,-0.15510545186665947,0.5976800976800977
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,calibrado em filtros suaves,0.1203760806212979,0.08589577077734034,0.8458248103531955
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros suaves,0.2457788975668701,-0.12290708056172157,0.6672771672771672
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,calibrado em filtros parciais,0.17211807698692994,0.09424735153391384,0.8828609143846602
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,técnicas reais → filtros parciais,0.012650745731336288,-0.04052383163925615,0.6001221001221001
+pub_imagenet,vgg16_bn,D_fine+chroma+coh,calibrado em filtros todos os filtros,0.2162380458161941,0.08392210078549411,0.8670358017791874
+pub_imagenet,vgg16_bn,AP_fine+chroma,LOTO nas técnicas reais,0.4989166772933278,0.005249887348842892,0.7872432079019296
+pub_imagenet,vgg16_bn,AP_fine+chroma,calibrado em filtros ideais,-3.1662670826893615,0.23202234636377106,0.5143791376809138
+pub_imagenet,vgg16_bn,AP_fine+chroma,técnicas reais → filtros ideais,-0.08674344220955366,-0.19650112287643628,0.8778998778998779
+pub_imagenet,vgg16_bn,AP_fine+chroma,calibrado em filtros suaves,-2.162791187637017,0.17468111756210752,0.49574268701945434
+pub_imagenet,vgg16_bn,AP_fine+chroma,técnicas reais → filtros suaves,0.037317601149960966,-0.15938780250948673,0.8772893772893773
+pub_imagenet,vgg16_bn,AP_fine+chroma,calibrado em filtros parciais,-2.8475852852225363,0.21301783532892116,0.54095585496645
+pub_imagenet,vgg16_bn,AP_fine+chroma,técnicas reais → filtros parciais,0.43466690283383425,-0.0423844285782705,0.8962148962148963
+pub_imagenet,vgg16_bn,AP_fine+chroma,calibrado em filtros todos os filtros,-2.0058458228402585,0.17568999241843627,0.5321288580594814
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,LOTO nas técnicas reais,0.9007058200660883,0.0010316387517385766,0.9614600784207055
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros ideais,-0.004483765267289108,0.09876415957841139,0.8489434810640479
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.1648777094295757,-0.1495486270117621,0.7973137973137974
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros suaves,-0.5123982925649271,0.10428708123252865,0.7671929948697142
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.26681697451111186,-0.12060810276976966,0.8174603174603174
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros parciais,-3.195069208328966,0.20103410264350355,0.59153474877299
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,técnicas reais → filtros parciais,0.1865958792043173,-0.03949353614248027,0.8308913308913309
+pub_imagenet,vgg16_bn,AP_fine+chroma+coh,calibrado em filtros todos os filtros,0.16360024542042728,0.08721178425391629,0.8616096170367187
+pub_imagenet,vit_b_16,D_fine+chroma+coh,LOTO nas técnicas reais,0.9241458183509691,-0.0014617211588941461,0.9681055005617236
+pub_imagenet,vit_b_16,D_fine+chroma+coh,calibrado em filtros ideais,-1.0300044193732991,0.05700215646241468,0.8738928467508679
+pub_imagenet,vit_b_16,D_fine+chroma+coh,técnicas reais → filtros ideais,-0.07640707215915765,-0.15635045507718445,0.6074481074481074
+pub_imagenet,vit_b_16,D_fine+chroma+coh,calibrado em filtros suaves,-1.5773806001428547,0.07150885774796618,0.8429328604533096
+pub_imagenet,vit_b_16,D_fine+chroma+coh,técnicas reais → filtros suaves,0.06271811897333679,-0.11346438419314453,0.6605616605616605
+pub_imagenet,vit_b_16,D_fine+chroma+coh,calibrado em filtros parciais,-0.43362765945210735,0.0645989943318192,0.8941213813293376
+pub_imagenet,vit_b_16,D_fine+chroma+coh,técnicas reais → filtros parciais,-0.007789278754413154,-0.020375066263836766,0.6722637843550623
+pub_imagenet,vit_b_16,D_fine+chroma+coh,calibrado em filtros todos os filtros,-1.2506334115867466,0.06946109853090457,0.8643403432488059
+pub_imagenet,vit_b_16,AP_fine+chroma,LOTO nas técnicas reais,0.574390642708731,-0.0008058593118153932,0.8361593592037831
+pub_imagenet,vit_b_16,AP_fine+chroma,calibrado em filtros ideais,-6.257558585337788,0.14593454749695872,0.5838363176806108
+pub_imagenet,vit_b_16,AP_fine+chroma,técnicas reais → filtros ideais,0.014791436428369109,-0.16856767377689058,0.9297924297924298
+pub_imagenet,vit_b_16,AP_fine+chroma,calibrado em filtros suaves,-5.506609088534733,0.11862055996705845,0.5844308300293679
+pub_imagenet,vit_b_16,AP_fine+chroma,técnicas reais → filtros suaves,0.06144897883208145,-0.125975893038081,0.9120879120879121
+pub_imagenet,vit_b_16,AP_fine+chroma,calibrado em filtros parciais,-5.6025533665894365,0.14055838257167488,0.7033484145015028
+pub_imagenet,vit_b_16,AP_fine+chroma,técnicas reais → filtros parciais,0.5617397377607274,-0.01936785095421926,0.903678838188458
+pub_imagenet,vit_b_16,AP_fine+chroma,calibrado em filtros todos os filtros,-3.1515767335130906,0.10624817822153039,0.7452161909266792
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,LOTO nas técnicas reais,0.8961143900222934,-0.0017906674866139806,0.9560339073472586
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,calibrado em filtros ideais,-1.0754074452424884,0.057796456633008836,0.8636299513744438
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,técnicas reais → filtros ideais,0.1812781949317388,-0.13353456034746675,0.9236874236874237
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,calibrado em filtros suaves,-4.071680396290168,0.09021003173749632,0.7424048528706927
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,técnicas reais → filtros suaves,0.24942624882843079,-0.09709184946668967,0.9365079365079365
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,calibrado em filtros parciais,-6.376304558861172,0.12690754136592236,0.698380709621211
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,técnicas reais → filtros parciais,0.5636899453196177,-0.013919025762200485,0.9644329222423441
+pub_imagenet,vit_b_16,AP_fine+chroma+coh,calibrado em filtros todos os filtros,-1.1598453013389234,0.06674467974072983,0.8626021503647282

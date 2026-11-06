@@ -270,14 +270,15 @@ exagera mudanças globais de tom e subestima a suavização que preserva bordas.
 | O corte abrupto (ondulação de Gibbs) | filtros com borda em cosseno (`oracle.soft`) | refutada: mesmo dano por unidade de energia (7,0 × 7,2 no ImageNet-val) e R² ainda negativo |
 | O IRE soma o dano anel por anel | expoente sobre a soma, (Σ w·x)^γ | refutada: R² −1,45 / −0,41 contra −1,01 / −0,33 |
 | Falta dose dentro do anel | filtros que mantêm 25, 50 e 75 % de cada anel | refutada: R² −0,93 / −0,02; dano por energia ainda maior (18–21) |
-| **A descrição espectral não distingue filtros de técnicas reais** | IRE ajustado nas técnicas reais prevendo os filtros | **confirmada**: em 32 px prevê (R² 0,90–0,93); em 224 px não (R² ~0; os filtros prejudicam 1,2–2× mais que o previsto) |
+| A coerência em só 3 bandas largas dilui a perda num anel estreito | coerência por anel, ponderada (P_f) e pura (17 anéis) | refutada: no melhor caso R² −0,16 / −0,80 contra −0,37 / −1,11; nas técnicas reais não muda |
+| **A descrição espectral global não distingue filtros de técnicas reais** | IRE ajustado nas técnicas reais prevendo os filtros | **confirmada**: em 32 px prevê (R² 0,90–0,93); em 224 px não (R² ~0 com qualquer descrição; os filtros prejudicam 1,2–2× mais que o previsto) |
 
 Em 224 px, com as mesmas medidas, um filtro de banda prejudica 1,6–1,8× mais por unidade de energia que uma técnica real
 (7,2–9,3 contra 4,5–5,2 p.p. de flip por unidade de D), mesmo comparando um passa-baixa suave com o gaussiano (5,9–7,0 contra
-4,0–5,0). O oráculo serve para medir quais bandas importam, não para calibrar o IRE em 224 px. Hipótese que sobrou: a
-coerência é medida em só 3 bandas largas (a energia, em 17 anéis), e a perda de estrutura num anel estreito se dilui nelas.
-Teste pendente: coerência por anel ([scripts/ire_oraculo_suave.py](scripts/ire_oraculo_suave.py),
-[ire_oraculo_aditividade.py](scripts/ire_oraculo_aditividade.py), [ire_oraculo_reverso.py](scripts/ire_oraculo_reverso.py)).
+4,0–5,0). O oráculo serve para medir quais bandas importam, não para calibrar o IRE em 224 px. Todas as descrições testadas são globais
+(quanto de cada frequência mudou, não onde na imagem); o que sobra é a distribuição espacial da perturbação, que exige um
+descritor local (wavelets ou espectro por bloco) ([ire_coerencia_fina.py](scripts/ire_coerencia_fina.py),
+[espectro_coerencia_anel.py](scripts/espectro_coerencia_anel.py)).
 
 ### 0.7 Bugs encontrados nesta rodada
 

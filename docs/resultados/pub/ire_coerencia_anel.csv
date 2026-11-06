@@ -1,0 +1,457 @@
+run,model,features,teste,r2,vies,spearman
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8678923553645105,0.00016148883061919357,0.9448715753641248
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),calibrado em filtros ideais,0.7630666140904953,0.027111239036927838,0.933749493099868
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.9171750016830614,0.0256699222077747,0.8739883410235537
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),calibrado em filtros suaves,0.7769171476996627,0.03044276970027868,0.9378103249661323
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.9415666843729644,0.015632051423855483,0.8412214132612986
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),calibrado em filtros parciais,0.46039429915276264,-0.08588809693919236,0.933966137976108
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-4.441397310198438,0.020389765022749345,0.7650476785374655
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,0.7822083265308163,0.026985228415591703,0.9391253089823791
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,LOTO nas técnicas reais,0.8247728477397862,0.003729231415737142,0.9339083645931301
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,calibrado em filtros ideais,0.6912683140017095,0.040981814782534716,0.9220405932770415
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,técnicas reais → filtros ideais,0.9212709223566083,-0.010144074974747553,0.7340768904157985
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,calibrado em filtros suaves,0.6936553632236261,0.04345733376700027,0.9186095430277537
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,técnicas reais → filtros suaves,0.9493642501584182,-0.01513224061139732,0.6919084292014892
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,calibrado em filtros parciais,0.6199525221003954,-0.06169042394678122,0.9338754494232633
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,técnicas reais → filtros parciais,-1.641303290452922,0.0021697151289030987,0.6947757272341041
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,coerência em 17 anéis,calibrado em filtros todos os filtros,0.717798570939,0.03993800445652171,0.926066157372755
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8567447289852215,-0.00047496597905776085,0.9452645581031586
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,calibrado em filtros ideais,0.7825834281575456,0.026369235902880313,0.93931676259394
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.9125949098568844,0.027925385255491614,0.873377373990332
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,calibrado em filtros suaves,0.7869763015565017,0.03016625425412643,0.9409793860627579
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.9388719503754138,0.01746550201322808,0.840916069735614
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,calibrado em filtros parciais,0.5863422723274601,-0.07485558207111451,0.9348125644693243
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,técnicas reais → filtros parciais,-4.411890581703255,0.020667450892421783,0.7638255576452331
+pub_cifar10_s0,cifar10_mobilenetv2_x1_0,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.8103093609185816,0.024961539622389336,0.9448789938350762
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8594365346887178,-0.0014774106345395465,0.9486672430769554
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),calibrado em filtros ideais,0.8233277871921244,0.010930299117301387,0.9434952819160735
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.8906203840329197,0.03718503380297516,0.8790472012787824
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),calibrado em filtros suaves,0.8386040939563179,0.014758641738724734,0.9470271417109254
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.9283291577573721,0.025159923160224352,0.8031161651698436
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),calibrado em filtros parciais,0.3178124702086731,-0.08729421097021181,0.9125801724992233
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-10.46802856236589,0.023238848601854475,0.7057748152641954
+pub_cifar10_s0,cifar10_repvgg_a0,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,0.8297318190041844,0.01450601875308163,0.9463016241496435
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,LOTO nas técnicas reais,0.8195759431781965,0.0023466213692713155,0.936872574101576
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,calibrado em filtros ideais,0.752979602632116,0.020405352405100417,0.9303402378014392
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,técnicas reais → filtros ideais,0.9053808441365945,-0.002281106934014244,0.6536348195749112
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,calibrado em filtros suaves,0.7486307343468729,0.02477443174509879,0.9281989533323777
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,técnicas reais → filtros suaves,0.9414554854197311,-0.008642328666792033,0.6027189782731462
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,calibrado em filtros parciais,0.4433429496212895,-0.06788605027671442,0.9221832035534143
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,técnicas reais → filtros parciais,-3.6828320539830903,0.004603572920765785,0.5808129540334352
+pub_cifar10_s0,cifar10_repvgg_a0,coerência em 17 anéis,calibrado em filtros todos os filtros,0.7647363225461306,0.023571911994907442,0.9327687063051748
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,LOTO nas técnicas reais,0.839420442761798,-0.002284386932554049,0.9442284975121074
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,calibrado em filtros ideais,0.8336082877087776,0.009643622622723535,0.9457625242950797
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.8750562112977038,0.040616547075257164,0.9022604004786391
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,calibrado em filtros suaves,0.8406565310273375,0.014146733242638994,0.9477022761082295
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.9181225309810356,0.02783346064391093,0.8290822640817632
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,calibrado em filtros parciais,0.43871354803660967,-0.06934005603621989,0.9234125527544755
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,técnicas reais → filtros parciais,-11.156608039109068,0.023390120841203448,0.7387720793544694
+pub_cifar10_s0,cifar10_repvgg_a0,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.8408314998035226,0.012990571949511134,0.9491381962816001
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8720172077512277,0.001681060320843093,0.9503778721274361
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),calibrado em filtros ideais,0.7843195350290064,0.02554140581616339,0.9406613783689791
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.9088897956117453,0.023167410371087185,0.8046398046398047
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),calibrado em filtros suaves,0.7724977670379611,0.032417506929130514,0.9402683906799731
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.9309806290253552,0.015397050545705386,0.7578626307493805
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),calibrado em filtros parciais,0.44642637076313785,-0.07815760244985409,0.9164019460284223
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-4.030874973937015,0.019099224779167902,0.7203053770901646
+pub_cifar10_s0,cifar10_resnet20,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,0.7793741317552649,0.029566146914678626,0.9406412251541583
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,LOTO nas técnicas reais,0.8227725257677724,0.005738297530371713,0.934305723795049
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,calibrado em filtros ideais,0.700786640467735,0.0492414539141639,0.9241810869492572
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,técnicas reais → filtros ideais,0.9013887901852704,-0.018389256635072685,0.673992673992674
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,calibrado em filtros suaves,0.6844418721317933,0.05158385045985301,0.9177421348140066
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,técnicas reais → filtros suaves,0.9341096896301009,-0.020817956879489632,0.6238168229738051
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,calibrado em filtros parciais,0.6568225755094402,-0.04907070534286947,0.932257487788699
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,técnicas reais → filtros parciais,-1.755187884950657,-0.0025373563285266405,0.649771022657003
+pub_cifar10_s0,cifar10_resnet20,coerência em 17 anéis,calibrado em filtros todos os filtros,0.7239664406953012,0.04834273182822117,0.9306704221215597
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8613003948540678,0.001213363881248818,0.9502065702329843
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,calibrado em filtros ideais,0.8122828033448314,0.02484428621795121,0.9474580500672991
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.9072894619142637,0.022990544701038368,0.796092796092796
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,calibrado em filtros suaves,0.7928189862289258,0.03210064287481242,0.9453671540296396
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.9301687854794908,0.01501411713218688,0.7593893483778039
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,calibrado em filtros parciais,0.6442012243058848,-0.053578456615192414,0.9352754317081161
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,técnicas reais → filtros parciais,-3.877139832861017,0.018197966220303983,0.7258015605524889
+pub_cifar10_s0,cifar10_resnet20,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.8304013737036364,0.024953091386317995,0.9509596711424159
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8659313333111442,0.00024366574806782606,0.9558799080946178
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),calibrado em filtros ideais,0.7311656143698566,0.021979228963660297,0.9372054183102202
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.8908444906271575,0.04057821859553101,0.8330535497977039
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),calibrado em filtros suaves,0.755834241826223,0.027444864874888703,0.9438156394664747
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.9297697390820509,0.026194567285514992,0.7822107354037704
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),calibrado em filtros parciais,0.3005075761385231,-0.09175859709845598,0.9270079429899006
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-9.24006494925173,0.022244878675164427,0.7081807081807082
+pub_cifar10_s0,cifar10_resnet56,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,0.7511994270543467,0.025590752621445348,0.9431556250065134
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,LOTO nas técnicas reais,0.82078410513623,0.0042541685865262685,0.9417828408661767
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,calibrado em filtros ideais,0.6651152186896484,0.031272365055567915,0.922423109718413
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,técnicas reais → filtros ideais,0.9158727577398871,0.0026774121291629556,0.734993340965631
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,calibrado em filtros suaves,0.6568006641273119,0.03884477927181965,0.920508563956693
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,técnicas reais → filtros suaves,0.9481719318671856,-0.006185555150904688,0.736360164747043
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,calibrado em filtros parciais,0.5191543834301309,-0.06964076498693426,0.9465564628727267
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,técnicas reais → filtros parciais,-3.135820986227033,0.0029752492869151623,0.7967032967032966
+pub_cifar10_s0,cifar10_resnet56,coerência em 17 anéis,calibrado em filtros todos os filtros,0.6993552876564053,0.03565269835264996,0.9320865275367791
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8483436095339602,-0.00044611765361916226,0.9530232114832788
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,calibrado em filtros ideais,0.7608707655704414,0.02004416472633059,0.9452616253444054
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.887183006633341,0.0403955322668081,0.8214451761664928
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,calibrado em filtros suaves,0.7705579528998049,0.026598133402762795,0.9478462621227276
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.9283696292427912,0.025703086025525377,0.7785426897512322
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,calibrado em filtros parciais,0.5250730953760386,-0.06999710721634016,0.9506928893737061
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,técnicas reais → filtros parciais,-9.320753826318706,0.021248969691344842,0.7264957264957265
+pub_cifar10_s0,cifar10_resnet56,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.8031521744495624,0.020955050306681065,0.9543002966510523
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8680764342266097,0.0005449199766128303,0.9531086258566379
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros ideais,0.7815749878652533,0.013833663883448383,0.9493524522604558
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.886898058108025,0.03729825562918442,0.8261334243709348
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros suaves,0.7876566003440671,0.021156758195134653,0.9523905493946938
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.9261350444546229,0.024189796965680313,0.8462361553630208
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros parciais,0.22893885191300367,-0.1090015396981981,0.9407772593541988
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-10.585667791043516,0.024880194638749617,0.7148091936278403
+pub_cifar10_s0,cifar10_vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,0.7983894944891086,0.015673267233863322,0.953383095224619
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,LOTO nas técnicas reais,0.8180797501561472,0.004559434680240801,0.9374244259322739
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,calibrado em filtros ideais,0.6951942459611731,0.024041669224372914,0.9334213359446011
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,técnicas reais → filtros ideais,0.9121935588252634,-0.0018860442750433988,0.6328804836367139
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,calibrado em filtros suaves,0.6720992009788775,0.033286654744628975,0.9304588133659412
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,técnicas reais → filtros suaves,0.9441061493262555,-0.009039293645971102,0.6425409133467325
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,calibrado em filtros parciais,0.4000428145826377,-0.08941923423228355,0.9213949050002793
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,técnicas reais → filtros parciais,-4.135548313940267,0.007143031575834784,0.5810687293779496
+pub_cifar10_s0,cifar10_vgg16_bn,coerência em 17 anéis,calibrado em filtros todos os filtros,0.7211451305220684,0.026010798087038767,0.9365148544195963
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,LOTO nas técnicas reais,0.852719433119175,-0.0002086254594235341,0.9496775496765891
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,calibrado em filtros ideais,0.8003520489431173,0.012053865156421371,0.953211792898642
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.8803389526710771,0.03838976360280245,0.8297969872284556
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,calibrado em filtros suaves,0.7969282598472576,0.02040800779911616,0.9528943797652142
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.9216519570427766,0.025094354916816018,0.8340205486454023
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,calibrado em filtros parciais,0.3793428920354647,-0.09396999568344824,0.9279043933874028
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros parciais,-11.12049357553178,0.025402215591473126,0.7099236972168854
+pub_cifar10_s0,cifar10_vgg16_bn,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.8289433454954939,0.011820433011544082,0.955806519306822
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8206942288125774,2.7238126256689642e-05,0.9356933781863442
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros ideais,-1.652560732219126,0.08171129937352149,0.8590848533884733
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.08330945625713826,-0.13503762394548954,0.6526251526251526
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros suaves,-1.5823092824092408,0.08303152284110231,0.845974592639297
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.2174073642216534,-0.10136414490192959,0.7385132126952296
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros parciais,-1.4578459709464124,0.09551643503050149,0.8516983652031188
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.09216422825223791,-0.016816759780179182,0.7108397277939394
+pub_imagenette_s0,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-1.6893540090761752,0.0913329501119793,0.8595534368818143
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,LOTO nas técnicas reais,0.755481846772018,0.0012035537663998169,0.9226083430605019
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,calibrado em filtros ideais,-2.040478373224562,0.10023250038816443,0.8422057705638227
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,técnicas reais → filtros ideais,-0.18014096442157101,-0.16020052128099055,0.648962148962149
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,calibrado em filtros suaves,-1.7484939935415693,0.09210626691986795,0.830254372217533
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,técnicas reais → filtros suaves,-0.06549751617108712,-0.1231591153838295,0.7021828810248153
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,calibrado em filtros parciais,-2.4287606710020877,0.11825401333305174,0.8120904636853344
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,técnicas reais → filtros parciais,-0.31363792357616505,-0.03114263699570048,0.7352672098487141
+pub_imagenette_s0,convnext_tiny,coerência em 17 anéis,calibrado em filtros todos os filtros,-2.200789370495279,0.10772781271654404,0.8275738730943347
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8094707582424314,-0.0009194812424352921,0.9339450119219364
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros ideais,-1.361126096751057,0.08393848160024016,0.862914137850185
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.06395243943031637,-0.13663852423607611,0.6428571428571429
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros suaves,-1.0679295307001113,0.07668511948754421,0.8587926185216584
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.19505960961694935,-0.1028180200572339,0.7192795076932456
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros parciais,-1.9654998076403594,0.10447614063745071,0.8254728051725797
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.0759319757416177,-0.018362037175020166,0.6833588104823181
+pub_imagenette_s0,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-1.3390511993786065,0.08819261271955418,0.860344486435089
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8402198289468619,0.0033124101884004936,0.9472623497585976
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros ideais,-2.028775801560778,0.12558126460884728,0.8696217374685739
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),técnicas reais → filtros ideais,-0.16003494613658775,-0.1937217238291548,0.575091575091575
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros suaves,-2.0044052439670317,0.12460518502430733,0.8525412854881197
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.007962482332572796,-0.15345265926636562,0.6385836385836385
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros parciais,-3.1036458969237506,0.16195933770849041,0.8818602088138608
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.060914444391242606,-0.04895609523310568,0.6697191697191697
+pub_imagenette_s0,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-2.124078685186745,0.1331169717030102,0.8632077506334357
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,LOTO nas técnicas reais,0.7447192665500935,0.0047159934456061535,0.9215460054229493
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,calibrado em filtros ideais,-3.003326635555336,0.15673246837636515,0.8432251333607275
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,técnicas reais → filtros ideais,-0.48205581753714855,-0.22723055371515904,0.4358974358974359
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,calibrado em filtros suaves,-2.432484936332075,0.14348339272866825,0.8388315775710649
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,técnicas reais → filtros suaves,-0.3174597185881074,-0.1820606640279235,0.5256410256410257
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,calibrado em filtros parciais,-9.516992653223284,0.26127439317845447,0.715791861534873
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,técnicas reais → filtros parciais,-0.38874489576135063,-0.0669419051223343,0.6324786324786325
+pub_imagenette_s0,efficientnet_b0,coerência em 17 anéis,calibrado em filtros todos os filtros,-3.233789619447764,0.16685218311247904,0.8231115155713549
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8220084416235658,0.001522947699866539,0.944889230992514
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros ideais,-1.9842532712877565,0.13189654558006125,0.8680698851942434
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.16661892222773766,-0.19426041837248553,0.575091575091575
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros suaves,-1.5472485603427,0.12040755428138762,0.8677222299769421
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.0013055973696093348,-0.15379024609091427,0.6385836385836385
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros parciais,-8.518753168239117,0.23646472766916024,0.7280303328801601
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.06236798016084388,-0.048709342191788914,0.6581196581196581
+pub_imagenette_s0,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-1.9061596653172272,0.13295082061654953,0.8638375608097062
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.94120335564289,0.0006238417970221783,0.980773978564856
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),calibrado em filtros ideais,0.03302819878356622,0.08678955675112261,0.9384347582203773
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),técnicas reais → filtros ideais,-0.04633109506872479,-0.16974058761006128,0.6123321123321124
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),calibrado em filtros suaves,-0.01946068437184878,0.08419023381454338,0.9165283240836434
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.10425933360993933,-0.1359723858466523,0.6066249498244817
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),calibrado em filtros parciais,-0.05046232352076063,0.09950844963771097,0.9415786438922544
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.10697951121752225,-0.04228075560564389,0.5079365079365079
+pub_imagenette_s0,resnet18,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-0.0011213701925700814,0.08934581448963341,0.925914636594392
+pub_imagenette_s0,resnet18,coerência em 17 anéis,LOTO nas técnicas reais,0.880760825108563,0.001359607866813334,0.9624649212710196
+pub_imagenette_s0,resnet18,coerência em 17 anéis,calibrado em filtros ideais,-0.5918395090650648,0.1310177975238168,0.9151125678756346
+pub_imagenette_s0,resnet18,coerência em 17 anéis,técnicas reais → filtros ideais,-0.3082819961345178,-0.20643322475976553,0.5427350427350427
+pub_imagenette_s0,resnet18,coerência em 17 anéis,calibrado em filtros suaves,-0.30336305891384363,0.11604647760503038,0.9158985392936039
+pub_imagenette_s0,resnet18,coerência em 17 anéis,técnicas reais → filtros suaves,-0.2033267918859074,-0.17124476587836737,0.5516715069616701
+pub_imagenette_s0,resnet18,coerência em 17 anéis,calibrado em filtros parciais,-1.834049979767138,0.1768254928632417,0.8906164586822581
+pub_imagenette_s0,resnet18,coerência em 17 anéis,técnicas reais → filtros parciais,-0.2719674784874513,-0.07021627572053386,0.6422466422466423
+pub_imagenette_s0,resnet18,coerência em 17 anéis,calibrado em filtros todos os filtros,-0.6530234864974156,0.1333265260747821,0.9032978052144935
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,LOTO nas técnicas reais,0.9378791834272666,0.00017832305922643117,0.9804515295646344
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,calibrado em filtros ideais,0.07460154320907175,0.09213681377076922,0.9384246816637366
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.04888412747055182,-0.16926264624058548,0.5934065934065934
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,calibrado em filtros suaves,0.18082227651986904,0.08417792274639203,0.9315474317565053
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.10073790227131274,-0.13586510894757678,0.6035719807765477
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,calibrado em filtros parciais,-1.2721985921217462,0.14322844638814664,0.8858955918961221
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.10634211690985529,-0.0431301259606207,0.5164835164835165
+pub_imagenette_s0,resnet18,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.06146463805639346,0.0916900380079374,0.9299906037555277
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8975472805216939,0.0009130230570804106,0.9645432951170014
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),calibrado em filtros ideais,-0.6474554698453254,0.08263771044609021,0.9182541402996702
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),técnicas reais → filtros ideais,-0.06136246813457347,-0.16986365292835237,0.6379731379731379
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),calibrado em filtros suaves,-0.698724530257006,0.08383685310338451,0.8996125574760113
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.09790345812048828,-0.12817467441789346,0.5476190476190477
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),calibrado em filtros parciais,-0.9241407413978844,0.1062440917495962,0.9114222521080806
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.15030728621419254,-0.031085990053040895,0.4987789987789988
+pub_imagenette_s0,resnet50,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-0.7614147395755027,0.09189432845445407,0.9082531830280586
+pub_imagenette_s0,resnet50,coerência em 17 anéis,LOTO nas técnicas reais,0.8249471254602748,0.0015031738441906297,0.9391656150773849
+pub_imagenette_s0,resnet50,coerência em 17 anéis,calibrado em filtros ideais,-1.2091459155966917,0.11327697561030044,0.9013658739145608
+pub_imagenette_s0,resnet50,coerência em 17 anéis,técnicas reais → filtros ideais,-0.30915757384426223,-0.19972640810677816,0.4126984126984127
+pub_imagenette_s0,resnet50,coerência em 17 anéis,calibrado em filtros suaves,-0.8511086996498833,0.10182691787967335,0.8949572000357245
+pub_imagenette_s0,resnet50,coerência em 17 anéis,técnicas reais → filtros suaves,-0.1927501885677736,-0.15588117560888698,0.4829059829059829
+pub_imagenette_s0,resnet50,coerência em 17 anéis,calibrado em filtros parciais,-1.9444305324472761,0.13834183421423585,0.8756152982897715
+pub_imagenette_s0,resnet50,coerência em 17 anéis,técnicas reais → filtros parciais,-0.29029260927900724,-0.05216056548444091,0.561050061050061
+pub_imagenette_s0,resnet50,coerência em 17 anéis,calibrado em filtros todos os filtros,-1.3464670615353014,0.11972461904654401,0.8820793930905159
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8866183663445959,-0.00014478445500233273,0.9616412614257528
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,calibrado em filtros ideais,-0.4316918927403368,0.08595209825388701,0.9242446381313811
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.06793594220071264,-0.1699019754433746,0.6440781440781441
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,calibrado em filtros suaves,-0.26681897518533737,0.07930064426383951,0.9167728902050335
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.08977876912810767,-0.12817397023223584,0.5476190476190477
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,calibrado em filtros parciais,-0.9830814398520638,0.10803210555507113,0.9068374303865862
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.14826579020585617,-0.0316346110176856,0.5036630036630036
+pub_imagenette_s0,resnet50,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-0.4834550737058043,0.08885444777476552,0.9145258237349384
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.789009715046738,0.0012373458523000705,0.9236683537983386
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),calibrado em filtros ideais,-0.9792618213892432,0.07556127457925292,0.795438228621566
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.15787624387228993,-0.13673726792613639,0.8345038556962356
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),calibrado em filtros suaves,-1.08652373030082,0.0801784709465138,0.7741509664462619
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.29051173439404465,-0.1039483321984175,0.8994046815213503
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),calibrado em filtros parciais,-0.1440511901099788,0.06490967640499082,0.7873062425503374
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),técnicas reais → filtros parciais,0.38200991319914546,-0.021655831559568826,0.9590964590964591
+pub_imagenette_s0,swin_t,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-1.049822135959603,0.08556643234298858,0.7852253811826686
+pub_imagenette_s0,swin_t,coerência em 17 anéis,LOTO nas técnicas reais,0.7429841452633233,0.002127741888998429,0.9078578779562911
+pub_imagenette_s0,swin_t,coerência em 17 anéis,calibrado em filtros ideais,-1.3186076499738482,0.09624539256461498,0.7690621771451833
+pub_imagenette_s0,swin_t,coerência em 17 anéis,técnicas reais → filtros ideais,-0.04950681084397979,-0.16123473733889718,0.7700763717767678
+pub_imagenette_s0,swin_t,coerência em 17 anéis,calibrado em filtros suaves,-1.167852643861492,0.09306581547567738,0.7629002075261545
+pub_imagenette_s0,swin_t,coerência em 17 anéis,técnicas reais → filtros suaves,0.08222078251419818,-0.12464766157152735,0.8502518798496133
+pub_imagenette_s0,swin_t,coerência em 17 anéis,calibrado em filtros parciais,-2.8684767015015287,0.13169737200425882,0.6158543503459778
+pub_imagenette_s0,swin_t,coerência em 17 anéis,técnicas reais → filtros parciais,0.05729071813703834,-0.035024645572272535,0.8516483516483516
+pub_imagenette_s0,swin_t,coerência em 17 anéis,calibrado em filtros todos os filtros,-1.5343425547831364,0.10916029570637074,0.7489387865823043
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,LOTO nas técnicas reais,0.7622560364465618,0.0012832985357915602,0.9190380710389882
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,calibrado em filtros ideais,-0.7136930459901143,0.07737597732826489,0.7992321477737562
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.1339241660819075,-0.14002874089227627,0.820763397040425
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,calibrado em filtros suaves,-0.5884466044201324,0.07401005815529095,0.799332915878728
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.26480839095401054,-0.10671700929007572,0.9015417598549041
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,calibrado em filtros parciais,-2.3134736641218705,0.10739376560889996,0.6343251439873185
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,técnicas reais → filtros parciais,0.3517384165415315,-0.023968612537257464,0.9621489621489622
+pub_imagenette_s0,swin_t,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-0.6760435262177213,0.08135466318976384,0.7952064619801307
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.9076121376342675,0.0017034392353048912,0.9733825749236733
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros ideais,-0.5300435898975882,0.12824509183414956,0.9168297829229198
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.06730574584024474,-0.16971760172953715,0.6923076923076923
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros suaves,-0.2641564274704924,0.10753830888434708,0.9017147956514934
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.23637298580565558,-0.13050610642522398,0.7203907203907204
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros parciais,-0.2654182070728528,0.11787804293804112,0.9284632847928278
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.013197745116686255,-0.04419694720830366,0.74034499412399
+pub_imagenette_s0,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-0.32057988815207183,0.11707521738609397,0.9112523526197635
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,LOTO nas técnicas reais,0.8378350555978284,0.0037448369628675575,0.9506950361812496
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,calibrado em filtros ideais,-1.3598784373199604,0.17793272896748236,0.8965857766373893
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,técnicas reais → filtros ideais,-0.3179940473574654,-0.2148347594084566,0.6923076923076923
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,calibrado em filtros suaves,-0.6483075449508733,0.13962973546958035,0.8875671675654381
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,técnicas reais → filtros suaves,-0.14301159437842115,-0.17111831447729361,0.7264957264957265
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,calibrado em filtros parciais,-4.2458269007415925,0.24814164982807,0.7512854039971659
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,técnicas reais → filtros parciais,-0.3162185734582319,-0.07306749589044806,0.7446191507910976
+pub_imagenette_s0,vgg16_bn,coerência em 17 anéis,calibrado em filtros todos os filtros,-1.104891180914826,0.1644562442834161,0.8821056188313626
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,LOTO nas técnicas reais,0.9030374213117577,0.0007782330031499992,0.9717350454613655
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros ideais,-0.4292121806687521,0.13106625947189982,0.9246543080004284
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.0593180094996727,-0.17065272250822464,0.6892551892551892
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros suaves,-0.009656291796824146,0.1033973439155987,0.9176611072228483
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.22623523321278471,-0.1316915230371706,0.7167277167277167
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros parciais,-3.643170414067594,0.20847935969933173,0.7359940752075727
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.013483466095814967,-0.04630598894357866,0.7232483674555598
+pub_imagenette_s0,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-0.20897359594507536,0.11693650023396747,0.9169758944665437
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.841663318755566,0.0013420518463266404,0.9367500624018513
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros ideais,-1.2749277327678898,0.042510896460225205,0.8941019993815015
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),técnicas reais → filtros ideais,-0.07327776451628587,-0.157753215517716,0.6843711843711844
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros suaves,-2.0079214763937583,0.054588812292721604,0.8681792084540726
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.05341299581167769,-0.11001640116043564,0.7397344003144032
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros parciais,-0.5988715625613041,0.049817524209410956,0.8766689854633472
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.04779308711911212,-0.014258071559724179,0.7700763717767678
+pub_imagenette_s0,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-1.8317378315977697,0.05838122871786013,0.8788707851980967
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,LOTO nas técnicas reais,0.7536749674757995,0.00161115277435211,0.9138201645743288
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,calibrado em filtros ideais,-1.592745038520448,0.06142966374778215,0.872456846840348
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,técnicas reais → filtros ideais,-0.26965403331200255,-0.181182396455702,0.4432234432234432
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,calibrado em filtros suaves,-1.3604764584001954,0.056160836136862666,0.8776363665825048
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,técnicas reais → filtros suaves,-0.1847392603082736,-0.1298465058610865,0.45886124790447713
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,calibrado em filtros parciais,-4.269924383003714,0.09393764688472635,0.7735169351898288
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,técnicas reais → filtros parciais,-0.22452775220794274,-0.025286628715362514,0.5865649128402739
+pub_imagenette_s0,vit_b_16,coerência em 17 anéis,calibrado em filtros todos os filtros,-1.9085344204231798,0.06690598341385628,0.8616191552397844
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8331262886245774,0.0015284582674054594,0.9381557845494846
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,calibrado em filtros ideais,-0.7461440811852609,0.04571183776376642,0.8976742557017244
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.08588654592154055,-0.15837665231486206,0.648962148962149
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,calibrado em filtros suaves,-0.8670330180994121,0.04752127760962869,0.8909428954142521
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.03910033340318475,-0.11058940168740232,0.7000458026912615
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,calibrado em filtros parciais,-4.089037498252868,0.08430867926929195,0.7790894535116434
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.06042520950602026,-0.014661491532076767,0.7416794238880924
+pub_imagenette_s0,vit_b_16,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-1.0638622668300073,0.05387487325180894,0.8870179480610029
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.8796361419865624,0.00018383260730599413,0.955651448856721
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros ideais,-0.5068310288358546,0.07229950228964915,0.8167812015074263
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.014362897312890088,-0.13178867900426014,0.5402930402930403
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros suaves,-0.6075084244570543,0.07624238056093409,0.7770601156768304
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.1266163009477551,-0.10153850796726893,0.6208791208791209
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros parciais,0.02819201903449986,0.06090167391999874,0.8288627798714254
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.0806548936897189,-0.018590064416264276,0.5886124324416713
+pub_imagenet,convnext_tiny,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-0.4540732824153124,0.07367121976315569,0.809495979524798
+pub_imagenet,convnext_tiny,coerência em 17 anéis,LOTO nas técnicas reais,0.8745252408542192,0.00031175385669956904,0.9491018190367395
+pub_imagenet,convnext_tiny,coerência em 17 anéis,calibrado em filtros ideais,-1.6197609070978087,0.12057318922066701,0.7618044779428065
+pub_imagenet,convnext_tiny,coerência em 17 anéis,técnicas reais → filtros ideais,-0.14242778667475076,-0.15144580238939642,0.6098901098901099
+pub_imagenet,convnext_tiny,coerência em 17 anéis,calibrado em filtros suaves,-1.2837374000449278,0.10984300721404838,0.7620463110376655
+pub_imagenet,convnext_tiny,coerência em 17 anéis,técnicas reais → filtros suaves,-0.03211235902383791,-0.11894479269070393,0.63003663003663
+pub_imagenet,convnext_tiny,coerência em 17 anéis,calibrado em filtros parciais,-2.3479608021790948,0.13292040724503745,0.6725781423187763
+pub_imagenet,convnext_tiny,coerência em 17 anéis,técnicas reais → filtros parciais,-0.4500867786018403,-0.03393192916598091,0.6255533579216724
+pub_imagenet,convnext_tiny,coerência em 17 anéis,calibrado em filtros todos os filtros,-1.4535681325041776,0.11635774697509187,0.7601015698998408
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8784174900476953,-7.085616897481243e-05,0.9505175467132124
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros ideais,-0.2604753058693279,0.07215292634567484,0.8267668930493138
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.05351378714598698,-0.14029590328917876,0.4590964590964591
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros suaves,-0.18479601850854577,0.07015256040128194,0.8210636625622216
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.05268856686667833,-0.10919419055807848,0.5573870573870574
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros parciais,-0.9467098196336261,0.08017684956622752,0.7074424134942867
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.19343276429709766,-0.025514127127662656,0.5809800098218363
+pub_imagenet,convnext_tiny,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-0.22348903916402696,0.07278167375309882,0.828217891618468
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.9030061788109122,0.0026240917813046003,0.9638733894180881
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros ideais,-0.8535577057568298,0.10982870835246572,0.8459406898788006
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),técnicas reais → filtros ideais,-0.179834988839636,-0.1825388592043008,0.4658119658119658
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros suaves,-1.0513684901972993,0.11633185396928607,0.8196964964493488
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),técnicas reais → filtros suaves,-0.025308913143859302,-0.1473433659940636,0.5805860805860806
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros parciais,-1.1127154498263332,0.12756248911280832,0.8720438125814287
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.11432398905482977,-0.04648678846104464,0.5586080586080586
+pub_imagenet,efficientnet_b0,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-0.7915682635271593,0.1098844236305189,0.8427313308435614
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,LOTO nas técnicas reais,0.8577291055250196,0.0036526948573666297,0.9488897006785977
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,calibrado em filtros ideais,-2.2870238891968286,0.17200293098904443,0.7811589968252604
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,técnicas reais → filtros ideais,-0.48396041010051616,-0.21779437972230134,0.452991452991453
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,calibrado em filtros suaves,-1.708279268832305,0.15206685141982504,0.7936588708698888
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,técnicas reais → filtros suaves,-0.31853722851020394,-0.178037565579106,0.49755799755799757
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,calibrado em filtros parciais,-4.5604337082854745,0.21818190473527757,0.6969649641127303
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,técnicas reais → filtros parciais,-0.5133291438042344,-0.06978793799390152,0.46703296703296704
+pub_imagenet,efficientnet_b0,coerência em 17 anéis,calibrado em filtros todos os filtros,-2.1628363624991134,0.1678837331868862,0.7737326307060414
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8896655955936144,0.0015480355064510308,0.9613341227319069
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros ideais,-0.686702085767769,0.11144471101287899,0.8489233281030731
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.1521957613359992,-0.18139211483183562,0.47924297924297926
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros suaves,-0.5778149155605485,0.10724996740049764,0.8494523433286619
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.0016394889901227838,-0.14664906057343044,0.5879120879120879
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros parciais,-3.270470655682642,0.17150840108280552,0.7414526254646328
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.11604231996531333,-0.047766754081798445,0.5378510378510378
+pub_imagenet,efficientnet_b0,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-0.6816117612257153,0.11212266949006446,0.8451496861605391
+pub_imagenet,resnet18,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.9419752124623798,-0.0007365690556297344,0.9794389416783684
+pub_imagenet,resnet18,atual (coerência em 3 bandas),calibrado em filtros ideais,0.08669842788617621,0.08141694585593486,0.9068301076638257
+pub_imagenet,resnet18,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.03135057204192793,-0.16057562862279864,0.6135531135531136
+pub_imagenet,resnet18,atual (coerência em 3 bandas),calibrado em filtros suaves,0.00012571300022379273,0.08357637038249129,0.886344571226815
+pub_imagenet,resnet18,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.17487187147008076,-0.13031596169452195,0.6636141636141636
+pub_imagenet,resnet18,atual (coerência em 3 bandas),calibrado em filtros parciais,0.14920239252705947,0.08613189605566735,0.9126392132988167
+pub_imagenet,resnet18,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.02817480862853361,-0.03762885033035125,0.6245421245421245
+pub_imagenet,resnet18,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,0.0916785195910389,0.08071557196923027,0.8987487499547836
+pub_imagenet,resnet18,coerência em 17 anéis,LOTO nas técnicas reais,0.9028372194679586,0.00040417601643463204,0.965266371871931
+pub_imagenet,resnet18,coerência em 17 anéis,calibrado em filtros ideais,-0.5413067179923976,0.13872840156206673,0.879653771328057
+pub_imagenet,resnet18,coerência em 17 anéis,técnicas reais → filtros ideais,-0.16990149896022788,-0.1938586456472853,0.6092796092796092
+pub_imagenet,resnet18,coerência em 17 anéis,calibrado em filtros suaves,-0.26020934560350684,0.12293823086629072,0.8904205178518867
+pub_imagenet,resnet18,coerência em 17 anéis,técnicas reais → filtros suaves,-0.0692790064515687,-0.16361139058957072,0.6935286935286935
+pub_imagenet,resnet18,coerência em 17 anéis,calibrado em filtros parciais,-2.267770864912108,0.18698881311375184,0.7827127465901026
+pub_imagenet,resnet18,coerência em 17 anéis,técnicas reais → filtros parciais,-0.17244889135905273,-0.06683504343729785,0.742979242979243
+pub_imagenet,resnet18,coerência em 17 anéis,calibrado em filtros todos os filtros,-0.5462916586755149,0.13656300879395977,0.8699500961736835
+pub_imagenet,resnet18,3 bandas + 17 anéis,LOTO nas técnicas reais,0.9444344860812418,-0.000495851013946928,0.9808849166284032
+pub_imagenet,resnet18,3 bandas + 17 anéis,calibrado em filtros ideais,0.18571352758737392,0.08791023274904865,0.9143572575499285
+pub_imagenet,resnet18,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.04925450853828994,-0.15728760138628978,0.5934065934065934
+pub_imagenet,resnet18,3 bandas + 17 anéis,calibrado em filtros suaves,0.26261606646156843,0.07971711294385521,0.9132841096746006
+pub_imagenet,resnet18,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.19371727567407715,-0.12770504098070903,0.6611721611721612
+pub_imagenet,resnet18,3 bandas + 17 anéis,calibrado em filtros parciais,-1.699689327419525,0.14401969145496527,0.7738252684113306
+pub_imagenet,resnet18,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.012596351192464716,-0.03873798822912007,0.6471306471306472
+pub_imagenet,resnet18,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.19446412667150104,0.08538403784793543,0.9107700214596305
+pub_imagenet,resnet50,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.9347119350421871,0.001233188440472994,0.9761290582740118
+pub_imagenet,resnet50,atual (coerência em 3 bandas),calibrado em filtros ideais,-0.09396202607325121,0.07750509792692158,0.8920943050710101
+pub_imagenet,resnet50,atual (coerência em 3 bandas),técnicas reais → filtros ideais,-0.011672333581250749,-0.15822351294081644,0.5457875457875457
+pub_imagenet,resnet50,atual (coerência em 3 bandas),calibrado em filtros suaves,-0.1303992871787114,0.07505435899368625,0.8659057302019831
+pub_imagenet,resnet50,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.15809359252280408,-0.12132766231399553,0.6202686202686203
+pub_imagenet,resnet50,atual (coerência em 3 bandas),calibrado em filtros parciais,0.178870700367175,0.07007927074563869,0.8986288532828469
+pub_imagenet,resnet50,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.09722574065616785,-0.03014111570348694,0.568986568986569
+pub_imagenet,resnet50,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-0.036190187560002585,0.0750633625074514,0.8876455725567063
+pub_imagenet,resnet50,coerência em 17 anéis,LOTO nas técnicas reais,0.8816465026923402,0.001213065112296071,0.9536184276939312
+pub_imagenet,resnet50,coerência em 17 anéis,calibrado em filtros ideais,-0.8037061854582794,0.13197189150477678,0.8679915458995163
+pub_imagenet,resnet50,coerência em 17 anéis,técnicas reais → filtros ideais,-0.23112719776929236,-0.19101485099545987,0.5891330891330891
+pub_imagenet,resnet50,coerência em 17 anéis,calibrado em filtros suaves,-0.3941529704150455,0.11442435290417459,0.8856101388808527
+pub_imagenet,resnet50,coerência em 17 anéis,técnicas reais → filtros suaves,-0.07663685989482816,-0.15039108688507602,0.6501831501831502
+pub_imagenet,resnet50,coerência em 17 anéis,calibrado em filtros parciais,-2.1865819485622486,0.16489257915008634,0.7893552864620843
+pub_imagenet,resnet50,coerência em 17 anéis,técnicas reais → filtros parciais,-0.2369609086662443,-0.05401060352695612,0.6923076923076923
+pub_imagenet,resnet50,coerência em 17 anéis,calibrado em filtros todos os filtros,-0.7145735383850331,0.126735272624526,0.8607264583733261
+pub_imagenet,resnet50,3 bandas + 17 anéis,LOTO nas técnicas reais,0.9300018396260936,0.000653703082500404,0.9748543963365094
+pub_imagenet,resnet50,3 bandas + 17 anéis,calibrado em filtros ideais,0.14052017330526545,0.07714557507305028,0.9045588172345291
+pub_imagenet,resnet50,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.031023081229684335,-0.16197941046109327,0.532967032967033
+pub_imagenet,resnet50,3 bandas + 17 anéis,calibrado em filtros suaves,0.28965652378408646,0.06632351377068295,0.903480641970587
+pub_imagenet,resnet50,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.13490359968054866,-0.1247421409787706,0.6105006105006106
+pub_imagenet,resnet50,3 bandas + 17 anéis,calibrado em filtros parciais,-1.323090463043341,0.11217056519089573,0.7785181135988145
+pub_imagenet,resnet50,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.09203282045056782,-0.032997808560850196,0.568986568986569
+pub_imagenet,resnet50,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.16642274283118774,0.07410374628637464,0.9004325296589746
+pub_imagenet,swin_t,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.858074227306503,0.0006111080460893714,0.9494439057093119
+pub_imagenet,swin_t,atual (coerência em 3 bandas),calibrado em filtros ideais,-0.4488946773206721,0.07447747955335456,0.7675759011282356
+pub_imagenet,swin_t,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.03452221091224017,-0.13808658053198736,0.5913601045848118
+pub_imagenet,swin_t,atual (coerência em 3 bandas),calibrado em filtros suaves,-0.5509923946269784,0.0790883910692767,0.7411654457707416
+pub_imagenet,swin_t,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.1770959324341137,-0.10840618775561574,0.6829491760228312
+pub_imagenet,swin_t,atual (coerência em 3 bandas),calibrado em filtros parciais,0.23161938446009822,0.054957508894983,0.7975181628965657
+pub_imagenet,swin_t,atual (coerência em 3 bandas),técnicas reais → filtros parciais,0.018328031806071454,-0.021829442844265197,0.6886446886446886
+pub_imagenet,swin_t,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-0.33081472352483576,0.07316459562899531,0.7679285779452949
+pub_imagenet,swin_t,coerência em 17 anéis,LOTO nas técnicas reais,0.8546771349146325,0.0016701367257915465,0.9473983853232214
+pub_imagenet,swin_t,coerência em 17 anéis,calibrado em filtros ideais,-1.2124018093330937,0.12101588022410253,0.721460888177617
+pub_imagenet,swin_t,coerência em 17 anéis,técnicas reais → filtros ideais,-0.052271108288756585,-0.1556455412960268,0.6631048772112603
+pub_imagenet,swin_t,coerência em 17 anéis,calibrado em filtros suaves,-1.0273968839610745,0.11301117736255618,0.7204230106874141
+pub_imagenet,swin_t,coerência em 17 anéis,técnicas reais → filtros suaves,0.09059405115645347,-0.12414181002661362,0.7424820724575438
+pub_imagenet,swin_t,coerência em 17 anéis,calibrado em filtros parciais,-1.7776186519498305,0.13297714718650577,0.6195524027682253
+pub_imagenet,swin_t,coerência em 17 anéis,técnicas reais → filtros parciais,-0.20428214334553374,-0.03674848817513985,0.7112332112332113
+pub_imagenet,swin_t,coerência em 17 anéis,calibrado em filtros todos os filtros,-1.2640001084043129,0.12420543130298578,0.7149111758608024
+pub_imagenet,swin_t,3 bandas + 17 anéis,LOTO nas técnicas reais,0.8576096281344837,0.0005210972881293422,0.9448943862299037
+pub_imagenet,swin_t,3 bandas + 17 anéis,calibrado em filtros ideais,-0.08502534724718047,0.0682312390500864,0.7880966536408401
+pub_imagenet,swin_t,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.023967234711005703,-0.1434111194050589,0.6170050445874573
+pub_imagenet,swin_t,3 bandas + 17 anéis,calibrado em filtros suaves,-0.09450184253500393,0.0707448778464063,0.786519684444561
+pub_imagenet,swin_t,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.16108956568189126,-0.11395076821475715,0.6838650667372114
+pub_imagenet,swin_t,3 bandas + 17 anéis,calibrado em filtros parciais,-0.9070479347289544,0.08037664682299508,0.6441289386770113
+pub_imagenet,swin_t,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.09830610876128154,-0.030038528901962763,0.6984126984126984
+pub_imagenet,swin_t,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-0.13115343086710785,0.07295345341397234,0.784393547061718
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.9150404651589992,0.002942943973725592,0.9636819367711141
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros ideais,0.16844399104945196,0.09212928778077337,0.8794097198177233
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros ideais,0.10102807112332668,-0.15510545186665947,0.5976800976800977
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros suaves,0.1203760806212979,0.08589577077734034,0.8458248103531955
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.2457788975668701,-0.12290708056172157,0.6672771672771672
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros parciais,0.17211807698692994,0.09424735153391384,0.8828609143846602
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),técnicas reais → filtros parciais,0.012650745731336288,-0.04052383163925615,0.6001221001221001
+pub_imagenet,vgg16_bn,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,0.2162380458161941,0.08392210078549411,0.8670358017791874
+pub_imagenet,vgg16_bn,coerência em 17 anéis,LOTO nas técnicas reais,0.8737678116334968,0.003317654736857773,0.9459725669260204
+pub_imagenet,vgg16_bn,coerência em 17 anéis,calibrado em filtros ideais,-0.7975291905913058,0.17279853436602063,0.8402676313643904
+pub_imagenet,vgg16_bn,coerência em 17 anéis,técnicas reais → filtros ideais,-0.2844802985331236,-0.2009437212031007,0.605006105006105
+pub_imagenet,vgg16_bn,coerência em 17 anéis,calibrado em filtros suaves,-0.32867833615503583,0.13995450458392567,0.8413911589387363
+pub_imagenet,vgg16_bn,coerência em 17 anéis,técnicas reais → filtros suaves,-0.10899787217487722,-0.16402401970119063,0.6746031746031746
+pub_imagenet,vgg16_bn,coerência em 17 anéis,calibrado em filtros parciais,-2.1873036183631083,0.2122156135057942,0.7215314235410288
+pub_imagenet,vgg16_bn,coerência em 17 anéis,técnicas reais → filtros parciais,-0.42448750055389284,-0.07368553511213474,0.6568986568986569
+pub_imagenet,vgg16_bn,coerência em 17 anéis,calibrado em filtros todos os filtros,-0.5840187064437936,0.15600949067277695,0.8333652422305166
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,LOTO nas técnicas reais,0.9134028308594873,0.0012683528678720387,0.9627800940393156
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros ideais,0.28219905158694736,0.09250472679633268,0.8939248899598332
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros ideais,0.0752452129117096,-0.16175799690012996,0.5903540903540904
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros suaves,0.41078245177370276,0.07528221482675897,0.8813897482334988
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.22383826464579337,-0.12928847398411927,0.6642246642246642
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros parciais,-1.8066634244296993,0.15855418660228604,0.6759353493355118
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.02069079117131456,-0.04683365936792822,0.63003663003663
+pub_imagenet,vgg16_bn,3 bandas + 17 anéis,calibrado em filtros todos os filtros,0.30422694311573406,0.08687714602153011,0.8849014016833602
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),LOTO nas técnicas reais,0.9241458183509691,-0.0014617211588941461,0.9681055005617236
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros ideais,-1.0300044193732991,0.05700215646241468,0.8738928467508679
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),técnicas reais → filtros ideais,-0.07640707215915765,-0.15635045507718445,0.6074481074481074
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros suaves,-1.5773806001428547,0.07150885774796618,0.8429328604533096
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),técnicas reais → filtros suaves,0.06271811897333679,-0.11346438419314453,0.6605616605616605
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros parciais,-0.43362765945210735,0.0645989943318192,0.8941213813293376
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),técnicas reais → filtros parciais,-0.007789278754413154,-0.020375066263836766,0.6722637843550623
+pub_imagenet,vit_b_16,atual (coerência em 3 bandas),calibrado em filtros todos os filtros,-1.2506334115867466,0.06946109853090457,0.8643403432488059
+pub_imagenet,vit_b_16,coerência em 17 anéis,LOTO nas técnicas reais,0.8920075830614375,-0.0007852504107704876,0.952572645019071
+pub_imagenet,vit_b_16,coerência em 17 anéis,calibrado em filtros ideais,-1.780301315224146,0.09239157340255634,0.8410636733228956
+pub_imagenet,vit_b_16,coerência em 17 anéis,técnicas reais → filtros ideais,-0.19080420889165373,-0.17558982639507567,0.5866910866910867
+pub_imagenet,vit_b_16,coerência em 17 anéis,calibrado em filtros suaves,-1.463691118459641,0.08948910069573116,0.8544200482089537
+pub_imagenet,vit_b_16,coerência em 17 anéis,técnicas reais → filtros suaves,-0.08512763725419936,-0.13112339250817115,0.7246642246642246
+pub_imagenet,vit_b_16,coerência em 17 anéis,calibrado em filtros parciais,-2.5037244154614595,0.11401195966214567,0.8317479671122877
+pub_imagenet,vit_b_16,coerência em 17 anéis,técnicas reais → filtros parciais,-0.1295366537789926,-0.03577293086232466,0.7705693876985364
+pub_imagenet,vit_b_16,coerência em 17 anéis,calibrado em filtros todos os filtros,-1.9086115477291443,0.09794831549185455,0.8368617809596468
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,LOTO nas técnicas reais,0.9223338064916273,-0.0012996391528930981,0.9648659202458217
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,calibrado em filtros ideais,-0.5937557620894509,0.05957195295972215,0.8807247005213299
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,técnicas reais → filtros ideais,-0.06687497630444428,-0.15604131958429726,0.6086691086691086
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,calibrado em filtros suaves,-0.5737772750892913,0.06245251403251132,0.8730564988704131
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,técnicas reais → filtros suaves,0.07466794249795394,-0.11331900786521967,0.6807081807081807
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,calibrado em filtros parciais,-1.3398321069419494,0.08087673604153911,0.8345945728499802
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,técnicas reais → filtros parciais,-0.002151587038968117,-0.021761481363601478,0.710425897454237
+pub_imagenet,vit_b_16,3 bandas + 17 anéis,calibrado em filtros todos os filtros,-0.7312127618485971,0.06733980731297785,0.8730464223899257

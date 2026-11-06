@@ -356,6 +356,7 @@ python scripts/ire_oraculo_diagnostico.py      # por que os filtros ideais não 
 setsid nohup bash scripts/run_oraculo_suave.sh &     # filtros de borda suave; depois python scripts/ire_oraculo_suave.py
 setsid nohup bash scripts/run_oraculo_parcial.sh &   # atenuação parcial; depois python scripts/ire_oraculo_suave.py --parcial
 python scripts/ire_oraculo_aditividade.py && python scripts/ire_oraculo_reverso.py
+setsid nohup bash scripts/run_coerencia_anel.sh &   # coerência por anel (só CPU); depois python scripts/ire_coerencia_fina.py --anel
 make report                                     # figuras do README e dados do site a partir da rodada final
 ```
 
@@ -457,9 +458,10 @@ e rodar um classificador em 200 imagens custa segundos.
   (R² < 0,2), e os filtros ideais também não servem para calibrar o fator de escala (superestimam o flip em ~15 p.p.).
 - **Como escrever.** Assumir como achado: filtros ideais não representam técnicas reais em 224 px. A receita prática é
   barata: **uma** técnica real (o gaussiano) por modelo basta para a escala.
-- **Por quê: investigado.** Sete hipóteses testadas, seis refutadas
+- **Por quê: investigado.** Oito hipóteses testadas, sete refutadas
   ([ire_oraculo_diagnostico.py](scripts/ire_oraculo_diagnostico.py), [ire_oraculo_suave.py](scripts/ire_oraculo_suave.py),
-  [ire_oraculo_aditividade.py](scripts/ire_oraculo_aditividade.py), [ire_oraculo_reverso.py](scripts/ire_oraculo_reverso.py)):
+  [ire_oraculo_aditividade.py](scripts/ire_oraculo_aditividade.py), [ire_oraculo_reverso.py](scripts/ire_oraculo_reverso.py),
+  [ire_coerencia_fina.py](scripts/ire_coerencia_fina.py)):
 
   | Hipótese | Teste | Resultado em 224 px |
   |---|---|---|
@@ -469,7 +471,8 @@ e rodar um classificador em 200 imagens custa segundos.
   | O corte abrupto (ondulação de Gibbs) | filtros com borda em cosseno | refutada: mesmo dano por unidade de energia (7,0 × 7,2) e R² ainda negativo |
   | O IRE soma o dano anel por anel | expoente sobre a soma, (Σ w·x)^γ | refutada: R² −1,45 / −0,41 contra −1,01 / −0,33 |
   | Falta dose dentro do anel (os filtros só zeram ou dobram) | filtros que mantêm 25, 50 e 75 % do anel | refutada: R² −0,93 / −0,02, e dano por energia ainda maior (18–21) |
-  | **A descrição espectral não distingue filtros de técnicas reais** | IRE ajustado nas técnicas reais prevendo os filtros | **confirmada**: em 32 px prevê (R² 0,90–0,93); em 224 px não (R² ~0), e os filtros prejudicam 1,2–2× mais do que o previsto |
+  | A coerência é medida em bandas largas demais (3), e a perda num anel estreito se dilui | coerência por anel: ponderada pela energia (P_f) e pura, em 17 anéis | refutada: R² −0,16 / −0,80 no melhor caso (3 bandas + 17 anéis), contra −0,37 / −1,11; nas técnicas reais não muda nada |
+  | **A descrição espectral global não distingue filtros de técnicas reais** | IRE ajustado nas técnicas reais prevendo os filtros | **confirmada**: em 32 px prevê (R² 0,90–0,93); em 224 px não (R² ~0, com qualquer das descrições), e os filtros prejudicam 1,2–2× mais do que o previsto |
 
   Em 224 px, com as mesmas medidas espectrais, um filtro de banda prejudica a rede 1,6–1,8× mais por unidade de energia que uma
   técnica real (7,2–9,3 contra 4,5–5,2 p.p. de flip por unidade de D). Isso vale até comparando um passa-baixa suave com o
@@ -478,9 +481,12 @@ e rodar um classificador em 200 imagens custa segundos.
   IRE em 224 px: lá, filtros e técnicas reais têm as mesmas medidas e danos diferentes. A calibração tem de usar técnicas reais;
   uma só basta para a escala (§6). Apresentar como limite do oráculo e da resolução da medida, não como falha do IRE em técnicas
   reais (que ele prevê fora da amostra com R² 0,81–0,97).
-- **Falta.** A hipótese mais concreta que sobrou é a **resolução da coerência**: a energia é medida em 17 anéis, mas a coerência
-  só em 3 bandas largas. Um filtro destrói a estrutura num anel estreito, o que se dilui na medida grossa; em 32 px os anéis já
-  são poucos e largos. Teste: medir a coerência por anel (`spectral.py`) e recalcular o espectro das rodadas.
+- **O que sobra.** Todas as descrições testadas são **globais**: medem quanto de cada frequência mudou, mas não **onde** na imagem.
+  Um filtro de banda e uma técnica real podem ter o mesmo espectro de perturbação e espalhá-la de jeitos diferentes pela imagem
+  (bordas, texturas, objeto × fundo), e em 224 px a rede parece ser sensível a isso. Testar exige um descritor local (wavelets ou
+  espectro por bloco), o que já é outro método. Para o artigo: limitação e trabalho futuro, com a receita prática que funciona
+  (calibrar com uma técnica real). Coerência por anel: [scripts/espectro_coerencia_anel.py](scripts/espectro_coerencia_anel.py)
+  e `SpectralAnalyzer.coherence_fine`.
 
 ### 5. "Blur leve já prejudica não é novidade"
 

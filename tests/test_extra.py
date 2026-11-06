@@ -61,3 +61,18 @@ def test_filtro_de_banda_suave():
     assert np.all(m[r > 0.3] == 1.0) and np.all((m >= 0) & (m <= 1))
     assert np.isclose(m[np.isclose(r, 0.15, atol=0.01)].mean(), 0.0, atol=1e-6)   # centro do anel removido
     assert 0 < m[np.isclose(r, 0.1, atol=0.01)].mean() < 1                         # transição na borda
+
+
+def test_coerencia_por_anel():
+    from pdi_spectral.spectral import SpectralAnalyzer, SpectralConfig
+    from pdi_spectral.techniques import oracle
+
+    rng = np.random.default_rng(3)
+    img = (rng.random((4, 32, 32, 3)) * 255).astype(np.uint8)
+    an = SpectralAnalyzer(SpectralConfig.from_dict(None), (32, 32))
+    Fx, _ = an.transform(img)
+    assert np.allclose(an.coherence_fine(Fx, Fx), 1.0, atol=1e-3)          # imagem igual: coerência 1 em todo anel
+    proc = np.stack([oracle.band_gain(im, 0.25, 0.3125, 0.0) for im in img])
+    c = an.coherence_fine(Fx, an.transform(proc)[0]).mean(0)
+    i = int(np.argmin(c))
+    assert 0.25 <= an.fine_centers[i] <= 0.32 and c[i] < 0.5               # o anel removido perde a coerência
