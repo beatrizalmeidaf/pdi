@@ -33,7 +33,7 @@ pergunta deste trabalho é simples: **isso ajuda a rede a acertar?**
 **O que ajuda.** Quase nada.
 - Em imagens pequenas (32 px), **nenhuma** técnica, em nenhuma intensidade, fez a rede acertar mais.
 - Em imagens grandes, só **realçar bordas de leve** (laplaciano ou *unsharp*) ajuda. Num problema de 10 classes, o ganho é de
-  +1 a +3 p.p.
+  +0,7 a +2,7 p.p., conforme o modelo.
 - No ImageNet completo (1000 classes), esse ganho praticamente **some**: sobra +0,3 p.p. em um único modelo (Swin).
 - Todo o resto piora a partir de alguma intensidade, e o ponto de virada costuma ser cedo. Um desfoque gaussiano com σ
   entre 0,4 e 0,7 pixel já custa 1 p.p. em todos os 12 modelos.
@@ -75,7 +75,7 @@ revisão sistemática de 29 estudos mostrou que essa suposição quase nunca é 
 que a literatura mede a "dose" de uma técnica pelo seu parâmetro (σ, raio, qualidade), não pelo que ela faz ao sinal.
 
 Este trabalho:
-- aplica **14 técnicas** em **8 a 14 intensidades** cada a três conjuntos de imagens:
+- aplica **14 técnicas** em **3 a 14 intensidades** cada (106 doses no total) a três conjuntos de imagens:
   - CIFAR-10 (32 px, 5 CNNs, 2000 imagens × 3 sementes);
   - Imagenette (224 px, 7 modelos, 2000 imagens × 3 sementes);
   - **ImageNet-val completo** (50 mil imagens, os mesmos 7 modelos: ResNet-18/50, VGG-16-BN, EfficientNet-B0, ConvNeXt-T, ViT-B/16
@@ -116,7 +116,7 @@ O **BMD** (*benchmark dose*) é a intensidade em que a acurácia cai 1 p.p., est
 | CLAHE misturado (α) | 0,52–0,79 | 0,42–0,95 | 0,46–0,97 | 2/7 |
 | Gaussiano (σ) | **0,46–0,50** | **0,38–0,69** | **0,51–0,64** | ✅ 7/7 |
 | Bilateral (σ_s) | 1,02–1,24 | 0,83–2,12 | 0,73–1,49 | 5/7 |
-| Mediana / Wiener (k) | k = 3 já passa de 1 p.p. | k = 3 já passa | k = 3 já passa | mediana 1/7 · Wiener 7/7 |
+| Mediana / Wiener (k) | k = 3 já passa de 1 p.p. | k = 3 já passa (exceto Wiener no ConvNeXt: k ≈ 3,4) | k = 3 já passa | mediana 1/7 · Wiener 7/7 |
 | JPEG 4:2:0 (qualidade) | ≈ 97,5–99,7 | ≈ 85–100 | ≈ 88–97 | — |
 | JPEG 4:4:4 (qualidade) | ≈ 93–95 | ≈ 68–86 | ≈ 67–92 | — |
 | SR bicúbica (escala) | ≈ 1,01–1,02 | ≈ 1,02–1,31 | ≈ 1,05–1,19 | — |
@@ -144,7 +144,8 @@ O CLAHE, que a literatura sugeria como candidato a melhorar (Hendrycks & Dietter
 ### 4. A banda que importa e quem aguenta mais
 
 Com filtros ideais que removem um anel de frequência por vez:
-- em 32 px, o que mais dói é a **média-alta frequência** (0,28–0,41 ciclo/pixel);
+- em 32 px, o dano é pequeno e espalhado (4–7 p.p. em qualquer anel), com pico na **média-alta frequência** (0,28–0,41
+  ciclo/pixel) na maioria dos modelos;
 - em 224 px, a **mais baixa**: no ImageNet-val, removê-la custa 30 p.p. (ConvNeXt) a 64 p.p. (ViT);
 - o **ViT** depende quase só dela, e por isso perde menos que as CNNs com técnicas que removem frequência.
 
@@ -219,8 +220,8 @@ Desempenho prevendo técnicas que a fórmula não viu:
 A coerência de fase foi o que fez a fórmula funcionar: com ela o R² sobe de 0,23 para 0,85.
 
 **O IRE calibrado num modelo serve para outro?** Em parte.
-- Em 32 px, sim: calibrado nos outros 4 modelos, prevê o quinto tão bem quanto os próprios pesos (R² 0,85–0,89).
-- Em 224 px a **ordem** das condições transfere (Spearman 0,89–0,97), mas a **escala** não. Os modelos medianos ficam em R² 0,8–0,9.
+- Em 32 px, sim: calibrado nos outros 4 modelos, prevê o quinto tão bem quanto os próprios pesos (R² 0,84–0,90).
+- Em 224 px a **ordem** das condições transfere (Spearman 0,89–0,97), mas a **escala** não. Os modelos medianos ficam em R² 0,77–0,92.
   O ViT, o mais robusto, é superestimado (~6 p.p. de flip), e a ResNet-18 e a VGG, as mais frágeis, subestimadas (~5 p.p.).
 - Ou seja, as bandas que importam são parecidas entre modelos, mas a sensibilidade total é de cada um.
 - **Corrigir só a escala resolve boa parte.** Os pesos de banda vêm dos outros modelos, e o modelo-alvo ajusta só um número,
@@ -253,7 +254,8 @@ Re-treinar o modelo nas imagens processadas separa o que ele poderia recuperar d
 ### 8. No JPEG de alta qualidade, quem muda a decisão é a cor
 
 Na qualidade **100**, o JPEG padrão, que subamostra a cor (4:2:0), já custa 0,1–0,6 p.p. nos 7 modelos do ImageNet-val; sem
-subamostrar (4:4:4), ~0. Na qualidade 98, o erro de cor é ~10× o de luminância.
+subamostrar (4:4:4), ~0. Na qualidade 98, o erro de cor é, na mediana das imagens, ~13× o de luminância em 32 px e ~9× no
+ImageNet-val.
 
 ![JPEG e cor](docs/figures/jpeg_cor.png)
 
@@ -261,7 +263,9 @@ subamostrar (4:4:4), ~0. Na qualidade 98, o erro de cor é ~10× o de luminânci
 
 Cruzando uma métrica perceptual independente (BRISQUE) com a acurácia:
 - **em 32 px**, a qualidade percebida só sobe às custas do classificador;
-- **em 224 px**, o aguçamento leve melhora as duas coisas ao mesmo tempo, e o BRISQUE melhora muito antes do limiar da rede.
+- **no Imagenette**, o aguçamento leve melhora as duas coisas ao mesmo tempo (unsharp 0,75: +0,8 p.p. e BRISQUE 18 % melhor);
+- **no ImageNet-val**, ele melhora o BRISQUE quase sem custo para a rede (unsharp 0,3: BRISQUE 16 % melhor, −0,1 p.p.), mas não
+  melhora a acurácia.
 
 ![Trade-off perceptual × acurácia](docs/figures/tradeoff_brisque.png)
 
@@ -293,7 +297,7 @@ cinza, PSNR ≥ 37 dB.
 
 | # | Hipótese | Resultado |
 |---|---|---|
-| H1 | Técnicas perceptuais degradam classificadores, de forma monotônica com a dose | ✅ Confirmada. Exceção: o aguçamento leve em 224 px melhora (hormese): +1 a +3 p.p. no Imagenette, só +0,3 p.p. (Swin) no ImageNet completo |
+| H1 | Técnicas perceptuais degradam classificadores, de forma monotônica com a dose | ✅ Confirmada. Exceção: o aguçamento leve em 224 px melhora (hormese): +0,7 a +2,7 p.p. no Imagenette, só +0,3 p.p. (Swin) no ImageNet completo |
 | H2 | O ΔE medido prevê o dano melhor que o parâmetro nominal e o PSNR | ✅ R² 0,2–0,5 (nominal) e 0,1 (PSNR) → 0,74–0,82 (ridge espectral) e 0,86–0,91 (IRE) |
 | H3 | A banda crítica depende da resolução e da arquitetura | ✅ 32 px: média-alta; 224 px: a mais baixa; ViT: quase só ela |
 | H4 | Técnicas invertíveis causam *domain shift*; destrutivas, perda de informação | ✅ Aguçamento/blur leve voltam a ~1 p.p.; JPEG forte, mediana e Wiener ficam 6–13 p.p. abaixo (CIFAR-10) |
@@ -367,8 +371,9 @@ direto.
   0,07.
 - **Os pesos do IRE são por modelo.** Em 224 px, pesos de outros modelos acertam a ordem do dano, mas não o nível. Medir uma técnica
   (o gaussiano) no modelo-alvo para ajustar um fator de escala recupera quase todo o desempenho.
-- **A fórmula superestima o dano da equalização** (~2×), ou seja, erra para o lado seguro. Calibrada só em filtros ideais, ela não
-  transfere para 224 px.
+- **Onde a fórmula erra, para técnica nova.** Superestima o dano da equalização (1,3–2,3×, lado seguro) e subestima o da
+  suavização: o gaussiano em 32 px sai com metade do flip real, e o bilateral em 224 px com ~0,7×. É isso que a margem conformal
+  absorve. Calibrada só em filtros ideais, a fórmula não transfere para 224 px.
 - **O "objetivo visual" usa métricas sem referência** (nitidez, ruído, contraste, BRISQUE). O estudo com pessoas está pronto, mas
   ainda sem respostas.
 - **Só imagens naturais.** Domínios como imagens médicas, onde o pré-processamento é rotina, ficam para trabalho futuro, assim como

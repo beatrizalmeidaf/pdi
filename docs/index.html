@@ -63,7 +63,7 @@
     <div class="grid g3">
       <article class="card finding"><span class="tag">O que ajuda</span><div class="num">Quase nada</div>
         <p>Em imagens pequenas (32 px), <strong>nenhuma</strong> técnica fez a rede acertar mais. Em imagens grandes, só
-          <strong>realçar bordas de leve</strong> ajuda: +1 a +3 p.p. num problema de 10 classes, mas só +0,3 p.p. (e em um único
+          <strong>realçar bordas de leve</strong> ajuda: +0,7 a +2,7 p.p. num problema de 10 classes, mas só +0,3 p.p. (e em um único
           modelo) no ImageNet completo, com 1000 classes.</p>
         <p>Todo o resto piora cedo: um desfoque de σ ≈ 0,4–0,7 pixel já custa 1 p.p. nos 12 modelos, e o JPEG "qualidade 100"
           padrão já custa até 1,4 p.p. por causa da compressão da cor.</p></article>
@@ -154,7 +154,7 @@
     </figure>
     <div class="card" style="margin-top:16px"><h3>O IRE calibrado num modelo serve para outro?</h3>
       <p class="small muted">Os pesos do IRE são ajustados por modelo. Aqui eles são ajustados nos <em>outros</em> modelos e usados para
-        prever o que ficou de fora. Em 32 px a transferência é completa (R² 0,85–0,89). Em 224 px a <strong>ordem</strong> do dano
+        prever o que ficou de fora. Em 32 px a transferência é completa (R² 0,84–0,90). Em 224 px a <strong>ordem</strong> do dano
         transfere (Spearman 0,89–0,97), mas a <strong>escala</strong> não: o ViT, mais robusto, é superestimado e a ResNet-18 e a
         VGG, mais frágeis, subestimadas. Medindo uma única técnica (o gaussiano) no modelo-alvo para ajustar um fator de escala, o R²
         sobe de 0,74 para 0,84 no ImageNet-val (ViT: 0,35 → 0,91). Calibrar a escala só com filtros ideais não funciona em 224 px.</p>

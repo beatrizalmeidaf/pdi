@@ -683,10 +683,13 @@ com a técnica prevista:
 | … + escala medida só no gaussiano | 0,38 | 0,70 (0,44–0,85) | **0,84 (0,72–0,91)** |
 | … + escala medida só nos filtros ideais | 0,85 | < 0 | < 0 |
 
+A linha "sem escala" repete o protocolo da tabela anterior com outra subamostragem de linhas; as diferenças ficam em ≤ 0,04.
+
 - **Em 224 px, uma técnica real basta para a escala.** Com k medido só no desfoque gaussiano, o ViT vai de R² 0,35 para 0,91 no
   ImageNet-val, a ResNet-18 de 0,77 para 0,88 e a VGG de 0,75 para 0,85. A pior subestimação do flip cai de 30 para 15 p.p., o
   mesmo nível dos pesos do próprio modelo (12–19 p.p.). O preço: nos modelos medianos (EfficientNet-B0, Swin-T) o R² cai um pouco
-  (até 0,72), e o viés fica levemente positivo (+2 a +5 p.p.), do lado seguro.
+  (até 0,72 no ImageNet-val; no Imagenette, a EfficientNet-B0 cai de 0,82 para 0,48), e o viés fica levemente positivo
+  (+2 a +5 p.p.), do lado seguro.
 - **Os filtros ideais não servem para calibrar a escala em 224 px**: k sai 2–3× maior e o IRE superestima o flip em ~15 p.p.
   (R² < 0). Nunca subestima, mas fica inútil. É o mesmo motivo de o IRE calibrado só no oráculo não transferir (§10.6).
 - **Em 32 px não é preciso escala.** Os pesos de outros modelos já funcionam; medir a escala no gaussiano piora (R² 0,38), porque
@@ -736,7 +739,7 @@ No `make safe-dose`, o fator vem de `ire.safe_margin` (0,18 / 0,37 / 0,55 nas co
 | ~~Alta~~ feito | Recalibrar só a escala do IRE por modelo (pesos de banda compartilhados) | [scripts/ire_escala.py](scripts/ire_escala.py) (§14.3) |
 | ~~Alta~~ feito | Dose segura com cobertura garantida para técnica nova: fator conformal no orçamento de flip | [scripts/ire_conformal.py](scripts/ire_conformal.py) (§8.2, §14.3) |
 | Média | Calibrar o fator conformal com mais técnicas (com 14, o menor α é 0,07) e testar entradas já degradadas | novas técnicas no `sweep.yaml` |
-| Alta | Melhorar a fórmula nas técnicas de equalização (superestima ~2×). Já testados sem sucesso: separar amplitude × estrutura e tirar a curva tonal global (corrige o HE mas piora o resto). Próximo: curva tonal por bloco | ver [results.md](results.md) §6 |
+| Alta | Melhorar a fórmula nas técnicas de equalização (superestima 1,3–2,3×). Já testados sem sucesso: separar amplitude × estrutura e tirar a curva tonal global (corrige o HE mas piora o resto). Próximo: curva tonal por bloco | ver [results.md](results.md) §6 |
 | ~~Média~~ feito | BRISQUE como métrica perceptual independente | `quality.brisque: true` (§8.3) |
 | Média | **Aplicar o estudo com pessoas** (kit pronto, falta coletar respostas) | `make human-export`, enviar a pasta e `make human-analyze` (§8.3) |
 | Média | Oráculo com anéis finos na faixa baixa: testar se a banda crítica é fixa em ciclos/imagem | aumentar `oracle.n_bins` ([results.md](results.md) §10.1) |
