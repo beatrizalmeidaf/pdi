@@ -49,11 +49,12 @@ pergunta deste trabalho é simples: **isso ajuda a rede a acertar?**
 **O que é novo.**
 1. Medimos a "dose" pelo que a técnica faz **ao sinal** (espectro de Fourier), não pelo botão do algoritmo (σ, qualidade…). Isso
    põe técnicas diferentes na mesma régua.
-2. Uma fórmula própria, o **Índice de Risco Espectral (IRE)**, prevê o dano de técnicas que ela nunca viu (R² 0,86–0,91). Ela
-   olha só a imagem, sem rodar a rede.
-   - É melhor que LPIPS, SSIM, PSNR e a métrica espectral de Yin et al. em dois dos três datasets; só perde para o LPIPS no
-     CIFAR-10.
-   - Só é superada por medidas que precisam rodar a própria rede.
+2. Uma fórmula própria, o **Índice de Risco Espectral (IRE)**, prevê o dano de técnicas que ela nunca viu (R² 0,86–0,91) e diz
+   **de onde vem** o dano: no ImageNet-val, 59–89 % do risco previsto vem da perda de estrutura/fase, e a cor responde por 33 % no
+   JPEG padrão contra 19 % sem subamostrar a cor.
+   - É melhor que LPIPS, SSIM, PSNR e a métrica espectral de Yin et al. em 224 px; no CIFAR-10 o LPIPS ganha (0,90 contra 0,86).
+   - A distância entre features da própria rede acerta mais (0,95–0,99), mas não explica nada nem transfere entre modelos; ver
+     [Para o artigo](#para-o-artigo-críticas-esperadas-e-como-responder).
 3. A fórmula dá uma **dose segura** estimada sem rodar a rede.
    - Como a acurácia nunca cai mais que a fração de decisões que mudam, IRE ≤ −ln(1 − τ) limita a queda a τ, *se* o IRE não
      subestimar essa fração.
@@ -173,9 +174,11 @@ Cada preditor tenta prever a probabilidade de a decisão da rede mudar em cada c
 
 ![IRE × preditores](docs/figures/preditores_pub.png)
 
-Entre os preditores que olham só a imagem, o IRE é o melhor em 224 px e fica perto do LPIPS em 32 px. O LPIPS é ele próprio uma
-rede neural; o IRE é uma soma de termos espectrais com 3 grupos de pesos. A distância entre features acerta mais, mas é a resposta
-da própria rede: exige rodar o modelo em cada imagem, e o IRE existe justamente para evitar isso.
+Entre os preditores que olham só a imagem, o IRE é o melhor em 224 px; em 32 px o LPIPS fica à frente (0,90 contra 0,86). O LPIPS
+é ele próprio uma rede neural; o IRE é uma soma de termos espectrais com 3 grupos de pesos, que dá para ler. A distância entre
+features acerta mais porque é a resposta da própria rede: serve de **teto**, não de concorrente. O valor do IRE não é evitar rodar
+a rede (isso é barato), e sim explicar o dano, transferir entre modelos com 1 número e dar uma margem com cobertura medida (ver
+[Para o artigo](#para-o-artigo-críticas-esperadas-e-como-responder)).
 
 ### 6. Uma fórmula para o risco: o Índice de Risco Espectral (IRE)
 
@@ -340,6 +343,7 @@ python scripts/figuras_publicacao.py            # figuras *_pub.png e tabelas em
 python scripts/ire_transfer.py                  # IRE entre modelos e bases (~25 min em CPU)
 PYTHONPATH=scripts python scripts/ire_escala.py  # pesos compartilhados + 1 escala por modelo
 python scripts/ire_conformal.py                 # margem conformal da dose segura para técnica nova
+python scripts/ire_decomposicao.py              # de onde vem o risco previsto (estrutura, cor, energia)
 make report                                     # figuras do README e dados do site a partir da rodada final
 ```
 
@@ -361,6 +365,88 @@ direto.
 ├── MODELAGEM.md             hipóteses, variáveis, quantificador espectral e protocolo em detalhe
 └── revisao_literatura/      artigo da revisão sistemática (LaTeX)
 ```
+
+## Para o artigo: críticas esperadas e como responder
+
+*Notas para a equipe, para escrever o artigo sem repetir os pontos fracos.* Cada item traz a crítica que um revisor deve fazer, o
+que os dados já respondem, como escrever e o que ainda falta.
+
+### 1. "Por que não rodar a rede?"
+
+É a crítica mais séria. A distância entre features da própria rede prevê o flip melhor que o IRE (R² 0,95–0,99 contra 0,86–0,91),
+e rodar um classificador em 200 imagens custa segundos.
+
+- **O que os dados respondem.** O IRE não compete em acurácia de previsão com a própria rede; ele entrega o que ela não entrega:
+  - *Explicação.* O risco se decompõe por componente
+    ([ire_decomposicao_pub_imagenet.csv](docs/resultados/pub/ire_decomposicao_pub_imagenet.csv)). No ImageNet-val, 59–89 % do
+    risco previsto vem da perda de coerência (estrutura/fase), e só 3–15 % da energia de luminância. A cor pesa 33 % no JPEG 4:2:0
+    e 19 % no 4:4:4, o que explica por que a subamostragem de cor muda decisões já na qualidade 100.
+  - *Transferência.* O espectro de uma técnica é medido uma vez e serve para todos os modelos. Para um modelo novo, basta medir uma
+    técnica barata (o gaussiano) e ajustar 1 número: R² 0,84 no ImageNet-val (§6).
+  - *Cobertura medida.* A margem conformal dá 93 % de técnicas novas seguras em todos os modelos (§6). A distância entre features
+    não tem garantia nenhuma para doses que não foram rodadas.
+- **Como escrever.** Apresentar a distância entre features como **teto** (o que se consegue com acesso total à rede), não como
+  concorrente. Não vender o IRE como "dispensa rodar a rede"; vender como **explicação + transferência + margem com cobertura**.
+- **Cuidado ao interpretar os pesos.** O peso da energia na banda mais baixa sai **zero**, embora remover essa banda seja o que mais
+  dói (filtros ideais). Não há contradição: o termo de coerência da banda baixa carrega essa informação. A leitura "quais
+  frequências importam" deve ser feita pelos termos de coerência por banda e pelos filtros ideais, **não** pelos pesos de energia.
+- **Falta.** Uma figura da decomposição por técnica para o artigo, e um parágrafo com o custo comparado: quantas inferências
+  cada abordagem exige para escolher a dose de *k* técnicas em *m* modelos.
+
+### 2. "No CIFAR-10 o LPIPS ganha"
+
+- **O que os dados respondem.** É verdade: 0,90 contra 0,86. Em 224 px a ordem se inverte e a distância cresce: 0,86 contra 0,73
+  (Imagenette) e 0,91 contra 0,67 (ImageNet-val).
+- **Como escrever.** Reportar sem esconder. Duas ressalvas legítimas: o LPIPS é uma rede treinada para similaridade perceptual e,
+  em 32 px, precisa ampliar a imagem para 64 px; e em 32 px o IRE transfere entre modelos sem perda nenhuma (R² 0,84–0,90), coisa
+  que o LPIPS não mede.
+- **Falta (opcional).** Testar IRE + LPIPS juntos no CIFAR-10, para ver se são complementares.
+
+### 3. "A dose segura conservadora custa caro"
+
+- **O que os dados respondem.** A margem conformal cobre 93 % das técnicas novas, mas recomenda só 29–54 % da dose realmente
+  segura. A garantia supõe que a técnica nova se comporte como as 14 testadas, e com 14 técnicas o menor α possível é 0,07.
+- **Como escrever.** Mostrar a **curva de compromisso** α × cobertura × dose aproveitada (α = 0,1: 93 % e 29–54 %; α = 0,2: 86 %
+  e 44–80 %), em vez de um único número. Dizer explicitamente que a suposição é trocabilidade entre técnicas, e que sem margem
+  a regra "segura" falha em 43–64 % das técnicas novas.
+- **Falta.** Mais técnicas na calibração: mais trocabilidade, α menor possível e margem menos conservadora.
+
+### 4. "Em 224 px o IRE precisa de técnicas reais para calibrar"
+
+- **O que os dados respondem.** Calibrado só com filtros ideais, o IRE prevê bem em 32 px (R² 0,75–0,81), mas falha em 224 px
+  (R² < 0,2), e os filtros ideais também não servem para calibrar o fator de escala (superestimam o flip em ~15 p.p.).
+- **Como escrever.** Assumir como achado: filtros ideais não representam técnicas reais em 224 px. A receita prática é
+  barata: **uma** técnica real (o gaussiano) por modelo basta para a escala.
+- **Falta.** Entender por quê. Hipótese: os filtros ideais cortam em anéis finos, sem a perda de coerência típica das técnicas
+  reais, e em 224 px a coerência domina o risco (item 1).
+
+### 5. "Blur leve já prejudica não é novidade"
+
+- **O que os dados respondem.** É conhecido para degradações: Dodge & Karam (2016), Vasiljevic et al. (2016) e o ImageNet-C de
+  Hendrycks & Dietterich (2019) já mostram que blur, ruído e JPEG derrubam a acurácia.
+- **O que é novo aqui.** Esses trabalhos tratam *degradações*. Aqui são técnicas aplicadas para *melhorar* a imagem, com:
+  - limiar com intervalo de confiança (BMD) para 14 técnicas × 12 modelos, todas no mesmo eixo espectral;
+  - equalização, realce e super-resolução, quase sem evidência na literatura;
+  - a hormese do realce, que aparece com 10 classes e some com 1000;
+  - a janela operacional: o objetivo visual chega antes do limite seguro?
+- **Como escrever.** Citar esses trabalhos na introdução como ponto de partida e deixar o blur como **controle** que reproduz a
+  literatura, não como contribuição.
+
+### 6. "Sem estudo com pessoas"
+
+- **O que os dados respondem.** A qualidade percebida é medida só por métricas sem referência (BRISQUE, nitidez, ruído,
+  contraste). O kit do estudo com pessoas está pronto (`make human-export`), sem respostas.
+- **Como escrever.** Ou rodar o estudo antes de submeter, ou trocar "perceptual" por "**qualidade sem referência**" no título e no
+  texto, e deixar o estudo com pessoas como trabalho futuro.
+- **Falta.** Decidir entre as duas opções. Para o estudo, definir o número de participantes e de pares antes de coletar.
+
+### O que mais fortalece o artigo
+
+1. Os resultados de escala: ImageNet-val completo, 12 modelos, sementes, intervalos de confiança, tudo validado em técnicas que a
+   fórmula não viu.
+2. O resultado negativo limpo: o ganho do realce no Imagenette não se repete com 1000 classes.
+3. A margem conformal com cobertura medida: contribuição de método sem equivalente na literatura do tema.
+4. O achado do JPEG: a subamostragem de cor sozinha já muda decisões na qualidade 100.
 
 ## Limitações
 
