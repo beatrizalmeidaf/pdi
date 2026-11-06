@@ -238,6 +238,40 @@ No `make safe-dose`, o fator vem de `ire.safe_margin` (0,18 / 0,37 / 0,55 nas co
 
 Tabelas: `ire_transfer.csv` (por modelo e protocolo), `ire_transfer_pares.csv` (matriz calibra em A → aplica em B), `ire_transfer_resumo.csv`, `ire_escala.csv`, `ire_escala_resumo.csv`, `ire_conformal*.csv` e `ire_dose_segura.csv`, em [docs/resultados/pub/](docs/resultados/pub/).
 
+**Validação externa: 6 técnicas fora de todo ajuste** ([techniques/extra.py](src/pdi_spectral/techniques/extra.py),
+[scripts/run_validacao_externa.sh](scripts/run_validacao_externa.sh), [scripts/ire_validacao_externa.py](scripts/ire_validacao_externa.py)).
+Filtro da média (k 3–9), difusão anisotrópica de Perona–Malik (1–16 iterações), correção gama (γ 0,95–0,5), alongamento de
+contraste (percentis 0,5–10 %), WebP (qualidade 100–10) e reamostragem (escala 0,9–0,25): 35 condições nas mesmas imagens e
+modelos da rodada final, escolhidas depois dela.
+
+| | CIFAR-10 | Imagenette | ImageNet-val |
+|---|---|---|---|
+| IRE ajustado nas 14, R² nas 6 novas (média dos modelos) | 0,97 | 0,81 | 0,82 |
+| … Spearman | 0,98 | 0,95 | 0,94 |
+| Margem das 14 (α = 0,1) nas 6 novas: técnicas seguras em todos os modelos | 100 % | 100 % | 100 % |
+| … sem margem | 11 % | 11 % | 83 % |
+| 20 técnicas, LOTO: R² do IRE | 0,90 | 0,85 | 0,88 |
+| 20 técnicas, margem conformal α = 0,05 / 0,1 / 0,2: cobertura por técnica | 95 / 90 / 80 % | 95 / 90 / 80 % | 95 / 90 / 80 % |
+| … fator c com α = 0,1 (com 14 técnicas) | 0,23 (0,18) | 0,57 (0,37) | 0,65 (0,55) |
+
+Por técnica nova (razão previsto/observado do flip, condições com flip > 2 %): reamostragem e WebP acertam (1,0–1,2); o
+filtro da média fica perto (1,0–1,25); gama e alongamento de contraste são superestimados (1,3–1,8×, como a equalização);
+Perona–Malik é subestimado em 224 px (~0,7×, como o bilateral). Os mesmos dois padrões de erro das 14 técnicas reaparecem: o IRE
+exagera mudanças globais de tom e subestima a suavização que preserva bordas.
+
+**Por que os filtros ideais não calibram o IRE em 224 px** ([scripts/ire_oraculo_diagnostico.py](scripts/ire_oraculo_diagnostico.py)):
+
+| Hipótese | Teste | Resultado |
+|---|---|---|
+| Os filtros não produzem a perda de coerência das técnicas reais | faixa de cada componente nos filtros × nas técnicas | refutada: cobrem toda a faixa de coerência; só a energia de alta frequência do aguçamento sai dela |
+| Regime: filtros são perturbações grandes, técnicas reais são finas | fixar nos filtros o γ das técnicas reais | refutada: γ dos filtros é maior (0,56–1,19 × 0,48–0,63), mas fixá-lo não melhora |
+| O anel mais baixo (que derruba 30–64 p.p.) distorce o ajuste | ajustar sem ele | refutada: piora |
+| Os filtros que **removem** frequência são o problema | ajustar só com cada tipo de filtro | confirmada: só "dobrar um anel" transfere em 224 px (R² 0,12–0,46); remover anel, passa-baixa e passa-alta: R² −0,9 a −5 |
+
+Calibrado nos filtros ideais, o IRE superestima o flip das técnicas reais: por unidade de perturbação medida, o corte abrupto
+de um filtro ideal prejudica mais a rede em 224 px. Explicação provável, ainda não testada: a ondulação espacial do corte
+(efeito de Gibbs), que uma medida espectral global não capta. Teste pendente: filtros de banda com borda suave.
+
 ### 0.7 Bugs encontrados nesta rodada
 
 - **Classe *parachute* fora do Imagenette:** o wnid estava errado (`n03888605` → `n03888257`). As rodadas antigas de

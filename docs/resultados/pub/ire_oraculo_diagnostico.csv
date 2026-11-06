@@ -1,0 +1,134 @@
+dataset,run,model,teste,gamma,r2,vies,spearman
+cifar10,pub_cifar10_s0,cifar10_mobilenetv2_x1_0,todos os filtros,livre,0.7631941729386849,0.027081942396147488,0.933749493099868
+cifar10,pub_cifar10_s0,cifar10_mobilenetv2_x1_0,todos os filtros,das técnicas reais,0.8651146177017888,0.005668864785948457,0.9562402542053318
+cifar10,pub_cifar10_s0,cifar10_mobilenetv2_x1_0,sem o anel mais baixo,livre,0.779413789447103,0.022303754489683844,0.9356741057213481
+cifar10,pub_cifar10_s0,cifar10_mobilenetv2_x1_0,só remover anel (ganho 0),livre,0.42756482597063095,-0.07386577698647566,0.9194207017504193
+cifar10,pub_cifar10_s0,cifar10_mobilenetv2_x1_0,só dobrar anel (ganho 2),livre,0.4448336969861616,-0.0855175046465191,0.9455138137049884
+cifar10,pub_cifar10_s0,cifar10_mobilenetv2_x1_0,só passa-baixa/alta,livre,0.592175384512185,0.08541264905373673,0.9063464353819878
+cifar10,pub_cifar10_s0,cifar10_mobilenetv2_x1_0,só filtros com flip < 30 %,livre,0.5582361908870999,-0.06108494942456977,0.9413975610564302
+cifar10,pub_cifar10_s0,cifar10_repvgg_a0,todos os filtros,livre,0.8228230168481627,0.011007518432317762,0.9433794006389242
+cifar10,pub_cifar10_s0,cifar10_repvgg_a0,todos os filtros,das técnicas reais,0.8642352757361458,-0.012199890986730256,0.957199502518067
+cifar10,pub_cifar10_s0,cifar10_repvgg_a0,sem o anel mais baixo,livre,0.8286911016744118,0.007641209954772524,0.9436565080408027
+cifar10,pub_cifar10_s0,cifar10_repvgg_a0,só remover anel (ganho 0),livre,0.33560682787415763,-0.08367906026357318,0.9207523216964415
+cifar10,pub_cifar10_s0,cifar10_repvgg_a0,só dobrar anel (ganho 2),livre,0.3864974355785975,-0.08546290884159659,0.9429511437451119
+cifar10,pub_cifar10_s0,cifar10_repvgg_a0,só passa-baixa/alta,livre,0.8321486515091507,0.027417236593146176,0.9255941437547194
+cifar10,pub_cifar10_s0,cifar10_repvgg_a0,só filtros com flip < 30 %,livre,0.39146622895011196,-0.08093798606349382,0.9391572914975748
+cifar10,pub_cifar10_s0,cifar10_resnet20,todos os filtros,livre,0.7843195350071877,0.025541405815449315,0.9406613783689791
+cifar10,pub_cifar10_s0,cifar10_resnet20,todos os filtros,das técnicas reais,0.8514872201847599,0.010126337227050955,0.95526238250666
+cifar10,pub_cifar10_s0,cifar10_resnet20,sem o anel mais baixo,livre,0.794139808703055,0.023198805300416528,0.9420771417101413
+cifar10,pub_cifar10_s0,cifar10_resnet20,só remover anel (ganho 0),livre,0.31584787970260886,-0.0828684159032441,0.904138714809956
+cifar10,pub_cifar10_s0,cifar10_resnet20,só dobrar anel (ganho 2),livre,0.5036770037373199,-0.07821229256063796,0.952420779216925
+cifar10,pub_cifar10_s0,cifar10_resnet20,só passa-baixa/alta,livre,0.6635701177171548,0.07519524132049805,0.9137921047091266
+cifar10,pub_cifar10_s0,cifar10_resnet20,só filtros com flip < 30 %,livre,0.5390142773256409,-0.060259917755320594,0.9406412251541583
+cifar10,pub_cifar10_s0,cifar10_resnet56,todos os filtros,livre,0.7311329389984433,0.021974807396677468,0.9372054183102202
+cifar10,pub_cifar10_s0,cifar10_resnet56,todos os filtros,das técnicas reais,0.8467896638855863,0.0018902157539047023,0.9620894749342609
+cifar10,pub_cifar10_s0,cifar10_resnet56,sem o anel mais baixo,livre,0.7396329326459099,0.018491169883948576,0.9394021076578779
+cifar10,pub_cifar10_s0,cifar10_resnet56,só remover anel (ganho 0),livre,0.254576913831842,-0.08402690582148738,0.9127748067350079
+cifar10,pub_cifar10_s0,cifar10_resnet56,só dobrar anel (ganho 2),livre,0.2265355850636428,-0.10239051689779223,0.9580034312164846
+cifar10,pub_cifar10_s0,cifar10_resnet56,só passa-baixa/alta,livre,0.676837866604654,0.0618805673909609,0.9017661686051175
+cifar10,pub_cifar10_s0,cifar10_resnet56,só filtros com flip < 30 %,livre,0.3980599440715791,-0.0731638680310269,0.9353916381149064
+cifar10,pub_cifar10_s0,cifar10_vgg16_bn,todos os filtros,livre,0.7815178358278292,0.013848023211994234,0.9493524522604558
+cifar10,pub_cifar10_s0,cifar10_vgg16_bn,todos os filtros,das técnicas reais,0.8664147522322949,-0.01192728480266766,0.9552926123288912
+cifar10,pub_cifar10_s0,cifar10_vgg16_bn,sem o anel mais baixo,livre,0.7882641757709329,0.010634456923076472,0.9476444673043917
+cifar10,pub_cifar10_s0,cifar10_vgg16_bn,só remover anel (ganho 0),livre,0.23633875609614086,-0.09576416935955255,0.9419461458138061
+cifar10,pub_cifar10_s0,cifar10_vgg16_bn,só dobrar anel (ganho 2),livre,0.3160655259402948,-0.09491169576955412,0.9592930254708232
+cifar10,pub_cifar10_s0,cifar10_vgg16_bn,só passa-baixa/alta,livre,0.7272956900959437,0.048707422026023794,0.9310835630253864
+cifar10,pub_cifar10_s0,cifar10_vgg16_bn,só filtros com flip < 30 %,livre,0.39707299308843447,-0.08156634905159536,0.9620943223309165
+imagenette,pub_imagenette_s0,convnext_tiny,todos os filtros,livre,-1.6525607322113967,0.0817112993733111,0.8590848533884733
+imagenette,pub_imagenette_s0,convnext_tiny,todos os filtros,das técnicas reais,-1.9033023344820168,0.10899663392651131,0.8344514695288565
+imagenette,pub_imagenette_s0,convnext_tiny,sem o anel mais baixo,livre,-2.5575614814278222,0.10928660241027255,0.8092840012574746
+imagenette,pub_imagenette_s0,convnext_tiny,só remover anel (ganho 0),livre,-1.8923945830013271,0.10412059939977528,0.7957152340793302
+imagenette,pub_imagenette_s0,convnext_tiny,só dobrar anel (ganho 2),livre,0.095751815238864,0.05497030394565655,0.8638109965793754
+imagenette,pub_imagenette_s0,convnext_tiny,só passa-baixa/alta,livre,-7.779164981713922,0.20197126043613028,0.7590347197618807
+imagenette,pub_imagenette_s0,convnext_tiny,só filtros com flip < 30 %,livre,-0.19662745413357818,0.07012912676088945,0.8783421234051343
+imagenette,pub_imagenette_s0,efficientnet_b0,todos os filtros,livre,-2.0287758013428525,0.12558126460434238,0.8696217374685739
+imagenette,pub_imagenette_s0,efficientnet_b0,todos os filtros,das técnicas reais,-2.2914065047050434,0.1452943824293564,0.8548388330111543
+imagenette,pub_imagenette_s0,efficientnet_b0,sem o anel mais baixo,livre,-4.621199119197009,0.19097584125901013,0.7822494313349292
+imagenette,pub_imagenette_s0,efficientnet_b0,só remover anel (ganho 0),livre,-4.740490805227347,0.19988162818097713,0.7438662799523038
+imagenette,pub_imagenette_s0,efficientnet_b0,só dobrar anel (ganho 2),livre,-0.49913183353864143,0.11118903149150083,0.9037574490224313
+imagenette,pub_imagenette_s0,efficientnet_b0,só passa-baixa/alta,livre,-5.64306313217488,0.20681411172917347,0.790230385888628
+imagenette,pub_imagenette_s0,efficientnet_b0,só filtros com flip < 30 %,livre,-0.9807401161698843,0.12417119569160358,0.8803486643908118
+imagenette,pub_imagenette_s0,resnet18,todos os filtros,livre,0.033028198763078054,0.08678955675267275,0.9384347582203773
+imagenette,pub_imagenette_s0,resnet18,todos os filtros,das técnicas reais,-0.12989839384421864,0.10402473979694261,0.9199442767848176
+imagenette,pub_imagenette_s0,resnet18,sem o anel mais baixo,livre,-0.7577127226525537,0.12641102537641608,0.8838601274547144
+imagenette,pub_imagenette_s0,resnet18,só remover anel (ganho 0),livre,-0.8239191010569609,0.1284457251550793,0.8601802193492293
+imagenette,pub_imagenette_s0,resnet18,só dobrar anel (ganho 2),livre,0.4619717459480345,0.08393729438293634,0.9728310843131746
+imagenette,pub_imagenette_s0,resnet18,só passa-baixa/alta,livre,-0.7938598009051432,0.11548135640296647,0.8872256973726855
+imagenette,pub_imagenette_s0,resnet18,só filtros com flip < 30 %,livre,-0.8717120778601026,0.1287261177680979,0.8073186032124738
+imagenette,pub_imagenette_s0,resnet50,todos os filtros,livre,-0.6474554698502673,0.08263771044599973,0.9182541402996702
+imagenette,pub_imagenette_s0,resnet50,todos os filtros,das técnicas reais,-1.1408444283507948,0.11448266646966639,0.8788095586979335
+imagenette,pub_imagenette_s0,resnet50,sem o anel mais baixo,livre,-1.8957862054160861,0.12342362129044877,0.8571903608881172
+imagenette,pub_imagenette_s0,resnet50,só remover anel (ganho 0),livre,-1.3742126655096825,0.10738748099397462,0.8451640208340432
+imagenette,pub_imagenette_s0,resnet50,só dobrar anel (ganho 2),livre,0.17099139539697672,0.08140666265728515,0.9597492960120094
+imagenette,pub_imagenette_s0,resnet50,só passa-baixa/alta,livre,-3.0532187845774397,0.14550996429005825,0.8431285615203248
+imagenette,pub_imagenette_s0,resnet50,só filtros com flip < 30 %,livre,0.31780480407637335,0.06859470352545928,0.9412185550321668
+imagenette,pub_imagenette_s0,swin_t,todos os filtros,livre,-0.9792618213888986,0.07556127457922823,0.795438228621566
+imagenette,pub_imagenette_s0,swin_t,todos os filtros,das técnicas reais,-1.181279529697084,0.09906854446206892,0.7542341504985752
+imagenette,pub_imagenette_s0,swin_t,sem o anel mais baixo,livre,-2.029521053297552,0.11156390572264957,0.7145970164078967
+imagenette,pub_imagenette_s0,swin_t,só remover anel (ganho 0),livre,-1.9754806655459052,0.11727557256524933,0.5984768906435818
+imagenette,pub_imagenette_s0,swin_t,só dobrar anel (ganho 2),livre,0.27274384018741005,0.05041585511962172,0.8085179286469125
+imagenette,pub_imagenette_s0,swin_t,só passa-baixa/alta,livre,-5.310474687082822,0.19461548585555444,0.6730301731070073
+imagenette,pub_imagenette_s0,swin_t,só filtros com flip < 30 %,livre,0.08288218168666017,0.06453116424302034,0.7993278774734794
+imagenette,pub_imagenette_s0,vgg16_bn,todos os filtros,livre,-0.5300435898964235,0.12824509183403807,0.9168297829229198
+imagenette,pub_imagenette_s0,vgg16_bn,todos os filtros,das técnicas reais,-0.6461516684284752,0.14039020304513608,0.9048486363457691
+imagenette,pub_imagenette_s0,vgg16_bn,sem o anel mais baixo,livre,-1.3419005355613374,0.16584873573093747,0.86597288908366
+imagenette,pub_imagenette_s0,vgg16_bn,só remover anel (ganho 0),livre,-1.3790591021430796,0.1716453826878208,0.8069790937632823
+imagenette,pub_imagenette_s0,vgg16_bn,só dobrar anel (ganho 2),livre,-0.011825567606823295,0.12189241403894105,0.9625072744571709
+imagenette,pub_imagenette_s0,vgg16_bn,só passa-baixa/alta,livre,-2.348096452151909,0.20003082376510828,0.843033376734725
+imagenette,pub_imagenette_s0,vgg16_bn,só filtros com flip < 30 %,livre,-0.6365568976255378,0.14359336614228912,0.845003363409101
+imagenette,pub_imagenette_s0,vit_b_16,todos os filtros,livre,-1.2749277331985018,0.0425108964633683,0.8941019993815015
+imagenette,pub_imagenette_s0,vit_b_16,todos os filtros,das técnicas reais,-2.9172531979010494,0.08202178449733218,0.8200469593326482
+imagenette,pub_imagenette_s0,vit_b_16,sem o anel mais baixo,livre,-4.5025869095168165,0.08422392081046015,0.8014551034488362
+imagenette,pub_imagenette_s0,vit_b_16,só remover anel (ganho 0),livre,-4.57304698972632,0.08051649952946677,0.7124258098263544
+imagenette,pub_imagenette_s0,vit_b_16,só dobrar anel (ganho 2),livre,0.3404264757725666,0.03827868797827806,0.9263278829134423
+imagenette,pub_imagenette_s0,vit_b_16,só passa-baixa/alta,livre,-10.005628914965872,0.14876510142320332,0.7640698539480544
+imagenette,pub_imagenette_s0,vit_b_16,só filtros com flip < 30 %,livre,0.06605619910592053,0.04235881832839341,0.8947569970142645
+imagenet_val,pub_imagenet,convnext_tiny,todos os filtros,livre,-0.49076727418754595,0.07395311475589966,0.8211341972148889
+imagenet_val,pub_imagenet,convnext_tiny,todos os filtros,das técnicas reais,-0.508804921415887,0.08350635774796006,0.7891416940408295
+imagenet_val,pub_imagenet,convnext_tiny,sem o anel mais baixo,livre,-1.5252400824346624,0.10162079381003017,0.7142641220451019
+imagenet_val,pub_imagenet,convnext_tiny,só remover anel (ganho 0),livre,-0.30519903918302527,0.06303306422668258,0.6790572539852079
+imagenet_val,pub_imagenet,convnext_tiny,só dobrar anel (ganho 2),livre,0.5477532623731292,0.031047354896820496,0.8727957921041495
+imagenet_val,pub_imagenet,convnext_tiny,só passa-baixa/alta,livre,-5.134051546816173,0.1913996568021555,0.6303984200237802
+imagenet_val,pub_imagenet,convnext_tiny,só filtros com flip < 30 %,livre,0.458360360738542,0.047732596470900016,0.8533987626206646
+imagenet_val,pub_imagenet,efficientnet_b0,todos os filtros,livre,-0.7307978739638807,0.10776574043991063,0.8562302251063058
+imagenet_val,pub_imagenet,efficientnet_b0,todos os filtros,das técnicas reais,-0.8689966492786183,0.1204518592499681,0.8340823441687994
+imagenet_val,pub_imagenet,efficientnet_b0,sem o anel mais baixo,livre,-2.4501610000260365,0.16367157934822948,0.7412688176376937
+imagenet_val,pub_imagenet,efficientnet_b0,só remover anel (ganho 0),livre,-1.6104529361628122,0.1362036172168292,0.756423691582193
+imagenet_val,pub_imagenet,efficientnet_b0,só dobrar anel (ganho 2),livre,0.0927851424849695,0.09183591621678767,0.8445617782793575
+imagenet_val,pub_imagenet,efficientnet_b0,só passa-baixa/alta,livre,-4.034310094058957,0.20374032774969603,0.7142842748030068
+imagenet_val,pub_imagenet,efficientnet_b0,só filtros com flip < 30 %,livre,-0.038991749085678595,0.10151567508072643,0.8572479393805043
+imagenet_val,pub_imagenet,resnet18,todos os filtros,livre,0.11202327343834906,0.08102664390117076,0.9103000745652042
+imagenet_val,pub_imagenet,resnet18,todos os filtros,das técnicas reais,-0.09029392468952824,0.1034122222853981,0.8844843916890026
+imagenet_val,pub_imagenet,resnet18,sem o anel mais baixo,livre,-0.6935812498726512,0.1239759977400136,0.8384252634973096
+imagenet_val,pub_imagenet,resnet18,só remover anel (ganho 0),livre,-0.5467889851232794,0.11543374560621746,0.8187360190242035
+imagenet_val,pub_imagenet,resnet18,só dobrar anel (ganho 2),livre,0.4888824506385193,0.08362103440091559,0.9441164023296588
+imagenet_val,pub_imagenet,resnet18,só passa-baixa/alta,livre,-1.5976784487237339,0.16028078494395814,0.8158440982648475
+imagenet_val,pub_imagenet,resnet18,só filtros com flip < 30 %,livre,-0.5073890042415257,0.1152946546969746,0.7629330323854819
+imagenet_val,pub_imagenet,resnet50,todos os filtros,livre,-0.051510945625374394,0.07629885386021999,0.8940569516938393
+imagenet_val,pub_imagenet,resnet50,todos os filtros,das técnicas reais,-0.28114011854546295,0.0953189166800143,0.8557163297797303
+imagenet_val,pub_imagenet,resnet50,sem o anel mais baixo,livre,-1.2337090317983868,0.11970494789966447,0.7911871989681788
+imagenet_val,pub_imagenet,resnet50,só remover anel (ganho 0),livre,-0.5893989212169133,0.08835890924025543,0.7797001269623748
+imagenet_val,pub_imagenet,resnet50,só dobrar anel (ganho 2),livre,0.5940551836357109,0.05786812350489874,0.9293242780274481
+imagenet_val,pub_imagenet,resnet50,só passa-baixa/alta,livre,-2.836336663314792,0.18190133826035843,0.7690393180306725
+imagenet_val,pub_imagenet,resnet50,só filtros com flip < 30 %,livre,0.5011233047717261,0.06379194820633104,0.9099171721650108
+imagenet_val,pub_imagenet,swin_t,todos os filtros,livre,-0.33937494669065615,0.07071930766988499,0.7851816771125129
+imagenet_val,pub_imagenet,swin_t,todos os filtros,das técnicas reais,-0.41310623378085465,0.08349236852935424,0.7388404103101509
+imagenet_val,pub_imagenet,swin_t,sem o anel mais baixo,livre,-1.5207369163518631,0.11123912366972762,0.6502488865601258
+imagenet_val,pub_imagenet,swin_t,só remover anel (ganho 0),livre,-0.5998999100578208,0.06792741531721203,0.5805707261038673
+imagenet_val,pub_imagenet,swin_t,só dobrar anel (ganho 2),livre,0.5294747222401075,0.024024554053051164,0.8323995888837388
+imagenet_val,pub_imagenet,swin_t,só passa-baixa/alta,livre,-3.93797718226239,0.18786797171693898,0.5986880554603897
+imagenet_val,pub_imagenet,swin_t,só filtros com flip < 30 %,livre,0.5119147516116255,0.04187829955616251,0.8242679510691038
+imagenet_val,pub_imagenet,vgg16_bn,todos os filtros,livre,0.16347693211922165,0.09358385335698749,0.8814715543822172
+imagenet_val,pub_imagenet,vgg16_bn,todos os filtros,das técnicas reais,0.10370535741401232,0.10127483512199062,0.870901432861087
+imagenet_val,pub_imagenet,vgg16_bn,sem o anel mais baixo,livre,-0.4776616454807123,0.1303079401866568,0.7964571451603152
+imagenet_val,pub_imagenet,vgg16_bn,só remover anel (ganho 0),livre,-0.21180205133711016,0.11127018984643887,0.7644747183652083
+imagenet_val,pub_imagenet,vgg16_bn,só dobrar anel (ganho 2),livre,0.571372365303763,0.07544114601778425,0.9280345015215332
+imagenet_val,pub_imagenet,vgg16_bn,só passa-baixa/alta,livre,-1.2990410558945342,0.17008525852595255,0.7680719856512364
+imagenet_val,pub_imagenet,vgg16_bn,só filtros com flip < 30 %,livre,0.3923384433806507,0.08211079792298615,0.8665685899115294
+imagenet_val,pub_imagenet,vit_b_16,todos os filtros,livre,-0.9771037897714137,0.05832120020380304,0.8740871361704651
+imagenet_val,pub_imagenet,vit_b_16,todos os filtros,das técnicas reais,-2.228292900485006,0.09808465709933964,0.8012343657730097
+imagenet_val,pub_imagenet,vit_b_16,sem o anel mais baixo,livre,-4.451627961770469,0.11902175980980066,0.7570793395099876
+imagenet_val,pub_imagenet,vit_b_16,só remover anel (ganho 0),livre,-2.6976026741509083,0.08245869800802832,0.737198493591014
+imagenet_val,pub_imagenet,vit_b_16,só dobrar anel (ganho 2),livre,0.3765392251355323,0.05309722915359542,0.9155114431004704
+imagenet_val,pub_imagenet,vit_b_16,só passa-baixa/alta,livre,-5.730297346428597,0.14225337967554316,0.7578149207325345
+imagenet_val,pub_imagenet,vit_b_16,só filtros com flip < 30 %,livre,0.21534871411906475,0.055627752755065596,0.8782084063077484

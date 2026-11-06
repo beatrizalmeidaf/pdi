@@ -114,6 +114,43 @@ techniques:
     dose: quality
     reverse: 100
     levels: [{quality: 100}, {quality: 90}, {quality: 70}, {quality: 50}, {quality: 10}]
+  # ---- validação externa (techniques/extra.py): desligadas por padrão; ligadas só em configs/pub_extra_*.yaml ----
+  # Ficam FORA do ajuste do IRE e da calibração da margem conformal (scripts/ire_validacao_externa.py).
+  box:                    # filtro da média k × k
+    enabled: false
+    dose: k
+    identity: 1
+    objective: {metric: noise, direction: down, min_gain: 0.10}
+    levels: [{k: 3}, {k: 5}, {k: 7}, {k: 9}]
+  perona_malik:           # difusão anisotrópica (kappa 0,1; lambda 0,2)
+    enabled: false
+    dose: n_iter
+    identity: 0
+    objective: {metric: noise, direction: down, min_gain: 0.10}
+    levels: [{n_iter: 1}, {n_iter: 2}, {n_iter: 4}, {n_iter: 8}, {n_iter: 16}]
+  gamma:                  # correção gama < 1 (clareia): intensidade = 1 − γ
+    enabled: false
+    dose: gamma
+    reverse: 1
+    identity: 1
+    levels: [{gamma: 0.95}, {gamma: 0.9}, {gamma: 0.8}, {gamma: 0.7}, {gamma: 0.6}, {gamma: 0.5}]
+  stretch:                # alongamento de contraste: percentis p e 100 − p da luminância -> 0 e 1
+    enabled: false
+    dose: p
+    identity: 0
+    objective: {metric: contrast, direction: up, min_gain: 0.10}
+    levels: [{p: 0.5}, {p: 1.0}, {p: 2.0}, {p: 5.0}, {p: 10.0}]
+  webp:
+    enabled: false
+    dose: quality
+    reverse: 100
+    levels: [{quality: 100}, {quality: 95}, {quality: 90}, {quality: 80}, {quality: 70}, {quality: 50}, {quality: 30}, {quality: 10}]
+  resample:               # reduz para scale e volta (bilinear): intensidade = 1 − scale
+    enabled: false
+    dose: scale
+    reverse: 1
+    identity: 1
+    levels: [{scale: 0.9}, {scale: 0.8}, {scale: 0.7}, {scale: 0.6}, {scale: 0.5}, {scale: 0.35}, {scale: 0.25}]
 
 # Campos usados nos limiares: identity = dose que não altera a imagem (âncora Δ=0);
 # reverse = eixo invertido (intensidade = reverse - dose); objective = objetivo visual

@@ -1,0 +1,22 @@
+run,dataset,metodo,alpha,margem,cobertura_par,cobertura_tecnica
+pub_cifar10_s0,cifar10,sem margem,0.1,1.0,0.3,0.16666666666666666
+pub_cifar10_s0,cifar10,"margem das 14, α = 0.1",0.1,0.17880786312335667,1.0,1.0
+pub_cifar10_s0,cifar10,"margem das 14, α = 0.2",0.2,0.2514969440625073,1.0,1.0
+pub_cifar10_s1,cifar10,sem margem,0.1,1.0,0.3333333333333333,0.16666666666666666
+pub_cifar10_s1,cifar10,"margem das 14, α = 0.1",0.1,0.20385836670892163,1.0,1.0
+pub_cifar10_s1,cifar10,"margem das 14, α = 0.2",0.2,0.27380496291009027,1.0,1.0
+pub_cifar10_s2,cifar10,sem margem,0.1,1.0,0.3333333333333333,0.0
+pub_cifar10_s2,cifar10,"margem das 14, α = 0.1",0.1,0.14966392258543837,1.0,1.0
+pub_cifar10_s2,cifar10,"margem das 14, α = 0.2",0.2,0.18657467331345767,1.0,1.0
+pub_imagenette_s0,imagenette,sem margem,0.1,1.0,0.6190476190476191,0.0
+pub_imagenette_s0,imagenette,"margem das 14, α = 0.1",0.1,0.40406943588206107,1.0,1.0
+pub_imagenette_s0,imagenette,"margem das 14, α = 0.2",0.2,0.588375902375986,0.9523809523809523,0.8333333333333334
+pub_imagenette_s1,imagenette,sem margem,0.1,1.0,0.6428571428571429,0.16666666666666666
+pub_imagenette_s1,imagenette,"margem das 14, α = 0.1",0.1,0.383621586967249,1.0,1.0
+pub_imagenette_s1,imagenette,"margem das 14, α = 0.2",0.2,0.5090623001252913,1.0,1.0
+pub_imagenette_s2,imagenette,sem margem,0.1,1.0,0.6428571428571429,0.16666666666666666
+pub_imagenette_s2,imagenette,"margem das 14, α = 0.1",0.1,0.32483651680945635,1.0,1.0
+pub_imagenette_s2,imagenette,"margem das 14, α = 0.2",0.2,0.5185666838254726,1.0,1.0
+pub_imagenet,imagenet_val,sem margem,0.1,1.0,0.8333333333333334,0.8333333333333334
+pub_imagenet,imagenet_val,"margem das 14, α = 0.1",0.1,0.5485356076167528,1.0,1.0
+pub_imagenet,imagenet_val,"margem das 14, α = 0.2",0.2,0.821842911872146,0.8571428571428571,0.8333333333333334

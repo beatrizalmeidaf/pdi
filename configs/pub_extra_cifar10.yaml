@@ -1,0 +1,31 @@
+# Validação externa — CIFAR-10 (semente 0; use --set run_name=pub_cifar10_s<k>_extra seed=<k>): só as 6 técnicas novas (techniques/extra.py), mesmas imagens e modelos de pub_cifar10.
+# Saída em results/<run_name>; analisada por scripts/ire_validacao_externa.py junto com a rodada original.
+extends: pub_cifar10.yaml
+run_name: pub_cifar10_s0_extra
+
+techniques:
+  hist_eq: {enabled: false}
+  clahe: {enabled: false}
+  clahe_blend: {enabled: false}
+  unsharp: {enabled: false}
+  laplacian: {enabled: false}
+  sr_bicubic: {enabled: false}
+  sr_espcn: {enabled: false}
+  sr_fsrcnn: {enabled: false}
+  gaussian: {enabled: false}
+  median: {enabled: false}
+  bilateral: {enabled: false}
+  wiener: {enabled: false}
+  jpeg: {enabled: false}
+  jpeg444: {enabled: false}
+  box: {enabled: true}
+  perona_malik: {enabled: true}
+  gamma: {enabled: true}
+  stretch: {enabled: true}
+  webp: {enabled: true}
+  resample: {enabled: true}
+
+quality:        # só espectro e decisão: as métricas de qualidade não entram nesta validação
+  brisque: false
+  lpips: false
+  feature_distance: false

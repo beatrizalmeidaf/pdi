@@ -76,7 +76,8 @@ revisão sistemática de 29 estudos mostrou que essa suposição quase nunca é 
 que a literatura mede a "dose" de uma técnica pelo seu parâmetro (σ, raio, qualidade), não pelo que ela faz ao sinal.
 
 Este trabalho:
-- aplica **14 técnicas** em **3 a 14 intensidades** cada (106 doses no total) a três conjuntos de imagens:
+- aplica **14 técnicas** em **3 a 14 intensidades** cada (106 doses no total), mais 6 técnicas de validação externa, a três
+  conjuntos de imagens:
   - CIFAR-10 (32 px, 5 CNNs, 2000 imagens × 3 sementes);
   - Imagenette (224 px, 7 modelos, 2000 imagens × 3 sementes);
   - **ImageNet-val completo** (50 mil imagens, os mesmos 7 modelos: ResNet-18/50, VGG-16-BN, EfficientNet-B0, ConvNeXt-T, ViT-B/16
@@ -208,6 +209,7 @@ calibração:
 |---|---|---|---|
 | Sem margem (c = 1) | 38 % | 36 % | 57 % |
 | **Margem conformal, α = 0,1** | **93 %** | **93 %** | **93 %** |
+| … nas 6 técnicas novas, fora de todo ajuste | 100 % | 100 % | 100 % |
 | … fator c | 0,18 | 0,37 | 0,55 |
 | … dose recomendada / dose realmente segura (mediana) | 29 % | 43 % | 54 % |
 | Margem conformal, α = 0,2 | 86 % | 86 % | 86 % |
@@ -218,6 +220,8 @@ cobre só 57 % no CIFAR-10. Detalhes em [results.md](results.md) §0.6.
 
 Desempenho prevendo técnicas que a fórmula não viu:
 - R² **0,78–0,95** por modelo (média 0,86 / 0,86 / 0,91) e Spearman 0,92–0,98;
+- em 6 técnicas que ficaram fora de todo ajuste (filtro da média, Perona–Malik, gama, alongamento de contraste, WebP e
+  reamostragem), R² 0,97 / 0,81 / 0,82 e Spearman 0,94–0,98;
 - calibrada só com filtros ideais, R² 0,75–0,81 em 32 px; em 224 px precisa de técnicas reais.
 
 A coerência de fase foi o que fez a fórmula funcionar: com ela o R² sobe de 0,23 para 0,85.
@@ -343,7 +347,10 @@ python scripts/figuras_publicacao.py            # figuras *_pub.png e tabelas em
 python scripts/ire_transfer.py                  # IRE entre modelos e bases (~25 min em CPU)
 PYTHONPATH=scripts python scripts/ire_escala.py  # pesos compartilhados + 1 escala por modelo
 python scripts/ire_conformal.py                 # margem conformal da dose segura para técnica nova
-python scripts/ire_decomposicao.py              # de onde vem o risco previsto (estrutura, cor, energia)
+python scripts/ire_decomposicao.py --run <run>  # de onde vem o risco previsto (estrutura, cor, energia); --figura junta as 3 bases
+setsid nohup bash scripts/run_validacao_externa.sh &   # 6 técnicas novas nas mesmas imagens e modelos (~1h30 em 1 GPU)
+PYTHONPATH=scripts python scripts/ire_validacao_externa.py   # IRE e margem testados nas técnicas novas
+python scripts/ire_oraculo_diagnostico.py      # por que os filtros ideais não calibram o IRE em 224 px
 make report                                     # figuras do README e dados do site a partir da rodada final
 ```
 
@@ -390,8 +397,19 @@ e rodar um classificador em 200 imagens custa segundos.
 - **Cuidado ao interpretar os pesos.** O peso da energia na banda mais baixa sai **zero**, embora remover essa banda seja o que mais
   dói (filtros ideais). Não há contradição: o termo de coerência da banda baixa carrega essa informação. A leitura "quais
   frequências importam" deve ser feita pelos termos de coerência por banda e pelos filtros ideais, **não** pelos pesos de energia.
-- **Falta.** Uma figura da decomposição por técnica para o artigo, e um parágrafo com o custo comparado: quantas inferências
-  cada abordagem exige para escolher a dose de *k* técnicas em *m* modelos.
+- **Figura da decomposição** ([scripts/ire_decomposicao.py](scripts/ire_decomposicao.py) `--figura`). A perda de estrutura/fase
+  domina em todas as técnicas e bases (48–95 % do risco). O aguçamento é onde a energia de alta frequência mais pesa (31–41 % em
+  CIFAR-10 e Imagenette). No JPEG 4:2:0, a cor pesa mais quanto maior a resolução: 9 → 18 → 33 %.
+
+  ![Decomposição do risco do IRE por técnica](docs/figures/ire_decomposicao.png)
+- **Custo comparado** (para o parágrafo do artigo). Para escolher a dose de *k* técnicas, com *d* doses cada, em *m* modelos e
+  *n* imagens:
+  - rodando a rede: *k · d · m · n* inferências, e tudo de novo a cada técnica ou modelo novo;
+  - com o IRE: o espectro de cada técnica é medido uma vez, sem rede (*k · d · n* transformadas de Fourier, que servem para os
+    *m* modelos). Cada modelo novo é calibrado uma vez com uma técnica barata (o gaussiano, ~10 doses): *m · 10 · n*
+    inferências, que não crescem com *k*;
+  - exemplo com os números deste trabalho (*k* = 20, *d* = 8, *m* = 7, *n* = 200): 224 mil inferências contra 14 mil (16× menos),
+    e a vantagem cresce com cada técnica nova.
 
 ### 2. "No CIFAR-10 o LPIPS ganha"
 
@@ -406,10 +424,24 @@ e rodar um classificador em 200 imagens custa segundos.
 
 - **O que os dados respondem.** A margem conformal cobre 93 % das técnicas novas, mas recomenda só 29–54 % da dose realmente
   segura. A garantia supõe que a técnica nova se comporte como as 14 testadas, e com 14 técnicas o menor α possível é 0,07.
+- **Mais técnicas: feito.** Seis técnicas novas, escolhidas depois e fora de todo ajuste, cobrindo famílias diferentes:
+  filtro da média, difusão anisotrópica (Perona–Malik), correção gama, alongamento de contraste, WebP e reamostragem
+  ([techniques/extra.py](src/pdi_spectral/techniques/extra.py), [scripts/run_validacao_externa.sh](scripts/run_validacao_externa.sh),
+  [scripts/ire_validacao_externa.py](scripts/ire_validacao_externa.py)). Mesmas imagens e modelos da rodada final.
+  - *Validação externa do IRE.* Ajustado nas 14 técnicas originais, prevê as 6 novas com R² 0,97 (CIFAR-10), 0,81
+    (Imagenette) e 0,82 (ImageNet-val), Spearman 0,94–0,98. Os erros repetem o padrão das 14: exagera mudanças de tom (gama e
+    alongamento, 1,3–1,8×, do lado seguro) e subestima a suavização que preserva bordas (Perona–Malik, ~0,7× em 224 px, como o
+    bilateral).
+  - *Validação externa da margem.* O fator calibrado nas 14 (α = 0,1) cobre **100 %** das técnicas novas, em todos os modelos,
+    nas três bases. Sem margem, só 11 % (CIFAR-10), 11 % (Imagenette) e 83 % (ImageNet-val).
+  - *Calibração com 20 técnicas.* O menor α possível cai para 0,048. A cobertura medida deixando cada técnica de fora fica na meta
+    (95 %, 90 % e 80 % para α = 0,05, 0,1 e 0,2), e a margem fica menos conservadora: com α = 0,1, c passa de 0,18 / 0,37 / 0,55 para
+    0,23 / 0,57 / 0,65.
 - **Como escrever.** Mostrar a **curva de compromisso** α × cobertura × dose aproveitada (α = 0,1: 93 % e 29–54 %; α = 0,2: 86 %
   e 44–80 %), em vez de um único número. Dizer explicitamente que a suposição é trocabilidade entre técnicas, e que sem margem
   a regra "segura" falha em 43–64 % das técnicas novas.
-- **Falta.** Mais técnicas na calibração: mais trocabilidade, α menor possível e margem menos conservadora.
+- **Falta.** Medir quanto da dose segura a margem de 20 técnicas aproveita (deve subir junto com c) e ampliar para outras
+  famílias (denoising aprendido, filtros de cor).
 
 ### 4. "Em 224 px o IRE precisa de técnicas reais para calibrar"
 
@@ -417,8 +449,22 @@ e rodar um classificador em 200 imagens custa segundos.
   (R² < 0,2), e os filtros ideais também não servem para calibrar o fator de escala (superestimam o flip em ~15 p.p.).
 - **Como escrever.** Assumir como achado: filtros ideais não representam técnicas reais em 224 px. A receita prática é
   barata: **uma** técnica real (o gaussiano) por modelo basta para a escala.
-- **Falta.** Entender por quê. Hipótese: os filtros ideais cortam em anéis finos, sem a perda de coerência típica das técnicas
-  reais, e em 224 px a coerência domina o risco (item 1).
+- **Por quê: investigado** ([scripts/ire_oraculo_diagnostico.py](scripts/ire_oraculo_diagnostico.py)). Três hipóteses testadas:
+  - *"Os filtros ideais não produzem a perda de coerência das técnicas reais"* — **refutada**. Os filtros cobrem toda a faixa de
+    perda de coerência das técnicas reais (até ~1), e a perda de estrutura por unidade de energia é parecida nos dois. Só a
+    energia de alta frequência do aguçamento sai da faixa (15 % das condições).
+  - *"O problema é o regime: filtros são perturbações grandes, técnicas reais são finas"* — **refutada**. O expoente γ ajustado
+    nos filtros é maior (0,56–1,19 contra 0,48–0,63 em 224 px), mas fixar o γ das técnicas reais não melhora; piora.
+  - *"O que atrapalha são os filtros que **removem** frequência"* — **confirmada**. Calibrado nos filtros ideais, o IRE
+    superestima o flip das técnicas reais em 4–13 p.p. (média de 8–9): por unidade de perturbação medida, o filtro ideal prejudica mais. Tirar o
+    anel mais baixo não resolve (piora). O que separa é o tipo de filtro: só os que **dobram** um anel transferem razoavelmente
+    para as técnicas reais em 224 px (R² 0,12–0,46); os que removem (anel, passa-baixa, passa-alta) ficam em R² −0,9 a −5.
+- **Como escrever.** Os filtros ideais de remoção têm corte abrupto, e as técnicas reais atenuam suavemente. Em 224 px, o corte
+  abrupto prejudica a rede mais do que a energia e a coerência globais indicam. A explicação provável é a ondulação espacial
+  do corte (efeito de Gibbs), que uma medida espectral global não capta. Para o artigo: apresentar como limitação do oráculo
+  ideal, não do IRE.
+- **Falta.** Confirmar com filtros de banda **suaves** (borda gaussiana em vez de corte abrupto): se a hipótese do corte
+  estiver certa, eles devem calibrar o IRE em 224 px.
 
 ### 5. "Blur leve já prejudica não é novidade"
 

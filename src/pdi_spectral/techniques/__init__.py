@@ -11,7 +11,7 @@ from typing import Callable
 
 import numpy as np
 
-from . import compression, contrast, oracle, reference, restoration, sharpening, smoothing, superres
+from . import compression, contrast, extra, oracle, reference, restoration, sharpening, smoothing, superres
 
 
 @dataclass(frozen=True)
@@ -70,6 +70,13 @@ TECHNIQUES: dict[str, Technique] = {
         # variantes de dose baixa (mesma função, outro eixo de dose)
         Technique("clahe_blend", "equalizacao", "primary", "redistribute", contrast.clahe, reference.clahe),
         Technique("jpeg444", "compressao", "control", "remove", _jpeg444, _ref_jpeg444),
+        # --- validação externa: fora do ajuste do IRE e da calibração da margem (techniques/extra.py) ---
+        Technique("box", "suavizacao", "validation", "remove", extra.box, extra.ref_box),
+        Technique("perona_malik", "suavizacao", "validation", "remove", extra.perona_malik, extra.perona_malik),
+        Technique("gamma", "equalizacao", "validation", "redistribute", extra.gamma, extra.ref_gamma),
+        Technique("stretch", "equalizacao", "validation", "redistribute", extra.stretch, extra.ref_stretch),
+        Technique("webp", "compressao", "validation", "remove", extra.webp, extra.webp),
+        Technique("resample", "super-resolucao", "validation", "remove", extra.resample, extra.ref_resample),
         # --- oráculo espectral (calibração) ---
         Technique("oracle_band", "oraculo", "oracle", "mixed", oracle.band_gain, oracle.band_gain),
         Technique("oracle_lowpass", "oraculo", "oracle", "remove", oracle.lowpass, oracle.lowpass),
