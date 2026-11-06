@@ -17,8 +17,8 @@
   const isJpeg = (t) => t.startsWith("jpeg");
   const toX = (t, dose) => (isJpeg(t) ? 100 - dose : dose);
   const doseLabel = (t, x) => (isJpeg(t) ? `qualidade ${fmt(100 - x, 0)}` : fmt(x, x < 1 && x !== 0 ? 2 : (Number.isInteger(x) ? 0 : 2)));
-  const SLOTS = () => [css("--s1"), css("--s2"), css("--s3")];
-  const DS_COLOR = () => ({ cifar10: css("--s1"), imagenette: css("--s2") });
+  const SLOTS = () => ["--s1", "--s2", "--s3", "--s4", "--s5", "--s6", "--s7"].map(css);
+  const DS_COLOR = () => ({ cifar10: css("--s1"), imagenette: css("--s2"), imagenet_val: css("--s3") });
   let D = null;
 
   // ---------- Plotly base ----------
@@ -54,12 +54,13 @@
   // ---------- KPIs ----------
   function kpis() {
     const nT = Object.keys(D.techniques).length;
-    const nM = Object.values(D.datasets).reduce((a, d) => a + d.models.length, 0);
+    const nM = new Set(Object.values(D.datasets).flatMap((d) => d.models.map((m) => m.id))).size;
+    const big = !!D.datasets.imagenet_val;
     const ire = Object.values(D.datasets).flatMap((d) => Object.values(d.ire).map((r) => r.r2_p_loto));
     const items = [
       ["Técnicas avaliadas", nT, "do zero, validadas contra OpenCV/PIL/SciPy"],
-      ["Classificadores", nM, "5 CNNs + 1 Vision Transformer, congelados"],
-      ["Avaliações imagem × condição × modelo", "≈ 1,6 mi", "2000 imagens por dataset, 106 doses + 27 filtros ideais"],
+      ["Classificadores", nM, big ? "10 CNNs + ViT-B/16 + Swin-T, congelados" : "5 CNNs + 1 Vision Transformer, congelados"],
+      ["Avaliações imagem × condição × modelo", big ? "≈ 56 mi" : "≈ 1,6 mi", big ? "50 mil imagens do ImageNet-val + 2000 × 3 sementes em CIFAR-10 e Imagenette; 106 doses + 27 filtros ideais" : "2000 imagens por dataset, 106 doses + 27 filtros ideais"],
       ["R² da fórmula IRE", `${fmt(Math.min(...ire), 2)}–${fmt(Math.max(...ire), 2)}`, "prevendo técnicas que ela não viu"],
     ];
     $("#kpis").replaceChildren(...items.map(([l, v, n]) => el("div", { class: "card kpi" },
@@ -182,7 +183,7 @@
   const HM_TECHS = ["unsharp", "laplacian", "hist_eq", "clahe", "clahe_blend", "gaussian", "bilateral", "median", "wiener", "jpeg", "jpeg444", "sr_bicubic"];
   function heatmap() {
     const cols = Object.entries(D.datasets).flatMap(([k, d]) => d.models.map((m) => [k, m]));
-    const t = el("table", { class: "hm" });
+    const t = el("table", { class: "hm", style: `min-width:${200 + 66 * cols.length}px` });
     const h1 = el("tr", {}, el("th", {}));
     for (const [k, d] of Object.entries(D.datasets)) h1.append(el("th", { colspan: String(d.models.length), text: d.label }));
     const h2 = el("tr", {}, el("th", {}), ...cols.map(([, m]) => el("th", { text: m.label })));
@@ -235,7 +236,8 @@
         marker: { color: C[i], size: sz, line: { color: css("--surface"), width: 1.5 } },
         hovertemplate: "%{x:+.2f} p.p. · %{text}<extra>" + m.label + "</extra>" };
     });
-    plot("hz-chart", traces, base({ hovermode: "closest", scattermode: "group", scattergap: 0.5, margin: { l: 130, r: 14, t: 10, b: 46 },
+    plot("hz-chart", traces, base({ hovermode: "closest", scattermode: "group", scattergap: 0.5, margin: { l: 130, r: 14, t: 10, b: 120 },
+      legend: { orientation: "h", y: -0.16, x: 0, font: { size: 10 } },
       xaxis: Object.assign(base().xaxis, { showgrid: true, zeroline: true, title: { text: "melhor Δ acurácia (p.p.), IC 90%" } }),
       yaxis: Object.assign(base().yaxis, { showgrid: false }) }));
   }
@@ -243,7 +245,7 @@
   // ---------- CNN × ViT ----------
   const VIT = [["gaussian", 1], ["gaussian", 2], ["bilateral", 4], ["median", 5], ["wiener", 5], ["jpeg", 10], ["clahe", 4], ["unsharp", 3], ["laplacian", 1.5]];
   function cnnVit() {
-    const ds = D.datasets.imagenette;
+    const ds = D.datasets.imagenet_val || D.datasets.imagenette;
     if (!ds) { $("#vit-chart").closest(".card").remove(); return; }
     const C = SLOTS();
     const labels = VIT.map(([t, d]) => `${D.techniques[t].label.replace(" masking", "")} · ${isJpeg(t) ? "Q" + d : D.techniques[t].param + " " + fmt(d, Number.isInteger(d) ? 0 : 1)}`);
@@ -251,7 +253,8 @@
       type: "bar", orientation: "h", name: m.label, y: labels, marker: { color: C[i] },
       x: VIT.map(([t, d]) => { const c = ds.curves[t][m.id]; const j = c.x.findIndex((v) => Math.abs(v - toX(t, d)) < 1e-6); return j >= 0 ? 100 * c.d[j] : null; }),
       hovertemplate: "%{x:+.1f} p.p.<extra>" + m.label + "</extra>" }));
-    plot("vit-chart", traces, base({ barmode: "group", bargap: 0.35, bargroupgap: 0.08, hovermode: "y unified", margin: { l: 150, r: 14, t: 10, b: 46 },
+    plot("vit-chart", traces, base({ barmode: "group", bargap: 0.25, bargroupgap: 0.05, hovermode: "y unified", margin: { l: 150, r: 14, t: 10, b: 120 },
+      legend: { orientation: "h", y: -0.16, x: 0, font: { size: 10 } },
       xaxis: Object.assign(base().xaxis, { showgrid: true, title: { text: "Δ acurácia (p.p.)" } }),
       yaxis: Object.assign(base().yaxis, { autorange: "reversed", showgrid: false }) }));
   }
@@ -264,9 +267,9 @@
   }
   function bandsRender() {
     const C = SLOTS();
-    for (const k of ["cifar10", "imagenette"]) {
+    for (const k of Object.keys(D.datasets)) {
       const ds = D.datasets[k];
-      if (!ds) continue;
+      if (!ds || !$("#bd-" + k)) continue;
       const traces = ds.models.map((m, i) => ({ x: ds.bands[m.id].x, y: ds.bands[m.id][BD].map((v) => 100 * v), name: m.label, mode: "lines+markers",
         line: { color: C[i], width: 2 }, marker: { size: 6, color: C[i], line: { color: css("--surface"), width: 1.5 } },
         hovertemplate: "%{y:+.1f} p.p.<extra>" + m.label + "</extra>" }));
@@ -332,7 +335,7 @@
       marker: { color: css("--ink-2"), size: 16, symbol: "line-ns-open", line: { width: 2, color: css("--ink-2") } }, hovertemplate: "%{x:.1f}%<extra>controle</extra>" };
     plot("ad-chart", [...lines, ctrl, mk("frozen", "congelado", C[0]), mk("bn", "só re-estimar BatchNorm", C[1]), mk("ft", "fine-tuning (3 épocas)", C[2])],
       base({ hovermode: "y unified", margin: { l: 150, r: 14, t: 10, b: 46 }, legend: { orientation: "h", y: -0.18, x: 0, font: { size: 11 } },
-        xaxis: Object.assign(base().xaxis, { showgrid: true, title: { text: "acurácia (%), média dos 3 modelos" } }),
+        xaxis: Object.assign(base().xaxis, { showgrid: true, title: { text: D.datasets.imagenet_val ? "acurácia (%), média de 5 modelos × 3 sementes" : "acurácia (%), média dos 3 modelos" } }),
         yaxis: Object.assign(base().yaxis, { autorange: "reversed", showgrid: false }) }));
   }
 

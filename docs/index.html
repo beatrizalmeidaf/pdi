@@ -87,22 +87,22 @@
       <h2>O que encontramos</h2>
       <p class="muted">Três bases: CIFAR-10 (32 px, 5 CNNs), Imagenette (224 px, 7 modelos) e ImageNet-val completo (50 mil
         imagens, os mesmos 7 modelos), com 3 sementes nas duas menores. 14 técnicas em 8 a 14 doses cada. Sem fine-tuning: os
-        modelos rodam congelados, como seriam usados na prática. Os gráficos interativos abaixo usam a primeira rodada (CIFAR-10 e
-        Imagenette, 6 modelos); a <a href="#final">rodada final</a> confirma as conclusões.</p>
+        modelos rodam congelados, como seriam usados na prática. Os gráficos interativos usam a rodada final: o ImageNet-val completo e a
+        semente 0 de CIFAR-10 e Imagenette (as outras sementes dão o mesmo resultado; ver <a href="#final">rodada final</a>).</p>
     </div>
     <div class="grid g3">
       <article class="card finding"><span class="tag">Hipótese central</span><div class="num">Quase sempre piora</div>
         <p>As 14 técnicas degradam a acurácia de forma monotônica a partir de alguma dose. Em 32 px, <strong>nenhuma</strong> dose de
           nenhuma técnica melhorou o classificador com significância.</p></article>
-      <article class="card finding"><span class="tag">Limiares</span><div class="num">σ ≈ 0,44</div>
-        <p>O limiar de dano é estreito e quase igual entre arquiteturas: o desfoque gaussiano custa 1 p.p. em σ = 0,43–0,45 nas 3 CNNs
-          de CIFAR e 0,38–0,47 em 224 px. De 1 para 5 p.p. de perda bastam +0,11 de σ.</p></article>
+      <article class="card finding"><span class="tag">Limiares</span><div class="num">σ ≈ 0,5</div>
+        <p>O limiar de dano é estreito e quase igual entre arquiteturas: o desfoque gaussiano custa 1 p.p. em σ = 0,46–0,50 nas 5 CNNs
+          de CIFAR-10, 0,38–0,69 no Imagenette e 0,51–0,64 no ImageNet-val: quase o mesmo valor, em pixels, nos 12 modelos.</p></article>
       <article class="card finding"><span class="tag">Hormese</span><div class="num">+2,7 p.p.</div>
         <p>No Imagenette, o aguçamento leve <strong>melhora</strong> a rede: laplaciano até +2,7 p.p. (ResNet-50), com IC acima de
           zero nos 7 modelos. Doses maiores voltam a piorar. No ImageNet completo o efeito quase some: só o Swin-T, +0,3 p.p.</p></article>
       <article class="card finding"><span class="tag">Banda crítica</span><div class="num">32 px ≠ 224 px</div>
-        <p>Em 32 px o que pesa é a média-alta frequência; em 224 px, a mais baixa (removê-la custa 68–77 p.p.). O ViT depende quase só
-          dela e perde até 2× menos que as CNNs com técnicas que removem frequência.</p></article>
+        <p>Em 32 px o que pesa é a média-alta frequência; em 224 px, a mais baixa (no ImageNet-val, removê-la custa 30–64 p.p.). O ViT depende
+          quase só dela e por isso perde menos que as CNNs com técnicas que removem frequência.</p></article>
       <article class="card finding"><span class="tag">Previsibilidade</span><div class="num">R² 0,2 → 0,9</div>
         <p>O parâmetro nominal (σ, k, clip…) explica pouco o dano em técnicas nunca vistas (R² ≈ 0,2) e o PSNR quase nada (0,06).
           Medir o espectro — energia por banda, coerência de fase e cor — chega a R² 0,74–0,82, e o IRE a 0,86–0,91.</p></article>
@@ -112,7 +112,7 @@
     </div>
     <figure class="static" style="margin-top:20px">
       <img src="figures/amostras.png" alt="Uma imagem do Imagenette processada por 8 técnicas em doses diferentes, com a variação de acurácia média abaixo de cada uma." loading="lazy">
-      <figcaption>Mesma imagem, várias técnicas. Abaixo: variação média de acurácia dos 3 modelos no Imagenette (2000 imagens). O aguçamento leve melhora; o resto piora.</figcaption>
+      <figcaption>Mesma imagem, várias técnicas. Abaixo: variação média de acurácia dos 7 modelos no Imagenette (2000 imagens). O aguçamento leve melhora; o resto piora.</figcaption>
     </figure>
   </div>
 </section>
@@ -150,6 +150,13 @@
       <img src="figures/robustez_pub.png" alt="Queda média de acurácia por modelo nas três bases; ViT-B/16 e ConvNeXt-T perdem menos, VGG-16-BN e ResNets perdem mais." loading="lazy">
       <figcaption>Queda média de acurácia sobre todas as doses das 11 técnicas clássicas. No ImageNet-val: ViT-B/16 3,0 p.p., ConvNeXt-T 4,2, EfficientNet-B0 4,5, Swin-T 5,0, ResNet-50 5,4, ResNet-18 5,5, VGG-16-BN 6,3.</figcaption>
     </figure>
+    <div class="card" style="margin-top:16px"><h3>O IRE calibrado num modelo serve para outro?</h3>
+      <p class="small muted">Os pesos do IRE são ajustados por modelo. Aqui eles são ajustados nos <em>outros</em> modelos e usados para
+        prever o que ficou de fora. Em 32 px a transferência é completa (R² 0,85–0,89). Em 224 px a <strong>ordem</strong> do dano
+        transfere (Spearman 0,89–0,97), mas a <strong>escala</strong> não: o ViT, mais robusto, é superestimado e a ResNet-18 e a
+        VGG, mais frágeis, subestimadas. A dose segura com garantia exige calibrar no próprio modelo.</p>
+      <figure class="static"><img src="figures/ire_transfer.png" alt="R² do IRE em quatro protocolos de transferência e matriz de modelo calibrado para modelo aplicado no ImageNet-val." loading="lazy"></figure>
+    </div>
   </div>
 </section>
 
@@ -229,10 +236,11 @@
       <div class="card"><h3>Hormese: a melhor dose de cada técnica</h3>
         <p class="small muted">Melhor variação de acurácia em alguma dose, com IC 90%. Ponto cheio = IC acima de zero.</p>
         <div class="controls"><div class="seg" id="hz-ds"></div></div>
-        <div id="hz-chart" class="chart tall"></div></div>
-      <div class="card"><h3>CNN × Vision Transformer (224 px)</h3>
-        <p class="small muted">Mesma dose, três arquiteturas. O ViT perde até 2× menos com técnicas que removem frequência.</p>
-        <div id="vit-chart" class="chart tall"></div></div>
+        <div id="hz-chart" class="chart xtall"></div></div>
+      <div class="card"><h3>CNNs × transformers (ImageNet-val)</h3>
+        <p class="small muted">Mesma dose, 7 modelos. O ViT perde bem menos que as CNNs com técnicas que removem frequência; o
+          ConvNeXt (uma CNN) fica perto dele, e o Swin (um transformer) fica perto das CNNs.</p>
+        <div id="vit-chart" class="chart xtall"></div></div>
     </div>
   </div>
 </section>
@@ -244,15 +252,16 @@
       <p class="muted">Um filtro ideal remove (ou dobra) um anel de frequência por vez. Isso revela de que faixa cada modelo depende — e
         ela muda com a resolução e com a arquitetura.</p>
     </div>
-    <div class="grid g2">
-      <div class="card"><h3>Banda crítica</h3>
-        <div class="controls"><div class="seg" id="bd-mode"></div></div>
-        <div class="grid g2"><div id="bd-cifar10" class="chart short"></div><div id="bd-imagenette" class="chart short"></div></div>
-        <p class="small muted">Eixo x: centro do anel em ciclos por pixel (0,5 = Nyquist).</p></div>
-      <div class="card"><h3>O que prevê o dano em técnicas nunca vistas</h3>
-        <p class="small muted">R² <em>leave-one-technique-out</em>: cada técnica é prevista por um modelo ajustado só nas outras. Barra = média dos 3 modelos.</p>
-        <div id="pred-chart" class="chart"></div></div>
-    </div>
+    <div class="card"><h3>Banda crítica</h3>
+      <div class="controls"><div class="seg" id="bd-mode"></div></div>
+      <div class="grid g3"><div id="bd-cifar10" class="chart short"></div><div id="bd-imagenette" class="chart short"></div><div id="bd-imagenet_val" class="chart short"></div></div>
+      <p class="small muted">Eixo x: centro do anel em ciclos por pixel (0,5 = Nyquist). Em 224 px, remover só a faixa mais baixa custa
+        30 p.p. (ConvNeXt) a 64 p.p. (ViT) no ImageNet-val.</p></div>
+    <div class="card" style="margin-top:16px"><h3>O que prevê o dano em técnicas nunca vistas</h3>
+      <p class="small muted">R² <em>leave-one-technique-out</em> da queda de acurácia: cada técnica é prevista por um modelo ajustado só
+        nas outras. Barra = média dos modelos; traço = do pior ao melhor. A comparação com LPIPS e com o IRE está na
+        <a href="#final">rodada final</a>.</p>
+      <div id="pred-chart" class="chart"></div></div>
   </div>
 </section>
 
@@ -295,12 +304,12 @@
       <div class="card"><h3>CIFAR-10: congelado → BatchNorm → fine-tuning</h3><div id="ad-chart" class="chart tall"></div></div>
       <div class="card"><h3>O que se conclui</h3>
         <ul style="padding-left:18px;color:var(--ink-2)">
-          <li><b>Aguçamento e desfoque leve são domain shift.</b> Só re-estimar as estatísticas do BatchNorm leva o blur σ = 1 de 39,6% para
-            83%; o fine-tuning de 3 épocas, a 88% (controle 92,8%).</li>
-          <li><b>JPEG forte e mediana perdem informação.</b> Mesmo re-treinando, ficam 7–13 p.p. abaixo do controle; no JPEG o BatchNorm
-            não recupera nada.</li>
-          <li><b>Em 224 px</b> o padrão se repete nas pontas (laplaciano forte: fine-tuning recupera 98%; JPEG Q10, SR ×4 e blur forte
-            deixam 1,5–2,9 p.p.), mas re-estimar o BatchNorm ajuda bem menos.</li>
+          <li><b>Aguçamento e desfoque leve são domain shift.</b> Só re-estimar as estatísticas do BatchNorm leva o blur σ = 1 de 39% para
+            85%; o fine-tuning de 3 épocas, a 90% (controle 93%). Média de 5 modelos × 3 sementes.</li>
+          <li><b>JPEG forte, mediana e Wiener perdem informação.</b> Mesmo re-treinando, ficam 6–13 p.p. abaixo do original; no JPEG o
+            BatchNorm não recupera nada.</li>
+          <li><b>Em 224 px</b> (Imagenette, 7 modelos × 3 sementes) o padrão se repete: aguçamento e equalização voltam a &lt; 1 p.p.;
+            JPEG Q10, mediana k = 9 e blur σ = 3 deixam 2–4 p.p. Re-estimar o BatchNorm ajuda bem menos.</li>
           <li>A sonda linear subestima o quanto é recuperável: ela mede a informação nas <em>features</em> congeladas, não na imagem.</li>
         </ul>
         <figure class="static"><img src="figures/jpeg_cor.png" alt="JPEG 4:2:0 versus 4:4:4 em alta qualidade: a subamostragem de cor já custa acurácia na qualidade 100." loading="lazy"></figure>
@@ -314,7 +323,7 @@
     <div class="section-head">
       <h2>Amostras</h2>
       <p class="muted">Cada técnica na menor, numa intermediária e na maior dose testada, em imagens reais. Abaixo de cada uma, a variação
-        média de acurácia dos 3 modelos naquela dose.</p>
+        média de acurácia dos modelos daquela base naquela dose.</p>
     </div>
     <div class="controls"><div class="seg" id="ga-ds"></div><label class="ctl">Imagem <select id="ga-img"></select></label></div>
     <div class="gallery" id="gallery"></div>
@@ -351,7 +360,7 @@
           <tr><td>H4</td><td>Técnicas invertíveis causam domain shift; destrutivas, perda de informação</td><td><span class="pill ok">confirmada nas pontas</span></td><td>Aguçamento e blur leve recuperam 91–99%; JPEG e mediana deixam 7–13 p.p.</td></tr>
           <tr><td>H5</td><td>A coerência de fase acrescenta poder explicativo à energia</td><td><span class="pill ok">confirmada</span></td><td>+0,06 a +0,10 de R² em 32 px e +0,13 a +0,49 em 224 px; AUC por imagem +0,06 a +0,09.</td></tr>
           <tr><td>H6</td><td>Existe janela operacional para técnicas redistributivas</td><td><span class="pill part">parcial</span></td><td>Sim para blur leve, unsharp e CLAHE fraco; não para HE, laplaciano (32 px), bilateral, mediana.</td></tr>
-          <tr><td>H7</td><td>O IRE prevê o dano de técnicas que não viu</td><td><span class="pill ok">confirmada</span> <span class="pill part">calibrar com técnicas reais</span></td><td>R² 0,86–0,91 nas três bases, acima de LPIPS, SSIM e Yin et al. em 224 px; calibrado só nos filtros ideais funciona em 32 px (0,75–0,81), não em 224 px.</td></tr>
+          <tr><td>H7</td><td>O IRE prevê o dano de técnicas que não viu</td><td><span class="pill ok">confirmada</span> <span class="pill part">calibrar com técnicas reais</span></td><td>R² 0,86–0,91 nas três bases, acima de LPIPS, SSIM e Yin et al. em 224 px. Entre modelos, transfere em 32 px; em 224 px só a ordem do dano. Calibrado só nos filtros ideais funciona em 32 px (0,75–0,81), não em 224 px.</td></tr>
         </tbody>
       </table></div>
     </div>

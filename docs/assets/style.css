@@ -13,6 +13,10 @@
   --s1: #2a78d6;
   --s2: #eb6834;
   --s3: #1baf7a;
+  --s4: #8a5cd0;
+  --s5: #c9971a;
+  --s6: #d2457f;
+  --s7: #5d6b78;
   --good: #0ca30c;
   --good-ink: #006300;
   --critical: #d03b3b;
@@ -29,7 +33,7 @@
     color-scheme: dark;
     --page: #0d0d0d; --surface: #1a1a19; --surface-2: #222220; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #9a9991;
     --grid: #2c2c2a; --axis: #383835; --line: rgba(255, 255, 255, 0.10);
-    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --good: #0ca30c; --good-ink: #0ca30c; --critical: #e66767;
+    --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #9d75e3; --s5: #d8a72c; --s6: #e25d93; --s7: #8b99a7; --good: #0ca30c; --good-ink: #0ca30c; --critical: #e66767;
     --warn-bg: #5b4a17; --accent: #3987e5; --code-bg: #222220; --shadow: none;
   }
 }
@@ -37,7 +41,7 @@
   color-scheme: dark;
   --page: #0d0d0d; --surface: #1a1a19; --surface-2: #222220; --ink: #f0efec; --ink-2: #c3c2b7; --muted: #9a9991;
   --grid: #2c2c2a; --axis: #383835; --line: rgba(255, 255, 255, 0.10);
-  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --good: #0ca30c; --good-ink: #0ca30c; --critical: #e66767;
+  --s1: #3987e5; --s2: #d95926; --s3: #199e70; --s4: #9d75e3; --s5: #d8a72c; --s6: #e25d93; --s7: #8b99a7; --good: #0ca30c; --good-ink: #0ca30c; --critical: #e66767;
   --warn-bg: #5b4a17; --accent: #3987e5; --code-bg: #222220; --shadow: none;
 }
 
@@ -144,13 +148,14 @@ label.ctl { font-size: .85rem; color: var(--ink-2); display: inline-flex; gap: 8
 .chart { width: 100%; height: 360px; }
 .chart.short { height: 300px; }
 .chart.tall { height: 440px; }
+.chart.xtall { height: 640px; }
 
 /* heatmap HTML */
 .hm-wrap { overflow-x: auto; }
 .hm { border-collapse: separate; border-spacing: 4px; font-size: .86rem; min-width: 760px; width: 100%; }
 .hm th { font-weight: 600; color: var(--ink-2); font-size: .8rem; padding: 4px; }
 .hm th.row { text-align: right; white-space: nowrap; padding-right: 10px; }
-.hm td { text-align: center; padding: 9px 4px; border-radius: 8px; background: var(--surface-2); color: var(--ink-2); font-variant-numeric: tabular-nums; }
+.hm td { white-space: nowrap; text-align: center; padding: 9px 4px; border-radius: 8px; background: var(--surface-2); color: var(--ink-2); font-variant-numeric: tabular-nums; }
 .hm td.ok { background: var(--good); color: #fff; font-weight: 600; }
 .hm td.edge { background: var(--warn-bg); color: var(--ink); }
 .hm td.na { background: transparent; color: var(--muted); }

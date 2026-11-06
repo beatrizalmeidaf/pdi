@@ -2,8 +2,9 @@
 
     python -m pdi_spectral report            # ou: make report
 
-Lê as análises já rodadas (results/sweep e results/sweep_imagenette, mais o fine-tuning
-em results/finetune_cifar) e escreve:
+Lê as análises da rodada final (results/pub_cifar10_s0, pub_imagenette_s0 e pub_imagenet; o E4 junta as
+3 sementes) e, se ela não existir, as da primeira rodada (results/sweep, sweep_imagenette, finetune_cifar).
+Escreve:
   docs/figures/*.png          figuras do README (tema claro)
   docs/assets/data.json       dados compactos para os gráficos interativos do site
   docs/samples/<ds>/*.png     amostras: cada técnica em cada dose, em imagens reais
@@ -20,14 +21,22 @@ import pandas as pd
 # ---------------------------------------------------------------------------
 # Rótulos e paleta
 # ---------------------------------------------------------------------------
-RUNS = {"cifar10": "sweep", "imagenette": "sweep_imagenette"}
-DS_LABEL = {"cifar10": "CIFAR-10 (32 px)", "imagenette": "Imagenette (224 px)"}
+# rodada final (semente 0 nas bases com sementes; o E4 junta as 3) e, na falta dela, a primeira rodada
+RUNS = {"cifar10": "pub_cifar10_s0", "imagenette": "pub_imagenette_s0", "imagenet_val": "pub_imagenet"}
+SEED_RUNS = {"cifar10": [f"pub_cifar10_s{s}" for s in range(3)], "imagenette": [f"pub_imagenette_s{s}" for s in range(3)]}
+LEGACY_RUNS = {"cifar10": "sweep", "imagenette": "sweep_imagenette"}
+DS_LABEL = {"cifar10": "CIFAR-10 (32 px)", "imagenette": "Imagenette (224 px)", "imagenet_val": "ImageNet-val (224 px)"}
 MODEL_LABEL = {
     "cifar10_resnet20": "ResNet-20", "cifar10_resnet56": "ResNet-56", "cifar10_vgg16_bn": "VGG-16-BN",
-    "efficientnet_b0": "EfficientNet-B0", "resnet50": "ResNet-50", "vit_b_16": "ViT-B/16",
+    "cifar10_mobilenetv2_x1_0": "MobileNetV2", "cifar10_repvgg_a0": "RepVGG-A0",
+    "resnet18": "ResNet-18", "resnet50": "ResNet-50", "vgg16_bn": "VGG-16-BN", "efficientnet_b0": "EfficientNet-B0",
+    "convnext_tiny": "ConvNeXt-T", "swin_t": "Swin-T", "vit_b_16": "ViT-B/16",
 }
-MODEL_ORDER = {"cifar10": ["cifar10_resnet20", "cifar10_resnet56", "cifar10_vgg16_bn"],
-               "imagenette": ["resnet50", "efficientnet_b0", "vit_b_16"]}
+_ORDER_224 = ["resnet18", "resnet50", "vgg16_bn", "efficientnet_b0", "convnext_tiny", "swin_t", "vit_b_16"]
+ORDER_ALL = {"cifar10": ["cifar10_resnet20", "cifar10_resnet56", "cifar10_vgg16_bn", "cifar10_mobilenetv2_x1_0",
+                         "cifar10_repvgg_a0"],
+             "imagenette": _ORDER_224, "imagenet_val": _ORDER_224}
+MODEL_ORDER: dict[str, list[str]] = {}  # preenchido em load() com os modelos presentes
 TECH_LABEL = {
     "gaussian": "Gaussiano", "median": "Mediana", "bilateral": "Bilateral", "wiener": "Wiener",
     "jpeg": "JPEG 4:2:0", "jpeg444": "JPEG 4:4:4", "hist_eq": "Equalização (HE)", "clahe": "CLAHE",
@@ -48,8 +57,9 @@ TECH_ORDER = ["unsharp", "laplacian", "hist_eq", "clahe", "clahe_blend", "gaussi
 # Paleta de referência (validada: 3 slots passam em todos os pares, claro e escuro)
 C = dict(s1="#2a78d6", s2="#eb6834", s3="#1baf7a", surface="#fcfcfb", ink="#0b0b0b", ink2="#52514e",
          muted="#898781", grid="#e1e0d9", axis="#c3c2b7", good="#0ca30c", critical="#d03b3b", neutral="#f0efec")
-DS_COLOR = {"cifar10": C["s1"], "imagenette": C["s2"]}
-SLOTS = [C["s1"], C["s2"], C["s3"]]
+DS_COLOR = {"cifar10": C["s1"], "imagenette": C["s2"], "imagenet_val": C["s3"]}
+# 7 cores categóricas (uma por modelo); as 3 primeiras são a paleta do projeto
+SLOTS = [C["s1"], C["s2"], C["s3"], "#8a5cd0", "#c9971a", "#d2457f", "#5d6b78"]
 
 
 def effect(t: str) -> str:
@@ -59,9 +69,16 @@ def effect(t: str) -> str:
 # ---------------------------------------------------------------------------
 # Carga
 # ---------------------------------------------------------------------------
+def _concat_csv(paths):
+    fr = [pd.read_csv(p).assign(seed=i) for i, p in enumerate(paths) if p.exists()]
+    return pd.concat(fr, ignore_index=True) if fr else None
+
+
 def load(results: Path) -> dict:
     d = {}
-    for ds, run in RUNS.items():
+    legacy = not (results / RUNS["cifar10"] / "analysis").exists()
+    runs = LEGACY_RUNS if legacy else RUNS
+    for ds, run in runs.items():
         a = results / run / "analysis"
         if not a.exists():
             print(f"[report] aviso: {a} não existe; {ds} fica de fora")
@@ -74,17 +91,25 @@ def load(results: Path) -> dict:
             "loto": pd.read_csv(a / "loto.csv"),
             "ire": pd.read_csv(a / "ire_summary.csv"),
             "ire_cp": pd.read_csv(a / "ire_condition_predictions.csv"),
-            "adapt": pd.read_csv(results / run / "adaptation" / "adaptation.csv")
-            if (results / run / "adaptation" / "adaptation.csv").exists() else None,
+            "adapt": _concat_csv([results / r / "adaptation" / "adaptation.csv" for r in SEED_RUNS.get(ds, [run])])
+            if not legacy else _concat_csv([results / run / "adaptation" / "adaptation.csv"]),
         }
+        present = set(d[ds]["cond"].model.unique())
+        MODEL_ORDER[ds] = [m for m in ORDER_ALL[ds] if m in present]
         bq = a / "brisque_conditions.csv"  # razão das médias (ver brisque_fix.py)
         if bq.exists():
             b = pd.read_csv(bq)[["cond_id", "dq_brisque"]]
             d[ds]["cond"] = d[ds]["cond"].drop(columns=["dq_brisque"]).merge(b, on="cond_id", how="left")
-    ft = results / "finetune_cifar" / "adaptation" / "adaptation.csv"
-    if ft.exists() and "cifar10" in d:
-        d["cifar10"]["finetune"] = pd.read_csv(ft)
+    if "cifar10" in d:
+        if not legacy and d["cifar10"]["adapt"] is not None and "acc_ft_oo" in d["cifar10"]["adapt"]:
+            d["cifar10"]["finetune"] = d["cifar10"]["adapt"]
+        elif (ft := results / "finetune_cifar" / "adaptation" / "adaptation.csv").exists():
+            d["cifar10"]["finetune"] = pd.read_csv(ft)
     return d
+
+
+def _n_models(d) -> str:
+    return " / ".join(str(len(MODEL_ORDER[ds])) for ds in d)
 
 
 # ---------------------------------------------------------------------------
@@ -160,7 +185,7 @@ def fig_dose_curves(d, out):
         ax.set_ylabel("Δ acurácia (p.p.)")
     axes[0, 0].legend(loc="lower left")
     _title(fig, "Dose-resposta: quanto a acurácia muda com a intensidade",
-           "Linha = média dos 3 modelos de cada dataset; faixa = do pior ao melhor modelo. Acima de 0 = a técnica melhora o classificador.")
+           f"Linha = média dos modelos de cada base ({_n_models(d)}); faixa = do pior ao melhor modelo. Acima de 0 = a técnica melhora o classificador.")
     _finish(fig)
     fig.savefig(out / "curvas_dose.png")
     plt.close(fig)
@@ -168,7 +193,7 @@ def fig_dose_curves(d, out):
 
 def fig_bands(d, out):
     plt = _style()
-    fig, axes = plt.subplots(1, len(d), figsize=(11, 3.9), sharey=True)
+    fig, axes = plt.subplots(1, len(d), figsize=(4.2 * len(d), 4.2), sharey=True)
     axes = np.atleast_1d(axes)
     for ax, ds in zip(axes, d):
         b = d[ds]["bands"]
@@ -180,7 +205,7 @@ def fig_bands(d, out):
         _zero(ax)
         ax.set_title(DS_LABEL[ds])
         ax.set_xlabel("centro do anel removido (ciclos/pixel)")
-        ax.legend(loc="lower right")
+        ax.legend(loc="lower right", fontsize=7.5)
     axes[0].set_ylabel("Δ acurácia (p.p.)")
     _title(fig, "A banda de frequência que o classificador usa muda com a resolução",
            "Filtro ideal que remove um anel de frequência por vez. Em 32 px dói a média-alta frequência; em 224 px, a mais baixa — e o ViT depende quase só dela.")
@@ -195,7 +220,7 @@ def fig_windows(d, out):
 
     cols = [(ds, m) for ds in d for m in MODEL_ORDER[ds]]
     techs = [t for t in TECH_ORDER if t not in ("sr_espcn", "sr_fsrcnn")]
-    fig, ax = plt.subplots(figsize=(9.2, 0.42 * len(techs) + 1.9))
+    fig, ax = plt.subplots(figsize=(max(9.2, 0.62 * len(cols) + 3.2), 0.42 * len(techs) + 1.9))
     ax.set_xlim(0, len(cols))
     ax.set_ylim(len(techs), 0)
     ax.grid(False)
@@ -231,14 +256,17 @@ def fig_windows(d, out):
                 val = f"{bmd:.2f}" if bmd < 10 else f"{bmd:.0f}"
             else:
                 val = "—"
-            ax.text(j + 0.5, i + 0.52, f"{mark} {val}".strip(), ha="center", va="center", fontsize=8.5, color=txt_c)
+            ax.text(j + 0.5, i + 0.52, f"{mark} {val}".strip(), ha="center", va="center", fontsize=7.5, color=txt_c)
     for j, (ds, m) in enumerate(cols):
-        ax.text(j + 0.5, -0.35, MODEL_LABEL[m], ha="center", va="bottom", fontsize=8.5, color=C["ink2"])
-    for k, ds in enumerate(d):
-        j0 = k * 3
-        ax.text(j0 + 1.5, -1.05, DS_LABEL[ds], ha="center", va="bottom", fontsize=10, fontweight="semibold",
+        ax.text(j + 0.5, -0.2, MODEL_LABEL[m], ha="left", va="bottom", fontsize=7.8, color=C["ink2"], rotation=40,
+                rotation_mode="anchor")
+    j0 = 0
+    for ds in d:
+        n = len(MODEL_ORDER[ds])
+        ax.text(j0 + n / 2, -2.1, DS_LABEL[ds], ha="center", va="bottom", fontsize=10, fontweight="semibold",
                 color=C["ink"])
-        ax.plot([j0 + 0.1, j0 + 2.9], [-0.95, -0.95], color=C["axis"], lw=1, clip_on=False)
+        ax.plot([j0 + 0.1, j0 + n - 0.1], [-2.0, -2.0], color=C["axis"], lw=1, clip_on=False)
+        j0 += n
     _title(fig, "Limiar de dano e janela operacional por técnica",
            "Número = intensidade em que a acurácia cai 1 p.p. (BMD).  ✓ verde = existe janela: o objetivo visual "
            "(+10% nitidez, −10% ruído ou +10% contraste) chega antes do limite seguro.  ✗ cinza = não existe.  "
@@ -251,33 +279,39 @@ def fig_windows(d, out):
 def fig_hormesis(d, out):
     plt = _style()
     techs = [t for t in TECH_ORDER if t not in ("sr_espcn", "sr_fsrcnn", "sr_bicubic")]
-    fig, axes = plt.subplots(1, len(d), figsize=(11, 5.2), sharey=True)
+    fig, axes = plt.subplots(1, len(d), figsize=(4.4 * len(d), 6.0), sharey=True)
     axes = np.atleast_1d(axes)
     for ax, ds in zip(axes, d):
         thr = d[ds]["thr"]
         ax.grid(axis="x")
         ax.grid(axis="y", visible=False)
+        n = len(MODEL_ORDER[ds])
         for i, m in enumerate(MODEL_ORDER[ds]):
-            off = (i - 1) * 0.24
+            off = (i - (n - 1) / 2) * (0.78 / n)
             for k, t in enumerate(techs):
                 r = thr[(thr.model == m) & (thr.technique == t)]
                 if r.empty:
                     continue
                 r = r.iloc[0]
                 g, lo, hi = 100 * r.best_gain, 100 * r.best_gain_lo, 100 * r.best_gain_hi
-                ax.plot([lo, hi], [k + off, k + off], color=SLOTS[i], lw=1.6, alpha=0.9)
-                ax.plot(g, k + off, "o", ms=6 if r.gain_significant else 4.5, color=SLOTS[i],
+                ax.plot([lo, hi], [k + off, k + off], color=SLOTS[i], lw=1.2, alpha=0.9)
+                ax.plot(g, k + off, "o", ms=5.5 if r.gain_significant else 3.5, color=SLOTS[i],
                         mec=C["surface"], mew=1.2, label=MODEL_LABEL[m] if k == 0 else None)
         _zero(ax, "x")
         ax.set_yticks(range(len(techs)), [TECH_LABEL[t] for t in techs])
         ax.set_ylim(len(techs) - 0.5, -0.5)
         ax.set_title(DS_LABEL[ds])
         ax.set_xlabel("melhor Δ acurácia em alguma dose (p.p.), IC 90%")
-        ax.legend(loc="upper center", bbox_to_anchor=(0.5, -0.16), ncol=3)
-    _title(fig, "Hormese: alguma dose melhora o classificador?",
-           "Ponto maior = ganho com IC acima de zero. No CIFAR, nenhum. Em 224 px, ganhos claros só no aguçamento leve "
-           "(laplaciano até +2,8 p.p.; unsharp até +2,0 p.p.). Os +0,3 e +0,4 p.p. da ResNet-50 em CLAHE misturado e "
-           "JPEG 4:4:4 estão no limite: com 42 testes a IC 90%, ~4 falsos positivos são esperados ao acaso.")
+        from matplotlib.lines import Line2D
+
+        hs = [Line2D([], [], marker="o", ls="", ms=5, color=SLOTS[i], label=MODEL_LABEL[m])
+              for i, m in enumerate(MODEL_ORDER[ds])]
+        ax.legend(handles=hs, loc="upper center", bbox_to_anchor=(0.5, -0.13), ncol=3, fontsize=7.5)
+    sub = ("Ponto maior = ganho com IC 90% acima de zero. No CIFAR-10, nenhum. No Imagenette, ganhos claros só no "
+           "aguçamento leve (laplaciano até +2,7 p.p.).")
+    if "imagenet_val" in d:
+        sub += " No ImageNet-val completo (1000 classes) o efeito quase some: só o Swin-T, +0,3 p.p."
+    _title(fig, "Hormese: alguma dose melhora o classificador?", sub)
     _finish(fig)
     fig.savefig(out / "hormese.png")
     plt.close(fig)
@@ -290,11 +324,11 @@ PREDICTORS = [("dose_rank", "Parâmetro nominal (σ, k, clip…)"), ("psnr", "PS
 
 def fig_predictors(d, out):
     plt = _style()
-    fig, ax = plt.subplots(figsize=(9.5, 4.4))
+    fig, ax = plt.subplots(figsize=(9.5, 4.8))
     ax.grid(axis="x")
     ax.grid(axis="y", visible=False)
     n = len(d)
-    h = 0.34
+    h = 0.8 / n
     for k, ds in enumerate(d):
         l = d[ds]["loto"]
         for i, (f, lab) in enumerate(PREDICTORS):
@@ -304,7 +338,7 @@ def fig_predictors(d, out):
             y = i + (k - (n - 1) / 2) * h
             ax.barh(y, v.mean(), height=h * 0.86, color=DS_COLOR[ds], label=DS_LABEL[ds] if i == 0 else None)
             ax.plot([v.min(), v.max()], [y, y], color=C["ink2"], lw=1)
-            ax.text(max(v.mean(), 0) + 0.015, y, f"{v.mean():.2f}", va="center", fontsize=8.5, color=C["ink2"])
+            ax.text(max(v.max(), 0) + 0.015, y, f"{v.mean():.2f}", va="center", fontsize=7.5, color=C["ink2"])
     ax.set_yticks(range(len(PREDICTORS)), [p[1] for p in PREDICTORS])
     ax.set_ylim(len(PREDICTORS) - 0.4, -0.6)
     ax.set_xlim(-0.1, 1.0)
@@ -312,7 +346,7 @@ def fig_predictors(d, out):
     ax.set_xlabel("R² prevendo técnicas nunca vistas (leave-one-technique-out)")
     ax.legend(loc="upper right")
     _title(fig, "Medir o espectro prevê o dano; o parâmetro nominal não",
-           "Barra = média dos 3 modelos; traço = do pior ao melhor modelo.")
+           "Queda de acurácia por condição. Barra = média dos modelos; traço = do pior ao melhor modelo.")
     _finish(fig)
     fig.savefig(out / "preditores.png")
     plt.close(fig)
@@ -338,7 +372,7 @@ def fig_ire(d, out):
     mx = 0
     for ds in d:
         cp = d[ds]["ire_cp"]
-        a2.scatter(100 * cp.flip, 100 * cp.p_loto, s=16, color=DS_COLOR[ds], alpha=0.75, lw=0, label=DS_LABEL[ds])
+        a2.scatter(100 * cp.flip, 100 * cp.p_loto, s=9, color=DS_COLOR[ds], alpha=0.55, lw=0, label=DS_LABEL[ds])
         mx = max(mx, 100 * cp.flip.max(), 100 * cp.p_loto.max())
     a2.plot([0, mx], [0, mx], color=C["axis"], lw=1)
     a2.set_xlabel("decisões que mudaram, observado (%)")
@@ -374,11 +408,13 @@ def fig_adaptation(d, out):
             ax.plot(100 * val, i, "o", ms=7, color=col, mec=C["surface"], mew=1.5, zorder=3, label=lab if i == 0 else None)
         ax.text(100 * r.ctrl + 1.0, i, f"{100 * r.rec:.0f}% recuperado" if r.ctrl - r.frozen > 0.02 else "queda pequena",
                 va="center", fontsize=8.5, color=C["ink2"])
-    labels = [f"{TECH_LABEL[r.technique]} ({TECH_PARAM[r.technique]} {r.dose:g})" for r in g.itertuples()]
+    labels = [f"{TECH_LABEL[r.technique]} (qualidade {r.dose:g})" if r.technique.startswith("jpeg") else
+              f"{TECH_LABEL[r.technique]} ({TECH_PARAM[r.technique]} {r.dose:g})" for r in g.itertuples()]
     ax.set_yticks(range(len(g)), labels)
     ax.set_ylim(len(g) - 0.5, -0.5)
     ax.set_xlim(35, 108)
-    ax.set_xlabel("acurácia (%) — CIFAR-10, média dos 3 modelos")
+    ax.set_xlabel(f"acurácia (%) — CIFAR-10, média de {ft.model.nunique()} modelos"
+                  + (f" × {ft.seed.nunique()} sementes" if "seed" in ft else ""))
     ax.legend(loc="upper center", bbox_to_anchor=(0.45, -0.14), ncol=4, fontsize=8)
     _title(fig, "Domain shift ou informação perdida?",
            "Se re-treinar recupera a queda, a informação continuava na imagem. Aguçamento e blur leve voltam; JPEG e mediana, não.")
@@ -392,27 +428,30 @@ CNN_VIT = [("gaussian", 1.0), ("gaussian", 2.0), ("bilateral", 4.0), ("median", 
 
 
 def fig_cnn_vit(d, out):
-    if "imagenette" not in d:
+    ds = "imagenet_val" if "imagenet_val" in d else "imagenette"
+    if ds not in d:
         return
     plt = _style()
-    c = d["imagenette"]["cond"]
-    fig, ax = plt.subplots(figsize=(10.5, 4))
-    w = 0.26
-    for i, m in enumerate(MODEL_ORDER["imagenette"]):
+    c = d[ds]["cond"]
+    fig, ax = plt.subplots(figsize=(11.5, 4.3))
+    n = len(MODEL_ORDER[ds])
+    w = 0.84 / n
+    for i, m in enumerate(MODEL_ORDER[ds]):
         vals = []
         for t, dose in CNN_VIT:
             r = c[(c.model == m) & (c.technique == t) & np.isclose(c.dose, dose)]
             vals.append(100 * r.delta_acc.iloc[0] if len(r) else np.nan)
-        x = np.arange(len(CNN_VIT)) + (i - 1) * w
+        x = np.arange(len(CNN_VIT)) + (i - (n - 1) / 2) * w
         ax.bar(x, vals, width=w * 0.88, color=SLOTS[i], label=MODEL_LABEL[m])
     _zero(ax)
     ax.set_xticks(range(len(CNN_VIT)), [(f"{TECH_LABEL[t]}\nqualidade {int(dose)}" if t.startswith("jpeg") else
                                          f"{TECH_LABEL[t].replace(' masking', '')}\n{TECH_PARAM[t]} = {dose:g}")
                                         for t, dose in CNN_VIT], fontsize=8.2)
     ax.set_ylabel("Δ acurácia (p.p.)")
-    ax.legend(loc="lower left")
-    _title(fig, "CNN × Vision Transformer em 224 px",
-           "Na mesma dose, o ViT perde até 2× menos com técnicas que removem frequência — mas não é o mais robusto ao aguçamento forte.")
+    ax.legend(loc="lower left", ncol=2 if n > 3 else 1, fontsize=7.5)
+    _title(fig, f"CNNs × transformers em 224 px — {DS_LABEL[ds]}",
+           "Na mesma dose, o ViT perde bem menos que as CNNs com técnicas que removem frequência; o Swin-T, mesmo sendo "
+           "transformer, fica perto das CNNs, e o ConvNeXt-T, mesmo sendo CNN, fica perto do ViT.")
     _finish(fig)
     fig.savefig(out / "cnn_vit.png")
     plt.close(fig)
@@ -420,10 +459,13 @@ def fig_cnn_vit(d, out):
 
 def fig_jpeg(d, out):
     plt = _style()
-    fig, axes = plt.subplots(1, len(d), figsize=(11, 3.6), sharey=True)
+    fig, axes = plt.subplots(1, len(d), figsize=(4.1 * len(d), 3.8), sharey=True)
     axes = np.atleast_1d(axes)
+    q100 = {}
     for ax, ds in zip(axes, d):
         cv = d[ds]["curves"]
+        g = cv[(cv.technique == "jpeg") & np.isclose(cv.x, 0) & cv.model.isin(MODEL_ORDER[ds])]
+        q100[ds] = -100 * g.d_acc.min() if len(g) else np.nan
         for t, col in (("jpeg", C["s1"]), ("jpeg444", C["s2"])):
             x, m, lo, hi = _mean_band(cv, t, MODEL_ORDER[ds])
             q = 100 - x
@@ -438,10 +480,12 @@ def fig_jpeg(d, out):
         ax.set_xticks([100, 98, 95, 90, 85, 80])
         ax.set_title(DS_LABEL[ds])
         ax.set_xlabel("qualidade JPEG")
-        ax.legend(loc="lower left")
+        ax.legend(loc="lower left", fontsize=7.5)
     axes[0].set_ylabel("Δ acurácia (p.p.)")
+    worst = ", ".join(f"{v:.1f} p.p. ({DS_LABEL[k].split(' (')[0]})".replace(".", ",", 1) for k, v in q100.items()
+                      if np.isfinite(v))
     _title(fig, "No JPEG de alta qualidade, quem muda a decisão é a cor",
-           "Mesmo na qualidade 100, a subamostragem de croma 4:2:0 já custa até 1,4 p.p. (CIFAR) e 1,5 p.p. (ResNet-50); sem ela, ~0.")
+           f"Mesmo na qualidade 100, a subamostragem de croma 4:2:0 já custa, no pior modelo, {worst}; sem ela, ~0.")
     _finish(fig)
     fig.savefig(out / "jpeg_cor.png")
     plt.close(fig)
@@ -450,7 +494,7 @@ def fig_jpeg(d, out):
 def fig_tradeoff(d, out):
     plt = _style()
     techs = [("unsharp", C["s1"]), ("laplacian", C["s2"]), ("gaussian", C["s3"])]
-    fig, axes = plt.subplots(1, len(d), figsize=(11, 4.3), sharey=False)
+    fig, axes = plt.subplots(1, len(d), figsize=(4.2 * len(d), 4.4), sharey=False)
     axes = np.atleast_1d(axes)
     for ax, ds in zip(axes, d):
         c = d[ds]["cond"]
@@ -462,11 +506,11 @@ def fig_tradeoff(d, out):
             ax.plot(xs, ys, color=col, marker="o", ms=4, mec=C["surface"], mew=1.2, label=TECH_LABEL[t])
             ax.annotate(f"{TECH_PARAM[t]} {g.dose.iloc[-1]:g}", (xs[-1], ys[-1]), xytext=(4, -10),
                         textcoords="offset points", fontsize=7.5, color=C["ink2"])
-        if ds == "imagenette":
+        if ds != "cifar10":
             ax.set_xlim(-75, 25)
             ax.set_ylim(-12, 4)
-            ax.annotate("Gaussiano forte sai do gráfico:\nσ 3 = −260% de BRISQUE e −35 p.p.", xy=(-75, -7.5),
-                        xytext=(-73, -11.6), fontsize=7.5, color=C["ink2"])
+            ax.annotate("Gaussiano forte sai do gráfico", xy=(-75, -7.5), xytext=(-73, -11.6), fontsize=7.5,
+                        color=C["ink2"])
         _zero(ax)
         _zero(ax, "x")
         ax.plot(0, 0, "o", ms=7, color=C["ink"], mec=C["surface"], mew=1.5)
@@ -474,10 +518,11 @@ def fig_tradeoff(d, out):
         ax.set_title(DS_LABEL[ds])
         ax.set_xlabel("ganho de qualidade perceptual (BRISQUE, %)  →  melhor")
         ax.set_ylabel("Δ acurácia (p.p.)")
-        ax.legend(loc="lower right" if ds == "imagenette" else "lower left")
+        ax.legend(loc="lower right" if ds != "cifar10" else "lower left", fontsize=7.5)
     _title(fig, "\"Melhorar\" a imagem melhora o classificador?",
            "Cada ponto é uma dose (média dos modelos). Quadrante de cima à direita = melhor para pessoas e para a rede. "
-           "Em 32 px a qualidade sobe só às custas da acurácia; em 224 px o aguçamento leve ganha nos dois. "
+           "Em 32 px a qualidade sobe só às custas da acurácia; no Imagenette o aguçamento leve ganha nos dois; no "
+           "ImageNet-val ele melhora o BRISQUE quase sem custo para a rede. "
            "BRISQUE resumido pela variação da média (robusto a imagens com BRISQUE ≈ 0).")
     _finish(fig)
     fig.savefig(out / "tradeoff_brisque.png")
@@ -517,7 +562,7 @@ def fig_samples_strip(samples_root: Path, manifest: dict, d: dict, out: Path):
         for s in ax.spines.values():
             s.set_visible(False)
     fig.subplots_adjust(left=0.005, right=0.995, wspace=0.08)
-    fig.text(0.5, -0.04, f"Δ = variação média de acurácia dos 3 modelos no {DS_LABEL[ds]} (2000 imagens).",
+    fig.text(0.5, -0.04, f"Δ = variação média de acurácia dos {len(MODEL_ORDER[ds])} modelos no {DS_LABEL[ds]} (2000 imagens).",
              fontsize=8.5, color=C["ink2"], ha="center")
     fig.savefig(out / "amostras.png")
     plt.close(fig)
